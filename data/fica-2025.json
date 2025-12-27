@@ -1,0 +1,18 @@
+{
+  "year": 2025,
+  "socialSecurity": {
+    "rate": 0.062,
+    "wageBaseCap": 168600
+  },
+  "medicareAdditional": {
+    "rate": 0.009,
+    "thresholds": {
+      "single": 200000,
+      "marriedFilingJointly": 250000,
+      "marriedFilingSeparately": 125000
+    }
+  },
+  "medicareBase": {
+    "rate": 0.0145
+  }
+}

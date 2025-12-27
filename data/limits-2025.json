@@ -1,0 +1,18 @@
+{
+  "year": 2025,
+  "saltLimit": {
+    "default": 10000,
+    "marriedFilingSeparately": 5000
+  },
+  "contribution401k": {
+    "standard": 23500,
+    "catchUp50Plus": 7500
+  },
+  "mortgageBalanceLimit": {
+    "federal": {
+      "default": 750000,
+      "marriedFilingSeparately": 375000
+    },
+    "california": 1000000
+  }
+}
