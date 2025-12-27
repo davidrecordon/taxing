@@ -28,11 +28,16 @@ function createDefaultDeductionInputs(overrides: Partial<DeductionInputs> = {}):
   };
 }
 
+// Default high AGI for tests that should use standard (lower) SALT cap
+const HIGH_AGI = 600000;
+// Low AGI for tests that should use elevated SALT cap
+const LOW_AGI = 400000;
+
 describe('calculateFederalDeductions', () => {
   describe('SALT cap and standard vs itemized', () => {
-    it('caps SALT at $10,000 and chooses itemized when higher than standard', () => {
+    it('caps SALT at $10,000 when AGI >= $500k and chooses itemized when higher than standard', () => {
       // $15,000 CA tax withheld + $8,000 property tax = $23,000 total SALT
-      // Capped at $10,000
+      // Capped at $10,000 (AGI >= $500k)
       // $20,000 mortgage interest + $5,000 charitable = $25,000
       // Total itemized: $10,000 + $25,000 = $35,000 > $15,000 standard
       const inputs = createDefaultDeductionInputs({
@@ -47,7 +52,8 @@ describe('calculateFederalDeductions', () => {
         inputs,
         'single',
         federalDeductions as DeductionsData,
-        limits as LimitsData
+        limits as LimitsData,
+        HIGH_AGI
       );
 
       expect(result.saltDeduction).toBe(10000);
@@ -67,7 +73,8 @@ describe('calculateFederalDeductions', () => {
         inputs,
         'single',
         federalDeductions as DeductionsData,
-        limits as LimitsData
+        limits as LimitsData,
+        HIGH_AGI
       );
 
       expect(result.itemizedDeduction).toBe(5000);
@@ -91,7 +98,8 @@ describe('calculateFederalDeductions', () => {
         inputs,
         'single',
         federalDeductions as DeductionsData,
-        limits as LimitsData
+        limits as LimitsData,
+        HIGH_AGI
       );
 
       expect(result.mortgageInterest).toBe(22500);
@@ -110,7 +118,8 @@ describe('calculateFederalDeductions', () => {
         inputs,
         'single',
         federalDeductions as DeductionsData,
-        limits as LimitsData
+        limits as LimitsData,
+        HIGH_AGI
       );
 
       expect(result.mortgageInterest).toBe(25000);
@@ -127,7 +136,8 @@ describe('calculateFederalDeductions', () => {
         inputs,
         'single',
         federalDeductions as DeductionsData,
-        limits as LimitsData
+        limits as LimitsData,
+        HIGH_AGI
       );
 
       // When itemized is chosen, mortgage interest should be full amount
@@ -138,7 +148,7 @@ describe('calculateFederalDeductions', () => {
 });
 
 describe('calculateFederalDeductions MFS edge cases', () => {
-  it('uses $5,000 SALT cap for MFS instead of $10,000', () => {
+  it('uses $5,000 SALT cap for MFS when AGI >= $500k', () => {
     const inputs = createDefaultDeductionInputs({
       californiaTaxWithheld: 8000,
       propertyTaxesPaid: 5000, // Total $13,000 SALT
@@ -151,10 +161,11 @@ describe('calculateFederalDeductions MFS edge cases', () => {
       inputs,
       'marriedFilingSeparately',
       federalDeductions as DeductionsData,
-      limits as LimitsData
+      limits as LimitsData,
+      HIGH_AGI
     );
 
-    // SALT capped at $5,000 for MFS
+    // SALT capped at $5,000 for MFS when AGI >= $500k
     expect(result.saltDeduction).toBe(5000);
     expect(result.saltCapped).toBe(true);
   });
@@ -173,7 +184,8 @@ describe('calculateFederalDeductions MFS edge cases', () => {
       inputs,
       'marriedFilingSeparately',
       federalDeductions as DeductionsData,
-      limits as LimitsData
+      limits as LimitsData,
+      HIGH_AGI
     );
 
     expect(result.mortgageInterest).toBe(18750);
@@ -181,7 +193,7 @@ describe('calculateFederalDeductions MFS edge cases', () => {
 });
 
 describe('calculateFederalDeductions boundary cases', () => {
-  it('SALT exactly at $10,000 limit is not marked as capped', () => {
+  it('SALT exactly at $10,000 limit is not marked as capped (high AGI)', () => {
     const inputs = createDefaultDeductionInputs({
       californiaTaxWithheld: 7000,
       propertyTaxesPaid: 3000, // Total exactly $10,000
@@ -193,7 +205,8 @@ describe('calculateFederalDeductions boundary cases', () => {
       inputs,
       'single',
       federalDeductions as DeductionsData,
-      limits as LimitsData
+      limits as LimitsData,
+      HIGH_AGI
     );
 
     expect(result.saltDeduction).toBe(10000);
@@ -210,7 +223,8 @@ describe('calculateFederalDeductions boundary cases', () => {
       inputs,
       'single',
       federalDeductions as DeductionsData,
-      limits as LimitsData
+      limits as LimitsData,
+      HIGH_AGI
     );
 
     // When equal, should use standard (itemized > standard is the condition)
@@ -227,7 +241,8 @@ describe('calculateFederalDeductions boundary cases', () => {
       inputs,
       'single',
       federalDeductions as DeductionsData,
-      limits as LimitsData
+      limits as LimitsData,
+      HIGH_AGI
     );
 
     expect(result.deductionUsed).toBe('itemized');
@@ -245,7 +260,8 @@ describe('calculateFederalDeductions boundary cases', () => {
       inputs,
       'single',
       federalDeductions as DeductionsData,
-      limits as LimitsData
+      limits as LimitsData,
+      HIGH_AGI
     );
 
     expect(result.mortgageInterest).toBe(30000);
@@ -258,7 +274,8 @@ describe('calculateFederalDeductions boundary cases', () => {
       inputs,
       'single',
       federalDeductions as DeductionsData,
-      limits as LimitsData
+      limits as LimitsData,
+      HIGH_AGI
     );
 
     expect(result.itemizedDeduction).toBe(0);
@@ -277,7 +294,8 @@ describe('calculateFederalDeductions MFJ', () => {
       inputs,
       'marriedFilingJointly',
       federalDeductions as DeductionsData,
-      limits as LimitsData
+      limits as LimitsData,
+      HIGH_AGI
     );
 
     expect(result.standardDeduction).toBe(30000);
@@ -285,7 +303,7 @@ describe('calculateFederalDeductions MFJ', () => {
     expect(result.deductionAmount).toBe(30000);
   });
 
-  it('uses full $10,000 SALT cap for MFJ', () => {
+  it('uses $10,000 SALT cap for MFJ when AGI >= $500k', () => {
     const inputs = createDefaultDeductionInputs({
       californiaTaxWithheld: 20000,
       propertyTaxesPaid: 15000,
@@ -297,7 +315,8 @@ describe('calculateFederalDeductions MFJ', () => {
       inputs,
       'marriedFilingJointly',
       federalDeductions as DeductionsData,
-      limits as LimitsData
+      limits as LimitsData,
+      HIGH_AGI
     );
 
     expect(result.saltDeduction).toBe(10000);
@@ -319,10 +338,11 @@ describe('calculateFederalDeductions SALT components', () => {
       inputs,
       'single',
       federalDeductions as DeductionsData,
-      limits as LimitsData
+      limits as LimitsData,
+      HIGH_AGI
     );
 
-    // All three components counted, then capped
+    // All three components counted, then capped at $10k (high AGI)
     expect(result.saltDeduction).toBe(10000);
     expect(result.saltCapped).toBe(true);
   });
@@ -338,7 +358,8 @@ describe('calculateFederalDeductions SALT components', () => {
       inputs,
       'single',
       federalDeductions as DeductionsData,
-      limits as LimitsData
+      limits as LimitsData,
+      HIGH_AGI
     );
 
     expect(result.saltDeduction).toBe(8000);
@@ -515,7 +536,8 @@ describe('mortgage interest edge cases across both jurisdictions', () => {
       inputs,
       'single',
       federalDeductions as DeductionsData,
-      limits as LimitsData
+      limits as LimitsData,
+      HIGH_AGI
     );
 
     const caResult = calculateCaliforniaDeductions(
@@ -529,5 +551,134 @@ describe('mortgage interest edge cases across both jurisdictions', () => {
     expect(federalResult.mortgageInterest).toBe(37500);
     // CA: Full $40k (within $1M limit)
     expect(caResult.mortgageInterest).toBe(40000);
+  });
+});
+
+describe('calculateFederalDeductions AGI-dependent SALT cap', () => {
+  describe('elevated SALT cap when AGI < $500k', () => {
+    it('uses $20,000 SALT cap for Single when AGI < $500k', () => {
+      const inputs = createDefaultDeductionInputs({
+        californiaTaxWithheld: 15000,
+        propertyTaxesPaid: 10000, // Total $25,000 SALT
+        mortgageInterestPaid: 20000,
+        mortgageBalance: 500000,
+      });
+
+      const result = calculateFederalDeductions(
+        inputs,
+        'single',
+        federalDeductions as DeductionsData,
+        limits as LimitsData,
+        LOW_AGI
+      );
+
+      // SALT capped at $20,000 for Single when AGI < $500k
+      expect(result.saltDeduction).toBe(20000);
+      expect(result.saltCapped).toBe(true);
+    });
+
+    it('uses $40,000 SALT cap for MFJ when AGI < $500k', () => {
+      const inputs = createDefaultDeductionInputs({
+        californiaTaxWithheld: 30000,
+        propertyTaxesPaid: 20000, // Total $50,000 SALT
+        mortgageInterestPaid: 25000,
+        mortgageBalance: 600000,
+      });
+
+      const result = calculateFederalDeductions(
+        inputs,
+        'marriedFilingJointly',
+        federalDeductions as DeductionsData,
+        limits as LimitsData,
+        LOW_AGI
+      );
+
+      // SALT capped at $40,000 for MFJ when AGI < $500k
+      expect(result.saltDeduction).toBe(40000);
+      expect(result.saltCapped).toBe(true);
+    });
+
+    it('uses $20,000 SALT cap for MFS when AGI < $500k', () => {
+      const inputs = createDefaultDeductionInputs({
+        californiaTaxWithheld: 15000,
+        propertyTaxesPaid: 10000, // Total $25,000 SALT
+        mortgageInterestPaid: 10000,
+        mortgageBalance: 300000,
+      });
+
+      const result = calculateFederalDeductions(
+        inputs,
+        'marriedFilingSeparately',
+        federalDeductions as DeductionsData,
+        limits as LimitsData,
+        LOW_AGI
+      );
+
+      // SALT capped at $20,000 for MFS when AGI < $500k
+      expect(result.saltDeduction).toBe(20000);
+      expect(result.saltCapped).toBe(true);
+    });
+
+    it('does not cap SALT below elevated limit', () => {
+      const inputs = createDefaultDeductionInputs({
+        californiaTaxWithheld: 10000,
+        propertyTaxesPaid: 5000, // Total $15,000 SALT (below $20k limit)
+        mortgageInterestPaid: 10000,
+        mortgageBalance: 500000,
+      });
+
+      const result = calculateFederalDeductions(
+        inputs,
+        'single',
+        federalDeductions as DeductionsData,
+        limits as LimitsData,
+        LOW_AGI
+      );
+
+      expect(result.saltDeduction).toBe(15000);
+      expect(result.saltCapped).toBe(false);
+    });
+  });
+
+  describe('AGI threshold boundary', () => {
+    it('uses elevated cap when AGI is $499,999', () => {
+      const inputs = createDefaultDeductionInputs({
+        californiaTaxWithheld: 15000,
+        propertyTaxesPaid: 10000, // Total $25,000 SALT
+        mortgageInterestPaid: 20000,
+        mortgageBalance: 500000,
+      });
+
+      const result = calculateFederalDeductions(
+        inputs,
+        'single',
+        federalDeductions as DeductionsData,
+        limits as LimitsData,
+        499999
+      );
+
+      // AGI < $500k, so elevated $20k cap applies
+      expect(result.saltDeduction).toBe(20000);
+    });
+
+    it('uses standard cap when AGI is exactly $500,000', () => {
+      const inputs = createDefaultDeductionInputs({
+        californiaTaxWithheld: 15000,
+        propertyTaxesPaid: 10000, // Total $25,000 SALT
+        mortgageInterestPaid: 20000,
+        mortgageBalance: 500000,
+      });
+
+      const result = calculateFederalDeductions(
+        inputs,
+        'single',
+        federalDeductions as DeductionsData,
+        limits as LimitsData,
+        500000
+      );
+
+      // AGI >= $500k, so standard $10k cap applies
+      expect(result.saltDeduction).toBe(10000);
+    });
   });
 });

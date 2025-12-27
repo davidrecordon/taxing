@@ -47,10 +47,26 @@ function CurrencyInput({
 }
 
 export default function DeductionInputs({ inputs, onUpdate, limits }: Props) {
-  const saltLimit =
-    inputs.filingStatus === 'marriedFilingSeparately'
-      ? limits.saltLimit.marriedFilingSeparately
-      : limits.saltLimit.default;
+  // Calculate total SALT for warning purposes
+  const totalSalt = inputs.propertyTaxesPaid + inputs.californiaTaxWithheld + inputs.californiaEstimatedPaid;
+
+  // Calculate rough pre-deduction AGI to determine applicable SALT limit
+  const roughAgi = inputs.federalIncome + inputs.shortTermCapitalGains + inputs.longTermCapitalGains - inputs.contributions401k;
+
+  // Select SALT limit based on AGI threshold
+  const applicableSaltLimit = roughAgi < limits.saltLimit.elevatedAgiThreshold
+    ? limits.saltLimit.elevated[inputs.filingStatus]
+    : (inputs.filingStatus === 'marriedFilingSeparately'
+        ? limits.saltLimit.marriedFilingSeparately
+        : limits.saltLimit.default);
+
+  // Generate SALT warning message
+  const getSaltWarning = (): string | undefined => {
+    if (totalSalt <= applicableSaltLimit) {
+      return undefined;
+    }
+    return `Will be limited to the ${formatCurrency(applicableSaltLimit)} Federal SALT deduction.`;
+  };
 
   const contribution401kLimit =
     inputs.filingStatus === 'marriedFilingJointly'
@@ -76,9 +92,7 @@ export default function DeductionInputs({ inputs, onUpdate, limits }: Props) {
         label="Property / Local Taxes Paid"
         value={inputs.propertyTaxesPaid}
         onChange={(v) => onUpdate('propertyTaxesPaid', v)}
-        warning={inputs.propertyTaxesPaid > 10000
-          ? 'Will be limited to the $10,000 Federal SALT deduction.'
-          : undefined}
+        warning={getSaltWarning()}
       />
 
       <div className="grid grid-cols-2 gap-4">

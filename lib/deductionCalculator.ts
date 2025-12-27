@@ -28,7 +28,8 @@ export function calculateFederalDeductions(
   inputs: DeductionInputs,
   filingStatus: FilingStatus,
   federalDeductions: DeductionsData,
-  limits: LimitsData
+  limits: LimitsData,
+  agi: number
 ): DeductionBreakdown {
   const standardDeduction = federalDeductions.standardDeduction[filingStatus];
 
@@ -38,10 +39,14 @@ export function calculateFederalDeductions(
     inputs.californiaEstimatedPaid +
     inputs.propertyTaxesPaid;
 
-  const saltLimit =
-    filingStatus === 'marriedFilingSeparately'
-      ? limits.saltLimit.marriedFilingSeparately
-      : limits.saltLimit.default;
+  // SALT cap is AGI-dependent for 2025:
+  // - AGI < $500k: elevated limits ($40k MFJ, $20k Single/MFS)
+  // - AGI >= $500k: standard limits ($10k default, $5k MFS)
+  const saltLimit = agi < limits.saltLimit.elevatedAgiThreshold
+    ? limits.saltLimit.elevated[filingStatus]
+    : (filingStatus === 'marriedFilingSeparately'
+        ? limits.saltLimit.marriedFilingSeparately
+        : limits.saltLimit.default);
 
   const saltDeduction = Math.min(totalStateAndLocalTaxes, saltLimit);
   const saltCapped = totalStateAndLocalTaxes > saltLimit;

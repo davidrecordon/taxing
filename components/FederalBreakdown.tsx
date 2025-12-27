@@ -80,7 +80,7 @@ export default function FederalBreakdown({ result }: Props) {
           <p className="font-medium text-gray-700 mb-1">Itemized Deduction Breakdown:</p>
           <div className="space-y-0.5">
             <div className="flex justify-between">
-              <span>SALT{result.deductionBreakdown.saltCapped && ' (capped at $10k)'}</span>
+              <span>SALT{result.deductionBreakdown.saltCapped && ' (capped)'}</span>
               <span>{formatCurrency(result.deductionBreakdown.saltDeduction)}</span>
             </div>
             <div className="flex justify-between">

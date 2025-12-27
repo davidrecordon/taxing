@@ -33,6 +33,12 @@ export interface LimitsData {
   saltLimit: {
     default: number;
     marriedFilingSeparately: number;
+    elevated: {
+      marriedFilingJointly: number;
+      single: number;
+      marriedFilingSeparately: number;
+    };
+    elevatedAgiThreshold: number;
   };
   contribution401k: {
     standard: number;

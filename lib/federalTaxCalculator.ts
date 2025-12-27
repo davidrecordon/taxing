@@ -110,6 +110,9 @@ export function calculateFederalTax(
   // 401k reduces ordinary income, not capital gains
   const agiOrdinary = Math.max(0, grossOrdinaryIncome - shortTermLossCarryoverOffset - inputs.contributions401k);
 
+  // Pre-deduction AGI for SALT cap threshold (includes all income minus above-the-line deductions)
+  const preDeductionAgi = grossIncome - shortTermLossCarryoverOffset - longTermLossCarryoverOffset - inputs.contributions401k;
+
   // Step 3: Calculate deductions
   const deductionBreakdown = calculateFederalDeductions(
     {
@@ -122,7 +125,8 @@ export function calculateFederalTax(
     },
     filingStatus,
     federalDeductions,
-    limits
+    limits,
+    preDeductionAgi
   );
 
   // Step 3b: Calculate AGI (includes all deductions for display)
