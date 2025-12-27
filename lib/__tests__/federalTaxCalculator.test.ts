@@ -2,12 +2,20 @@ import { describe, it, expect } from 'vitest';
 import { calculateFederalTax } from '../federalTaxCalculator';
 import { TaxInputs, TaxBracketsData, DeductionsData, LimitsData, FicaData } from '../types';
 
-// Load data from JSON files
-import federalBrackets from '../../data/federal-brackets-2025.json';
-import ltcgBrackets from '../../data/federal-ltcg-brackets-2025.json';
-import federalDeductions from '../../data/federal-deductions-2025.json';
-import limits from '../../data/limits-2025.json';
-import ficaData from '../../data/fica-2025.json';
+// Load data from JSON files (multi-year)
+import allFederalBrackets from '../../data/federal-brackets.json';
+import allLtcgBrackets from '../../data/federal-ltcg-brackets.json';
+import allFederalDeductions from '../../data/federal-deductions.json';
+import allLimits from '../../data/limits.json';
+import allFicaData from '../../data/fica.json';
+
+// Extract 2025 data for tests
+const TAX_YEAR = '2025';
+const federalBrackets = allFederalBrackets[TAX_YEAR];
+const ltcgBrackets = allLtcgBrackets[TAX_YEAR];
+const federalDeductions = allFederalDeductions[TAX_YEAR];
+const limits = allLimits[TAX_YEAR];
+const ficaData = allFicaData[TAX_YEAR];
 
 function createDefaultInputs(overrides: Partial<TaxInputs> = {}): TaxInputs {
   return {
@@ -83,11 +91,11 @@ describe('calculateFederalTax', () => {
       );
 
       expect(result.ficaBreakdown).toBeDefined();
-      expect(result.ficaBreakdown!.socialSecurityWages).toBe(168600);
-      expect(result.ficaBreakdown!.socialSecurityTax).toBeCloseTo(10453.20, 2);
+      expect(result.ficaBreakdown!.socialSecurityWages).toBe(176100);
+      expect(result.ficaBreakdown!.socialSecurityTax).toBeCloseTo(10918.20, 2);
       expect(result.ficaBreakdown!.medicareTax).toBeCloseTo(3625, 2);
       expect(result.ficaBreakdown!.additionalMedicareTax).toBeCloseTo(450, 2);
-      expect(result.ficaBreakdown!.totalFica).toBeCloseTo(14528.20, 2);
+      expect(result.ficaBreakdown!.totalFica).toBeCloseTo(14993.20, 2);
     });
   });
 

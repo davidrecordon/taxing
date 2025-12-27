@@ -11,14 +11,24 @@ import DeductionInputs from './DeductionInputs';
 import PriorYearInputs from './PriorYearInputs';
 import TaxResultsDisplay from './TaxResultsDisplay';
 
-// Import static data
-import federalBrackets from '@/data/federal-brackets-2025.json';
-import ltcgBrackets from '@/data/federal-ltcg-brackets-2025.json';
-import federalDeductions from '@/data/federal-deductions-2025.json';
-import californiaBrackets from '@/data/california-brackets-2025.json';
-import californiaDeductions from '@/data/california-deductions-2025.json';
-import limits from '@/data/limits-2025.json';
-import ficaData from '@/data/fica-2025.json';
+// Import static data (multi-year files)
+import allFederalBrackets from '@/data/federal-brackets.json';
+import allLtcgBrackets from '@/data/federal-ltcg-brackets.json';
+import allFederalDeductions from '@/data/federal-deductions.json';
+import allCaliforniaBrackets from '@/data/california-brackets.json';
+import allCaliforniaDeductions from '@/data/california-deductions.json';
+import allLimits from '@/data/limits.json';
+import allFicaData from '@/data/fica.json';
+
+// Extract 2025 data
+const TAX_YEAR = '2025';
+const federalBrackets = allFederalBrackets[TAX_YEAR];
+const ltcgBrackets = allLtcgBrackets[TAX_YEAR];
+const federalDeductions = allFederalDeductions[TAX_YEAR];
+const californiaBrackets = allCaliforniaBrackets[TAX_YEAR];
+const californiaDeductions = allCaliforniaDeductions[TAX_YEAR];
+const limits = allLimits[TAX_YEAR];
+const ficaData = allFicaData[TAX_YEAR];
 
 const defaultInputs: TaxInputs = {
   federalIncome: 0,

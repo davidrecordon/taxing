@@ -2,10 +2,16 @@ import { describe, it, expect } from 'vitest';
 import { calculateCaliforniaTax } from '../californiaTaxCalculator';
 import { TaxInputs, TaxBracketsData, DeductionsData, LimitsData } from '../types';
 
-// Load data from JSON files
-import californiaBrackets from '../../data/california-brackets-2025.json';
-import californiaDeductions from '../../data/california-deductions-2025.json';
-import limits from '../../data/limits-2025.json';
+// Load data from JSON files (multi-year)
+import allCaliforniaBrackets from '../../data/california-brackets.json';
+import allCaliforniaDeductions from '../../data/california-deductions.json';
+import allLimits from '../../data/limits.json';
+
+// Extract 2025 data for tests
+const TAX_YEAR = '2025';
+const californiaBrackets = allCaliforniaBrackets[TAX_YEAR];
+const californiaDeductions = allCaliforniaDeductions[TAX_YEAR];
+const limits = allLimits[TAX_YEAR];
 
 function createDefaultInputs(overrides: Partial<TaxInputs> = {}): TaxInputs {
   return {

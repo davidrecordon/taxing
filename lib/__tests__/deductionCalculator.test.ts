@@ -2,10 +2,16 @@ import { describe, it, expect } from 'vitest';
 import { calculateFederalDeductions, calculateCaliforniaDeductions } from '../deductionCalculator';
 import { DeductionsData, LimitsData } from '../types';
 
-// Load data from JSON files
-import federalDeductions from '../../data/federal-deductions-2025.json';
-import californiaDeductions from '../../data/california-deductions-2025.json';
-import limits from '../../data/limits-2025.json';
+// Load data from JSON files (multi-year)
+import allFederalDeductions from '../../data/federal-deductions.json';
+import allCaliforniaDeductions from '../../data/california-deductions.json';
+import allLimits from '../../data/limits.json';
+
+// Extract 2025 data for tests
+const TAX_YEAR = '2025';
+const federalDeductions = allFederalDeductions[TAX_YEAR];
+const californiaDeductions = allCaliforniaDeductions[TAX_YEAR];
+const limits = allLimits[TAX_YEAR];
 
 interface DeductionInputs {
   propertyTaxesPaid: number;

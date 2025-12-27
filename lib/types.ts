@@ -13,9 +13,11 @@ export interface TaxBrackets {
 }
 
 export interface TaxBracketsData {
-  year: number;
   brackets: TaxBrackets;
 }
+
+// Multi-year wrapper type for JSON files
+export type MultiYearTaxBrackets = Record<string, TaxBracketsData>;
 
 export interface StandardDeductions {
   single: number;
@@ -24,12 +26,13 @@ export interface StandardDeductions {
 }
 
 export interface DeductionsData {
-  year: number;
   standardDeduction: StandardDeductions;
 }
 
+// Multi-year wrapper type for JSON files
+export type MultiYearDeductions = Record<string, DeductionsData>;
+
 export interface LimitsData {
-  year: number;
   saltLimit: {
     default: number;
     marriedFilingSeparately: number;
@@ -53,8 +56,10 @@ export interface LimitsData {
   };
 }
 
+// Multi-year wrapper type for JSON files
+export type MultiYearLimits = Record<string, LimitsData>;
+
 export interface FicaData {
-  year: number;
   socialSecurity: {
     rate: number;
     wageBaseCap: number;
@@ -71,6 +76,9 @@ export interface FicaData {
     rate: number;
   };
 }
+
+// Multi-year wrapper type for JSON files
+export type MultiYearFica = Record<string, FicaData>;
 
 // User Input Types
 export interface TaxInputs {
