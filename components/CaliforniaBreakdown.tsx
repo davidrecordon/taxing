@@ -1,5 +1,6 @@
 import { TaxCalculationResult } from '@/lib/types';
 import { formatCurrency, formatPercent } from '@/lib/formatters';
+import { calculateEffectiveRates } from '@/lib/taxUtils';
 
 interface Props {
   result: TaxCalculationResult;
@@ -168,6 +169,21 @@ export default function CaliforniaBreakdown({ result }: Props) {
             </>
           )}
         </div>
+        {(() => {
+          const rates = calculateEffectiveRates(result);
+          return (
+            <div className="pt-2 mt-2 border-t border-blue-200 space-y-1">
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Effective Rate (on taxable income)</span>
+                <span className="font-mono">{formatPercent(rates.onTaxableIncome)}</span>
+              </div>
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Effective Rate (on gross income)</span>
+                <span className="font-mono">{formatPercent(rates.onGrossIncome)}</span>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Safe Harbor Section */}
