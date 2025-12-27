@@ -36,12 +36,12 @@ function createDefaultInputs(overrides: Partial<TaxInputs> = {}): TaxInputs {
 describe('calculateFederalTax', () => {
   describe('basic bracket math', () => {
     it('calculates tax correctly for single filer with $100,000 W-2 income', () => {
-      // $100,000 income - $15,000 standard deduction = $85,000 taxable
+      // $100,000 income - $15,700 standard deduction = $84,300 taxable
       // Bracket breakdown:
       // $11,925 @ 10% = $1,192.50
       // $36,550 ($48,475 - $11,925) @ 12% = $4,386.00
-      // $36,525 ($85,000 - $48,475) @ 22% = $8,035.50
-      // Total ordinary income tax = $13,614
+      // $35,825 ($84,300 - $48,475) @ 22% = $7,881.50
+      // Total ordinary income tax = $13,460
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         filingStatus: 'single',
@@ -56,8 +56,8 @@ describe('calculateFederalTax', () => {
         ficaData as FicaData
       );
 
-      expect(result.taxableOrdinaryIncome).toBe(85000);
-      expect(result.ordinaryIncomeTax).toBe(13614);
+      expect(result.taxableOrdinaryIncome).toBe(84300);
+      expect(result.ordinaryIncomeTax).toBe(13460);
     });
   });
 
@@ -135,12 +135,12 @@ describe('calculateFederalTax', () => {
 
   describe('401k contributions', () => {
     it('reduces taxable ordinary income by 401k contributions', () => {
-      // $100,000 income - $23,500 (401k) - $15,000 (std deduction) = $61,500 taxable
+      // $100,000 income - $23,500 (401k) - $15,700 (std deduction) = $60,800 taxable
       // Bracket breakdown:
       // $11,925 @ 10% = $1,192.50
       // $36,550 @ 12% = $4,386.00
-      // $13,025 ($61,500 - $48,475) @ 22% = $2,865.50
-      // Total = $8,444
+      // $12,325 ($60,800 - $48,475) @ 22% = $2,711.50
+      // Total = $8,290
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         contributions401k: 23500,
@@ -156,17 +156,17 @@ describe('calculateFederalTax', () => {
         ficaData as FicaData
       );
 
-      expect(result.taxableOrdinaryIncome).toBe(61500);
-      expect(result.ordinaryIncomeTax).toBe(8444);
+      expect(result.taxableOrdinaryIncome).toBe(60800);
+      expect(result.ordinaryIncomeTax).toBe(8290);
     });
   });
 
   describe('safe harbor calculations', () => {
     it('uses minimum of 90% current year and 110% prior year when prior year provided', () => {
-      // $100k income, tax is $13,614 + FICA
+      // $100k income, tax is $13,460 + FICA
       // FICA: $100k * 6.2% = $6,200 (SS) + $100k * 1.45% = $1,450 (Medicare) = $7,650
-      // Total tax = $13,614 + $7,650 = $21,264
-      // 90% of current year = $19,137.60
+      // Total tax = $13,460 + $7,650 = $21,110
+      // 90% of current year = $18,999
       // Prior year tax = $15,000, so 110% = $16,500
       // Safe harbor minimum should be $16,500 (the lesser of the two)
       const inputs = createDefaultInputs({
@@ -185,7 +185,7 @@ describe('calculateFederalTax', () => {
       );
 
       expect(result.safeHarbor).toBeDefined();
-      expect(result.safeHarbor!.currentYear90Percent).toBeCloseTo(21264 * 0.9, 2);
+      expect(result.safeHarbor!.currentYear90Percent).toBeCloseTo(21110 * 0.9, 2);
       expect(result.safeHarbor!.priorYear110Percent).toBe(16500);
       expect(result.safeHarbor!.minimum).toBe(16500);
     });
@@ -217,7 +217,7 @@ describe('calculateFederalTax', () => {
       // ST loss first offsets $10,000 ST gains, leaving $5,000 carryover
       // Then $3,000 of remaining carryover offsets ordinary income
       // Gross ordinary = $50,000 + $10,000 - $10,000 - $3,000 = $47,000
-      // After std deduction: $47,000 - $15,000 = $32,000 taxable
+      // After std deduction: $47,000 - $15,700 = $31,300 taxable
       const inputs = createDefaultInputs({
         federalIncome: 50000,
         shortTermCapitalGains: 10000,
@@ -234,7 +234,7 @@ describe('calculateFederalTax', () => {
       );
 
       expect(result.shortTermLossCarryoverOffset).toBe(13000); // 10k ST + 3k ordinary
-      expect(result.taxableOrdinaryIncome).toBe(32000);
+      expect(result.taxableOrdinaryIncome).toBe(31300);
     });
 
     it('limits ordinary income offset to $1,500 for MFS', () => {
@@ -300,7 +300,7 @@ describe('calculateFederalTax', () => {
       expect(result.longTermLossCarryoverOffset).toBe(20000);
       expect(result.taxableLTCG).toBe(0);
       // Ordinary income should be unaffected
-      expect(result.taxableOrdinaryIncome).toBe(85000); // 100k - 15k std
+      expect(result.taxableOrdinaryIncome).toBe(84300); // 100k - 15.7k std
     });
 
     it('partially offsets LTCG when carryover is less than gains', () => {
@@ -354,9 +354,9 @@ describe('calculateFederalTax', () => {
   describe('bracket boundary edge cases', () => {
     it('taxes income exactly at first bracket boundary correctly', () => {
       // Taxable income exactly $11,925 (top of 10% bracket)
-      // Need gross = $11,925 + $15,000 std = $26,925
+      // Need gross = $11,925 + $15,700 std = $27,625
       const inputs = createDefaultInputs({
-        federalIncome: 26925,
+        federalIncome: 27625,
         filingStatus: 'single',
       });
 
@@ -375,7 +375,7 @@ describe('calculateFederalTax', () => {
     it('taxes $1 over bracket boundary at higher rate', () => {
       // Taxable income $11,926 - $1 in 12% bracket
       const inputs = createDefaultInputs({
-        federalIncome: 26926,
+        federalIncome: 27626,
         filingStatus: 'single',
       });
 
@@ -395,9 +395,9 @@ describe('calculateFederalTax', () => {
     it('handles top bracket (37%) with no upper limit', () => {
       // Very high income in top bracket
       // Single: top bracket starts at $626,350
-      // Taxable = $700,000, so need gross = $715,000
+      // Taxable = $700,000, so need gross = $715,700
       const inputs = createDefaultInputs({
-        federalIncome: 715000,
+        federalIncome: 715700,
         filingStatus: 'single',
       });
 
@@ -420,7 +420,7 @@ describe('calculateFederalTax', () => {
     it('handles zero taxable income correctly', () => {
       // Income exactly equals standard deduction
       const inputs = createDefaultInputs({
-        federalIncome: 15000,
+        federalIncome: 15700,
         filingStatus: 'single',
       });
 

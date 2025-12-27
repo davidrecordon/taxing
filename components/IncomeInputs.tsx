@@ -54,7 +54,7 @@ export default function IncomeInputs({ inputs, onUpdate }: Props) {
           label="California Income"
           value={inputs.californiaIncome}
           onChange={(v) => onUpdate('californiaIncome', v)}
-          hint={inputs.californiaIncome ? undefined : "Leave blank to use Federal amount"}
+          hint={inputs.californiaIncome ? undefined : "Leave blank to use Federal amount."}
         />
       </div>
 

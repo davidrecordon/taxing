@@ -207,7 +207,7 @@ export default function FederalBreakdown({ result }: Props) {
           <h3 className="font-medium mb-2">FICA Taxes (Social Security & Medicare)</h3>
           <div className="text-sm space-y-1">
             <div className="flex justify-between">
-              <span>Social Security (6.2% on first {formatCurrency(result.ficaBreakdown.socialSecurityWages)})</span>
+              <span>Social Security (6.2%{result.wageIncome > result.ficaBreakdown.socialSecurityWages && ` on first ${formatCurrency(result.ficaBreakdown.socialSecurityWages)}`})</span>
               <span className="font-mono">{formatCurrency(result.ficaBreakdown.socialSecurityTax)}</span>
             </div>
             <div className="flex justify-between">

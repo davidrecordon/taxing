@@ -62,7 +62,7 @@ export default function DeductionInputs({ inputs, onUpdate, limits }: Props) {
 
   // Generate SALT warning message
   const getSaltWarning = (): string | undefined => {
-    if (totalSalt <= applicableSaltLimit) {
+    if (inputs.propertyTaxesPaid <= applicableSaltLimit) {
       return undefined;
     }
     return `Will be limited to the ${formatCurrency(applicableSaltLimit)} Federal SALT deduction.`;
@@ -100,12 +100,13 @@ export default function DeductionInputs({ inputs, onUpdate, limits }: Props) {
           label="Mortgage Interest Paid"
           value={inputs.mortgageInterestPaid}
           onChange={(v) => onUpdate('mortgageInterestPaid', v)}
-          hint="Leave balance blank to fully deduct interest, otherwise will calculate based upon limits."
+          hint="Fully deducted if balance is blank. Otherwise prorated based on limits."
         />
         <CurrencyInput
-          label="Mortgage Balance (Average)"
+          label="Mortgage Balance"
           value={inputs.mortgageBalance}
           onChange={(v) => onUpdate('mortgageBalance', v)}
+          hint="Average balance across the year."
           warning={inputs.mortgageBalance > (
             inputs.filingStatus === 'marriedFilingSeparately'
               ? limits.mortgageBalanceLimit.federal.marriedFilingSeparately

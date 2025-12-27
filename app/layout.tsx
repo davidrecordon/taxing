@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "2025 Estimated Tax Calculator - California & Federal",
+  title: "2025 Estimated Tax Calculator - Federal & California ",
   description:
-    "Calculate your 2025 estimated taxes for both California and Federal returns. Supports all filing statuses, capital gains, and common deductions.",
+    "Calculate your 2025 estimated taxes for both Federal and California returns. Supports all filing statuses, capital gains, and common deductions.",
 };
 
 export default function RootLayout({
