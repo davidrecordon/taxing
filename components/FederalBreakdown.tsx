@@ -51,6 +51,11 @@ export default function FederalBreakdown({ result }: Props) {
             </span>
           </div>
         )}
+        {(result.longTermLossCarryoverUnused ?? 0) > 0 && (
+          <p className="text-xs text-gray-500 ml-4">
+            (Preserving {formatCurrency(result.longTermLossCarryoverUnused!)} in carryover)
+          </p>
+        )}
         {result.contributions401k > 0 && (
           <div className="flex justify-between text-green-700">
             <span>Less: 401(k) Contributions</span>

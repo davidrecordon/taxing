@@ -9,8 +9,8 @@
       "Bash(prettier:*)",
       "Bash(tsc:*)",
       "WebSearch",
-      "WebFetch(domain:irs.gov)",
-      "WebFetch(domain:ftb.ca.gov)"
+      "WebFetch(domain:www.irs.gov)",
+      "WebFetch(domain:www.ftb.ca.gov)"
     ]
   }
 }

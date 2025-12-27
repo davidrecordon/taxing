@@ -170,6 +170,7 @@ export interface TaxCalculationResult {
   grossIncome: number;
   shortTermLossCarryoverOffset: number;
   longTermLossCarryoverOffset: number;
+  longTermLossCarryoverUnused?: number;  // Preserved for future years (0% bracket optimization)
   contributions401k: number;
   adjustedGrossIncome: number;
 

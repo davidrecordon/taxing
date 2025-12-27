@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { calculateEffectiveRate, calculateEffectiveRates } from '../taxUtils';
-import { TaxCalculationResult } from '../types';
+import { calculateEffectiveRate, calculateEffectiveRates, calculateLTCGTaxWithStacking } from '../taxUtils';
+import { TaxCalculationResult, TaxBracket } from '../types';
 
 describe('calculateEffectiveRate', () => {
   it('calculates rate correctly for normal values', () => {
@@ -139,5 +139,116 @@ describe('calculateEffectiveRates', () => {
     const rates = calculateEffectiveRates(result);
 
     expect(rates.onTaxableIncome).toBeGreaterThanOrEqual(rates.onGrossIncome);
+  });
+});
+
+describe('calculateLTCGTaxWithStacking', () => {
+  // 2025 Single brackets: 0% up to $47,025, 15% up to $518,900, 20% above
+  const singleBrackets: TaxBracket[] = [
+    { min: 0, max: 47025, rate: 0.00 },
+    { min: 47025, max: 518900, rate: 0.15 },
+    { min: 518900, max: null, rate: 0.20 },
+  ];
+
+  it('returns zero for zero LTCG', () => {
+    const result = calculateLTCGTaxWithStacking(0, 50000, singleBrackets);
+    expect(result.total).toBe(0);
+    expect(result.breakdown).toHaveLength(0);
+    expect(result.ltcgInZeroBracket).toBe(0);
+  });
+
+  it('returns zero for negative LTCG', () => {
+    const result = calculateLTCGTaxWithStacking(-5000, 50000, singleBrackets);
+    expect(result.total).toBe(0);
+    expect(result.breakdown).toHaveLength(0);
+  });
+
+  it('all LTCG in 0% bracket when no ordinary income', () => {
+    // $20k LTCG with $0 ordinary income -> all in 0% bracket
+    const result = calculateLTCGTaxWithStacking(20000, 0, singleBrackets);
+    expect(result.total).toBe(0);
+    expect(result.ltcgInZeroBracket).toBe(20000);
+    expect(result.breakdown).toHaveLength(1);
+    expect(result.breakdown[0].rate).toBe(0);
+    expect(result.breakdown[0].incomeInBracket).toBe(20000);
+  });
+
+  it('LTCG stacks on top of ordinary income', () => {
+    // $40k ordinary + $20k LTCG = $60k total
+    // 0% bracket threshold = $47,025
+    // Room in 0% bracket = $47,025 - $40,000 = $7,025
+    // $7,025 LTCG at 0%, $12,975 LTCG at 15%
+    const result = calculateLTCGTaxWithStacking(20000, 40000, singleBrackets);
+
+    expect(result.ltcgInZeroBracket).toBe(7025);
+    expect(result.breakdown).toHaveLength(2);
+
+    // First bracket: 0%
+    expect(result.breakdown[0].rate).toBe(0);
+    expect(result.breakdown[0].incomeInBracket).toBe(7025);
+    expect(result.breakdown[0].taxForBracket).toBe(0);
+
+    // Second bracket: 15%
+    expect(result.breakdown[1].rate).toBe(0.15);
+    expect(result.breakdown[1].incomeInBracket).toBe(12975);
+    expect(result.breakdown[1].taxForBracket).toBeCloseTo(12975 * 0.15, 2);
+
+    expect(result.total).toBeCloseTo(12975 * 0.15, 2);
+  });
+
+  it('all LTCG at 15% when ordinary income fills 0% bracket', () => {
+    // $50k ordinary income (above $47,025 threshold)
+    // All $20k LTCG should be at 15%
+    const result = calculateLTCGTaxWithStacking(20000, 50000, singleBrackets);
+
+    expect(result.ltcgInZeroBracket).toBe(0);
+    expect(result.breakdown).toHaveLength(1);
+    expect(result.breakdown[0].rate).toBe(0.15);
+    expect(result.breakdown[0].incomeInBracket).toBe(20000);
+    expect(result.total).toBeCloseTo(20000 * 0.15, 2);
+  });
+
+  it('LTCG exactly fills remaining 0% bracket', () => {
+    // $40k ordinary, exactly $7,025 LTCG
+    // All LTCG should be at 0%
+    const result = calculateLTCGTaxWithStacking(7025, 40000, singleBrackets);
+
+    expect(result.ltcgInZeroBracket).toBe(7025);
+    expect(result.total).toBe(0);
+    expect(result.breakdown).toHaveLength(1);
+  });
+
+  it('LTCG spans 15% and 20% brackets for high income', () => {
+    // $500k ordinary + $50k LTCG
+    // 15% bracket ends at $518,900
+    // Room in 15% bracket = $518,900 - $500,000 = $18,900
+    // $18,900 at 15%, $31,100 at 20%
+    const result = calculateLTCGTaxWithStacking(50000, 500000, singleBrackets);
+
+    expect(result.ltcgInZeroBracket).toBe(0);
+    expect(result.breakdown).toHaveLength(2);
+
+    // 15% portion
+    expect(result.breakdown[0].rate).toBe(0.15);
+    expect(result.breakdown[0].incomeInBracket).toBe(18900);
+
+    // 20% portion
+    expect(result.breakdown[1].rate).toBe(0.20);
+    expect(result.breakdown[1].incomeInBracket).toBe(31100);
+
+    const expectedTax = 18900 * 0.15 + 31100 * 0.20;
+    expect(result.total).toBeCloseTo(expectedTax, 2);
+  });
+
+  it('all LTCG at 20% when ordinary income exceeds 15% bracket', () => {
+    // $600k ordinary (above $518,900) + $50k LTCG
+    // All LTCG at 20%
+    const result = calculateLTCGTaxWithStacking(50000, 600000, singleBrackets);
+
+    expect(result.ltcgInZeroBracket).toBe(0);
+    expect(result.breakdown).toHaveLength(1);
+    expect(result.breakdown[0].rate).toBe(0.20);
+    expect(result.breakdown[0].incomeInBracket).toBe(50000);
+    expect(result.total).toBeCloseTo(50000 * 0.20, 2);
   });
 });

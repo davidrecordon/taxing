@@ -321,9 +321,202 @@ describe('calculateFederalTax', () => {
 
       // ST loss: $15k offsets ST gains, $3k offsets ordinary income = $18k used
       expect(result.shortTermLossCarryoverOffset).toBe(18000);
-      // LT loss: $10k offsets LTCG
+      // LT loss: only offsets LTCG in taxed brackets (not 0% bracket)
+      // Taxable ordinary = $80k - $18k - $15.7k = $46.3k
+      // Room in 0% LTCG bracket = $47,025 - $46,300 = $725
+      // LTCG in taxed brackets = $25k - $725 = $24,275
+      // Carryover used = min($10k, $24,275) = $10k
       expect(result.longTermLossCarryoverOffset).toBe(10000);
       expect(result.taxableLTCG).toBe(15000); // 25k - 10k
+    });
+  });
+
+  describe('LTCG bracket stacking on ordinary income', () => {
+    it('stacks LTCG on top of ordinary income for bracket calculation', () => {
+      // $40k taxable ordinary + $20k LTCG = $60k total
+      // 0% LTCG threshold for single = $47,025
+      // Room in 0% bracket = $47,025 - $40,000 = $7,025
+      // So $7,025 LTCG at 0%, $12,975 LTCG at 15%
+      // LTCG tax = $12,975 * 0.15 = $1,946.25
+      const inputs = createDefaultInputs({
+        federalIncome: 55700, // 55,700 - 15,700 std = $40k taxable ordinary
+        longTermCapitalGains: 20000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
+      );
+
+      expect(result.taxableOrdinaryIncome).toBe(40000);
+      expect(result.taxableLTCG).toBe(20000);
+
+      // Verify LTCG is split across 0% and 15% brackets
+      expect(result.ltcgBracketBreakdown).toHaveLength(2);
+      expect(result.ltcgBracketBreakdown[0].rate).toBe(0);
+      expect(result.ltcgBracketBreakdown[0].incomeInBracket).toBe(7025);
+      expect(result.ltcgBracketBreakdown[1].rate).toBe(0.15);
+      expect(result.ltcgBracketBreakdown[1].incomeInBracket).toBe(12975);
+
+      expect(result.ltcgTax).toBeCloseTo(12975 * 0.15, 2);
+    });
+
+    it('all LTCG at 15% when ordinary income fills 0% bracket', () => {
+      // $60k taxable ordinary (above $47,025 threshold) + $20k LTCG
+      // All LTCG taxed at 15%
+      const inputs = createDefaultInputs({
+        federalIncome: 75700, // 75,700 - 15,700 = $60k taxable
+        longTermCapitalGains: 20000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
+      );
+
+      expect(result.taxableOrdinaryIncome).toBe(60000);
+      expect(result.ltcgBracketBreakdown).toHaveLength(1);
+      expect(result.ltcgBracketBreakdown[0].rate).toBe(0.15);
+      expect(result.ltcgBracketBreakdown[0].incomeInBracket).toBe(20000);
+      expect(result.ltcgTax).toBeCloseTo(20000 * 0.15, 2);
+    });
+
+    it('all LTCG at 0% when no ordinary income', () => {
+      // $30k LTCG only, well under $47,025 threshold
+      const inputs = createDefaultInputs({
+        longTermCapitalGains: 30000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
+      );
+
+      expect(result.taxableOrdinaryIncome).toBe(0);
+      expect(result.taxableLTCG).toBe(30000);
+      expect(result.ltcgBracketBreakdown).toHaveLength(1);
+      expect(result.ltcgBracketBreakdown[0].rate).toBe(0);
+      expect(result.ltcgTax).toBe(0);
+    });
+  });
+
+  describe('smart long-term loss carryover', () => {
+    it('preserves carryover when all LTCG in 0% bracket', () => {
+      // Low ordinary income, LTCG entirely in 0% bracket
+      // Carryover should be preserved, not wasted
+      const inputs = createDefaultInputs({
+        federalIncome: 20000, // taxable = 20k - 15.7k = $4,300
+        longTermCapitalGains: 30000, // still under $47,025 threshold
+        priorYearLongTermLossCarryover: 10000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
+      );
+
+      expect(result.taxableOrdinaryIncome).toBe(4300);
+      // Room in 0% bracket = $47,025 - $4,300 = $42,725
+      // All $30k LTCG fits in 0% bracket, so no carryover used
+      expect(result.longTermLossCarryoverOffset).toBe(0);
+      expect(result.longTermLossCarryoverUnused).toBe(10000);
+      expect(result.taxableLTCG).toBe(30000);
+      expect(result.ltcgTax).toBe(0);
+    });
+
+    it('uses carryover only for LTCG that would be taxed', () => {
+      // LTCG spans 0% and 15% brackets, only use carryover for 15% portion
+      const inputs = createDefaultInputs({
+        federalIncome: 55700, // taxable = $40k
+        longTermCapitalGains: 30000,
+        priorYearLongTermLossCarryover: 25000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
+      );
+
+      // Room in 0% bracket = $47,025 - $40,000 = $7,025
+      // LTCG in taxed brackets = $30,000 - $7,025 = $22,975
+      // Carryover used = min($25,000, $22,975) = $22,975
+      // Unused carryover = $25,000 - $22,975 = $2,025
+      expect(result.longTermLossCarryoverOffset).toBe(22975);
+      expect(result.longTermLossCarryoverUnused).toBe(2025);
+
+      // Taxable LTCG = $30k - $22,975 = $7,025 (exactly the 0% bracket portion)
+      expect(result.taxableLTCG).toBe(7025);
+      // All remaining LTCG is in 0% bracket, so no tax
+      expect(result.ltcgTax).toBe(0);
+    });
+
+    it('uses full carryover when all LTCG above 0% bracket', () => {
+      // High ordinary income fills 0% bracket entirely
+      const inputs = createDefaultInputs({
+        federalIncome: 75700, // taxable = $60k (above $47,025)
+        longTermCapitalGains: 50000,
+        priorYearLongTermLossCarryover: 30000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
+      );
+
+      // All LTCG would be taxed at 15%, so use full carryover
+      expect(result.longTermLossCarryoverOffset).toBe(30000);
+      expect(result.longTermLossCarryoverUnused).toBe(0);
+      expect(result.taxableLTCG).toBe(20000);
+      expect(result.ltcgTax).toBeCloseTo(20000 * 0.15, 2);
+    });
+
+    it('handles edge case where carryover exactly equals taxed LTCG', () => {
+      // Carryover precisely matches LTCG in taxed brackets
+      const inputs = createDefaultInputs({
+        federalIncome: 55700, // taxable = $40k
+        longTermCapitalGains: 20000,
+        priorYearLongTermLossCarryover: 12975, // exactly matches taxed portion
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
+      );
+
+      // Room in 0% bracket = $47,025 - $40,000 = $7,025
+      // LTCG in taxed brackets = $20,000 - $7,025 = $12,975
+      expect(result.longTermLossCarryoverOffset).toBe(12975);
+      expect(result.longTermLossCarryoverUnused).toBe(0);
+      expect(result.taxableLTCG).toBe(7025);
+      expect(result.ltcgTax).toBe(0);
     });
   });
 

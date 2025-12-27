@@ -25,6 +25,70 @@ export function calculateEffectiveRates(result: TaxCalculationResult): {
   };
 }
 
+/**
+ * Calculate LTCG tax with proper stacking on ordinary income.
+ * LTCG brackets are based on TOTAL taxable income, so ordinary income
+ * "fills up" the lower brackets first, then LTCG is taxed starting
+ * where ordinary income ends.
+ *
+ * Example: Single filer with $40k ordinary + $20k LTCG
+ * - 0% threshold is $47,025
+ * - Ordinary income fills first $40k
+ * - Only $7,025 room left in 0% bracket for LTCG
+ * - First $7,025 LTCG → 0%, remaining $12,975 → 15%
+ */
+export function calculateLTCGTaxWithStacking(
+  ltcg: number,
+  ordinaryTaxableIncome: number,
+  ltcgBrackets: TaxBracket[]
+): { total: number; breakdown: BracketBreakdown[]; ltcgInZeroBracket: number } {
+  if (ltcg <= 0) {
+    return { total: 0, breakdown: [], ltcgInZeroBracket: 0 };
+  }
+
+  let remainingLTCG = ltcg;
+  let currentPosition = ordinaryTaxableIncome;
+  let totalTax = 0;
+  const breakdown: BracketBreakdown[] = [];
+  let ltcgInZeroBracket = 0;
+
+  for (const bracket of ltcgBrackets) {
+    if (remainingLTCG <= 0) break;
+
+    const bracketEnd = bracket.max ?? Infinity;
+
+    // Skip brackets we've already passed with ordinary income
+    if (currentPosition >= bracketEnd) continue;
+
+    // How much room is left in this bracket?
+    const roomInBracket = bracketEnd - currentPosition;
+    const ltcgInThisBracket = Math.min(remainingLTCG, roomInBracket);
+
+    if (ltcgInThisBracket > 0) {
+      const taxForBracket = ltcgInThisBracket * bracket.rate;
+
+      // Track how much LTCG falls in the 0% bracket
+      if (bracket.rate === 0) {
+        ltcgInZeroBracket = ltcgInThisBracket;
+      }
+
+      breakdown.push({
+        bracketMin: bracket.min,
+        bracketMax: bracket.max,
+        rate: bracket.rate,
+        incomeInBracket: ltcgInThisBracket,
+        taxForBracket,
+      });
+
+      totalTax += taxForBracket;
+      currentPosition += ltcgInThisBracket;
+      remainingLTCG -= ltcgInThisBracket;
+    }
+  }
+
+  return { total: totalTax, breakdown, ltcgInZeroBracket };
+}
+
 export function calculateTaxByBrackets(
   taxableIncome: number,
   brackets: TaxBracket[]

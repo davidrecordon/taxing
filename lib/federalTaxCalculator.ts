@@ -10,7 +10,7 @@ import {
   SafeHarbor,
 } from './types';
 import { calculateFederalDeductions } from './deductionCalculator';
-import { calculateTaxByBrackets } from './taxUtils';
+import { calculateTaxByBrackets, calculateLTCGTaxWithStacking } from './taxUtils';
 
 function calculateFicaTaxes(
   wageIncome: number,
@@ -68,16 +68,17 @@ export function calculateFederalTax(
 
   const shortTermLossCarryoverOffset = stGainsOffset + ordinaryIncomeOffset;
 
-  // Step 1c: Apply long-term loss carryover (offsets LTCG only, not ordinary income)
+  // Step 1c: Long-term loss carryover is applied AFTER we know taxable ordinary income
+  // (for smart 0% bracket optimization - see Step 4b below)
   const ltCarryover = inputs.priorYearLongTermLossCarryover;
-  const longTermLossCarryoverOffset = Math.min(ltCarryover, inputs.longTermCapitalGains);
 
   // Step 2: Calculate ordinary AGI (for tax bracket calculation)
   // 401k reduces ordinary income, not capital gains
   const agiOrdinary = Math.max(0, grossOrdinaryIncome - shortTermLossCarryoverOffset - inputs.contributions401k);
 
-  // Pre-deduction AGI for SALT cap threshold (includes all income minus above-the-line deductions)
-  const preDeductionAgi = grossIncome - shortTermLossCarryoverOffset - longTermLossCarryoverOffset - inputs.contributions401k;
+  // Pre-deduction AGI for SALT cap threshold
+  // Use conservative estimate (before LT carryover optimization)
+  const preDeductionAgi = grossIncome - shortTermLossCarryoverOffset - inputs.contributions401k;
 
   // Step 3: Calculate deductions
   const deductionBreakdown = calculateFederalDeductions(
@@ -95,21 +96,34 @@ export function calculateFederalTax(
     preDeductionAgi
   );
 
-  // Step 3b: Calculate AGI (includes all deductions for display)
-  const adjustedGrossIncome = grossIncome
-    - shortTermLossCarryoverOffset
-    - longTermLossCarryoverOffset
-    - inputs.contributions401k
-    - deductionBreakdown.deductionAmount;
-
-  // Step 4: Calculate taxable income
+  // Step 4: Calculate taxable ordinary income
   // Deductions apply to ordinary income first
   const taxableOrdinaryIncome = Math.max(
     0,
     agiOrdinary - deductionBreakdown.deductionAmount
   );
-  // LTCG is reduced by long-term loss carryover
+
+  // Step 4b: Apply long-term loss carryover SMARTLY
+  // Only use carryover to offset LTCG that would be taxed (not 0% bracket)
+  // This preserves carryover for future years when it provides actual tax savings
+  const zeroPercentThreshold = ltcgBrackets.brackets[filingStatus][0].max ?? 0;
+  const roomInZeroBracket = Math.max(0, zeroPercentThreshold - taxableOrdinaryIncome);
+  const ltcgInZeroBracket = Math.min(inputs.longTermCapitalGains, roomInZeroBracket);
+  const ltcgInTaxedBrackets = inputs.longTermCapitalGains - ltcgInZeroBracket;
+
+  // Only apply carryover to offset gains that would actually be taxed
+  const longTermLossCarryoverOffset = Math.min(ltCarryover, ltcgInTaxedBrackets);
+  const longTermLossCarryoverUnused = ltCarryover - longTermLossCarryoverOffset;
+
+  // Step 4c: Calculate taxable LTCG (after smart carryover)
   const taxableLTCG = inputs.longTermCapitalGains - longTermLossCarryoverOffset;
+
+  // Step 4d: Calculate AGI (includes all deductions for display)
+  const adjustedGrossIncome = grossIncome
+    - shortTermLossCarryoverOffset
+    - longTermLossCarryoverOffset
+    - inputs.contributions401k
+    - deductionBreakdown.deductionAmount;
 
   // Step 5: Calculate ordinary income tax
   const ordinaryTax = calculateTaxByBrackets(
@@ -117,9 +131,12 @@ export function calculateFederalTax(
     federalBrackets.brackets[filingStatus]
   );
 
-  // Step 6: Calculate LTCG tax (based only on LTCG amount, not stacked)
-  const ltcgTax = calculateTaxByBrackets(
+  // Step 6: Calculate LTCG tax with proper stacking on ordinary income
+  // LTCG brackets are based on TOTAL taxable income, so ordinary income
+  // "fills up" the lower brackets first
+  const ltcgTax = calculateLTCGTaxWithStacking(
     taxableLTCG,
+    taxableOrdinaryIncome,
     ltcgBrackets.brackets[filingStatus]
   );
 
@@ -158,6 +175,7 @@ export function calculateFederalTax(
     grossIncome,
     shortTermLossCarryoverOffset,
     longTermLossCarryoverOffset,
+    longTermLossCarryoverUnused,
     contributions401k: inputs.contributions401k,
     adjustedGrossIncome,
     deductionBreakdown,
