@@ -1,0 +1,21 @@
+{
+  "2025": {
+    "brackets": {
+      "single": [
+        { "min": 0, "max": 278000, "rate": 0 },
+        { "min": 278000, "max": 1000000, "rate": 0.07 },
+        { "min": 1000000, "max": null, "rate": 0.099 }
+      ],
+      "marriedFilingJointly": [
+        { "min": 0, "max": 278000, "rate": 0 },
+        { "min": 278000, "max": 1000000, "rate": 0.07 },
+        { "min": 1000000, "max": null, "rate": 0.099 }
+      ],
+      "marriedFilingSeparately": [
+        { "min": 0, "max": 278000, "rate": 0 },
+        { "min": 278000, "max": 1000000, "rate": 0.07 },
+        { "min": 1000000, "max": null, "rate": 0.099 }
+      ]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "2025": {
+    "exemption": 278000,
+    "surtaxThreshold": 1000000,
+    "baseRate": 0.07,
+    "surtaxRate": 0.029,
+    "safeHarbor": {
+      "percent": 0.80
+    }
+  }
+}

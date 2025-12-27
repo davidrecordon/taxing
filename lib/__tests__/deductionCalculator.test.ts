@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { calculateFederalDeductions, calculateCaliforniaDeductions } from '../deductionCalculator';
+import { DeductionsData, FederalLimitsData, CaliforniaLimitsData } from '../types';
 import {
   federalDeductions,
   californiaDeductions,
-  limits,
+  federalLimits,
+  californiaLimits,
 } from './testData';
 
 interface DeductionInputs {
@@ -11,8 +13,8 @@ interface DeductionInputs {
   mortgageInterestPaid: number;
   mortgageBalance: number;
   charitableContributions: number;
-  californiaTaxWithheld: number;
-  californiaEstimatedPaid: number;
+  stateTaxWithheld: number;
+  stateEstimatedPaid: number;
 }
 
 function createDefaultDeductionInputs(overrides: Partial<DeductionInputs> = {}): DeductionInputs {
@@ -21,8 +23,8 @@ function createDefaultDeductionInputs(overrides: Partial<DeductionInputs> = {}):
     mortgageInterestPaid: 0,
     mortgageBalance: 0,
     charitableContributions: 0,
-    californiaTaxWithheld: 0,
-    californiaEstimatedPaid: 0,
+    stateTaxWithheld: 0,
+    stateEstimatedPaid: 0,
     ...overrides,
   };
 }
@@ -40,7 +42,7 @@ describe('calculateFederalDeductions', () => {
       // $20,000 mortgage interest + $5,000 charitable = $25,000
       // Total itemized: $10,000 + $25,000 = $35,000 > $15,000 standard
       const inputs = createDefaultDeductionInputs({
-        californiaTaxWithheld: 15000,
+        stateTaxWithheld: 15000,
         propertyTaxesPaid: 8000,
         mortgageInterestPaid: 20000,
         mortgageBalance: 500000, // within limit
@@ -51,7 +53,7 @@ describe('calculateFederalDeductions', () => {
         inputs,
         'single',
         federalDeductions as DeductionsData,
-        limits as LimitsData,
+        federalLimits as FederalLimitsData,
         HIGH_AGI
       );
 
@@ -72,7 +74,7 @@ describe('calculateFederalDeductions', () => {
         inputs,
         'single',
         federalDeductions as DeductionsData,
-        limits as LimitsData,
+        federalLimits as FederalLimitsData,
         HIGH_AGI
       );
 
@@ -97,7 +99,7 @@ describe('calculateFederalDeductions', () => {
         inputs,
         'single',
         federalDeductions as DeductionsData,
-        limits as LimitsData,
+        federalLimits as FederalLimitsData,
         HIGH_AGI
       );
 
@@ -117,7 +119,7 @@ describe('calculateFederalDeductions', () => {
         inputs,
         'single',
         federalDeductions as DeductionsData,
-        limits as LimitsData,
+        federalLimits as FederalLimitsData,
         HIGH_AGI
       );
 
@@ -135,7 +137,7 @@ describe('calculateFederalDeductions', () => {
         inputs,
         'single',
         federalDeductions as DeductionsData,
-        limits as LimitsData,
+        federalLimits as FederalLimitsData,
         HIGH_AGI
       );
 
@@ -149,7 +151,7 @@ describe('calculateFederalDeductions', () => {
 describe('calculateFederalDeductions MFS edge cases', () => {
   it('uses $5,000 SALT cap for MFS when AGI >= $500k', () => {
     const inputs = createDefaultDeductionInputs({
-      californiaTaxWithheld: 8000,
+      stateTaxWithheld: 8000,
       propertyTaxesPaid: 5000, // Total $13,000 SALT
       mortgageInterestPaid: 10000,
       mortgageBalance: 300000,
@@ -160,7 +162,7 @@ describe('calculateFederalDeductions MFS edge cases', () => {
       inputs,
       'marriedFilingSeparately',
       federalDeductions,
-      limits,
+      federalLimits,
       HIGH_AGI
     );
 
@@ -183,7 +185,7 @@ describe('calculateFederalDeductions MFS edge cases', () => {
       inputs,
       'marriedFilingSeparately',
       federalDeductions,
-      limits,
+      federalLimits,
       HIGH_AGI
     );
 
@@ -194,7 +196,7 @@ describe('calculateFederalDeductions MFS edge cases', () => {
 describe('calculateFederalDeductions boundary cases', () => {
   it('SALT exactly at $10,000 limit is not marked as capped (high AGI)', () => {
     const inputs = createDefaultDeductionInputs({
-      californiaTaxWithheld: 7000,
+      stateTaxWithheld: 7000,
       propertyTaxesPaid: 3000, // Total exactly $10,000
       mortgageInterestPaid: 10000,
       mortgageBalance: 500000,
@@ -204,7 +206,7 @@ describe('calculateFederalDeductions boundary cases', () => {
       inputs,
       'single',
       federalDeductions,
-      limits,
+      federalLimits,
       HIGH_AGI
     );
 
@@ -222,7 +224,7 @@ describe('calculateFederalDeductions boundary cases', () => {
       inputs,
       'single',
       federalDeductions,
-      limits,
+      federalLimits,
       HIGH_AGI
     );
 
@@ -240,7 +242,7 @@ describe('calculateFederalDeductions boundary cases', () => {
       inputs,
       'single',
       federalDeductions,
-      limits,
+      federalLimits,
       HIGH_AGI
     );
 
@@ -259,7 +261,7 @@ describe('calculateFederalDeductions boundary cases', () => {
       inputs,
       'single',
       federalDeductions,
-      limits,
+      federalLimits,
       HIGH_AGI
     );
 
@@ -273,7 +275,7 @@ describe('calculateFederalDeductions boundary cases', () => {
       inputs,
       'single',
       federalDeductions,
-      limits,
+      federalLimits,
       HIGH_AGI
     );
 
@@ -293,7 +295,7 @@ describe('calculateFederalDeductions MFJ', () => {
       inputs,
       'marriedFilingJointly',
       federalDeductions,
-      limits,
+      federalLimits,
       HIGH_AGI
     );
 
@@ -304,7 +306,7 @@ describe('calculateFederalDeductions MFJ', () => {
 
   it('uses $10,000 SALT cap for MFJ when AGI >= $500k', () => {
     const inputs = createDefaultDeductionInputs({
-      californiaTaxWithheld: 20000,
+      stateTaxWithheld: 20000,
       propertyTaxesPaid: 15000,
       mortgageInterestPaid: 25000,
       mortgageBalance: 600000,
@@ -314,7 +316,7 @@ describe('calculateFederalDeductions MFJ', () => {
       inputs,
       'marriedFilingJointly',
       federalDeductions,
-      limits,
+      federalLimits,
       HIGH_AGI
     );
 
@@ -326,8 +328,8 @@ describe('calculateFederalDeductions MFJ', () => {
 describe('calculateFederalDeductions SALT components', () => {
   it('includes CA estimated payments in SALT', () => {
     const inputs = createDefaultDeductionInputs({
-      californiaTaxWithheld: 5000,
-      californiaEstimatedPaid: 3000,
+      stateTaxWithheld: 5000,
+      stateEstimatedPaid: 3000,
       propertyTaxesPaid: 4000, // Total $12,000
       mortgageInterestPaid: 10000,
       mortgageBalance: 500000,
@@ -337,7 +339,7 @@ describe('calculateFederalDeductions SALT components', () => {
       inputs,
       'single',
       federalDeductions,
-      limits,
+      federalLimits,
       HIGH_AGI
     );
 
@@ -357,7 +359,7 @@ describe('calculateFederalDeductions SALT components', () => {
       inputs,
       'single',
       federalDeductions,
-      limits,
+      federalLimits,
       HIGH_AGI
     );
 
@@ -370,7 +372,7 @@ describe('calculateCaliforniaDeductions', () => {
   it('does not include SALT in itemized deductions', () => {
     // Even with high state taxes, CA doesn't allow SALT deduction
     const inputs = createDefaultDeductionInputs({
-      californiaTaxWithheld: 50000,
+      stateTaxWithheld: 50000,
       propertyTaxesPaid: 20000,
       mortgageInterestPaid: 10000,
       mortgageBalance: 500000,
@@ -381,7 +383,7 @@ describe('calculateCaliforniaDeductions', () => {
       inputs,
       'single',
       californiaDeductions,
-      limits
+      californiaLimits
     );
 
     // Only mortgage interest + charitable = $15,000
@@ -403,7 +405,7 @@ describe('calculateCaliforniaDeductions', () => {
       inputs,
       'single',
       californiaDeductions,
-      limits
+      californiaLimits
     );
 
     // Full interest is deductible since $900k < $1M CA limit
@@ -426,7 +428,7 @@ describe('calculateCaliforniaDeductions edge cases', () => {
       inputs,
       'single',
       californiaDeductions,
-      limits
+      californiaLimits
     );
 
     expect(result.mortgageInterest).toBe(40000);
@@ -441,7 +443,7 @@ describe('calculateCaliforniaDeductions edge cases', () => {
       inputs,
       'single',
       californiaDeductions,
-      limits
+      californiaLimits
     );
 
     expect(result.standardDeduction).toBe(5540);
@@ -458,7 +460,7 @@ describe('calculateCaliforniaDeductions edge cases', () => {
       inputs,
       'marriedFilingJointly',
       californiaDeductions,
-      limits
+      californiaLimits
     );
 
     expect(result.standardDeduction).toBe(11080);
@@ -477,7 +479,7 @@ describe('calculateCaliforniaDeductions edge cases', () => {
       inputs,
       'marriedFilingSeparately',
       californiaDeductions,
-      limits
+      californiaLimits
     );
 
     // Full interest deductible
@@ -493,7 +495,7 @@ describe('calculateCaliforniaDeductions edge cases', () => {
       inputs,
       'single',
       californiaDeductions,
-      limits
+      californiaLimits
     );
 
     expect(result.itemizedDeduction).toBe(10000);
@@ -511,7 +513,7 @@ describe('calculateCaliforniaDeductions edge cases', () => {
       inputs,
       'single',
       californiaDeductions,
-      limits
+      californiaLimits
     );
 
     // Only charitable counts
@@ -535,7 +537,7 @@ describe('mortgage interest edge cases across both jurisdictions', () => {
       inputs,
       'single',
       federalDeductions,
-      limits,
+      federalLimits,
       HIGH_AGI
     );
 
@@ -543,7 +545,7 @@ describe('mortgage interest edge cases across both jurisdictions', () => {
       inputs,
       'single',
       californiaDeductions,
-      limits
+      californiaLimits
     );
 
     // Federal: ($750k / $800k) * $40k = $37,500
@@ -557,7 +559,7 @@ describe('calculateFederalDeductions AGI-dependent SALT cap', () => {
   describe('elevated SALT cap when AGI < $500k', () => {
     it('uses $20,000 SALT cap for Single when AGI < $500k', () => {
       const inputs = createDefaultDeductionInputs({
-        californiaTaxWithheld: 15000,
+        stateTaxWithheld: 15000,
         propertyTaxesPaid: 10000, // Total $25,000 SALT
         mortgageInterestPaid: 20000,
         mortgageBalance: 500000,
@@ -567,7 +569,7 @@ describe('calculateFederalDeductions AGI-dependent SALT cap', () => {
         inputs,
         'single',
         federalDeductions as DeductionsData,
-        limits as LimitsData,
+        federalLimits as FederalLimitsData,
         LOW_AGI
       );
 
@@ -578,7 +580,7 @@ describe('calculateFederalDeductions AGI-dependent SALT cap', () => {
 
     it('uses $40,000 SALT cap for MFJ when AGI < $500k', () => {
       const inputs = createDefaultDeductionInputs({
-        californiaTaxWithheld: 30000,
+        stateTaxWithheld: 30000,
         propertyTaxesPaid: 20000, // Total $50,000 SALT
         mortgageInterestPaid: 25000,
         mortgageBalance: 600000,
@@ -588,7 +590,7 @@ describe('calculateFederalDeductions AGI-dependent SALT cap', () => {
         inputs,
         'marriedFilingJointly',
         federalDeductions as DeductionsData,
-        limits as LimitsData,
+        federalLimits as FederalLimitsData,
         LOW_AGI
       );
 
@@ -599,7 +601,7 @@ describe('calculateFederalDeductions AGI-dependent SALT cap', () => {
 
     it('uses $20,000 SALT cap for MFS when AGI < $500k', () => {
       const inputs = createDefaultDeductionInputs({
-        californiaTaxWithheld: 15000,
+        stateTaxWithheld: 15000,
         propertyTaxesPaid: 10000, // Total $25,000 SALT
         mortgageInterestPaid: 10000,
         mortgageBalance: 300000,
@@ -609,7 +611,7 @@ describe('calculateFederalDeductions AGI-dependent SALT cap', () => {
         inputs,
         'marriedFilingSeparately',
         federalDeductions as DeductionsData,
-        limits as LimitsData,
+        federalLimits as FederalLimitsData,
         LOW_AGI
       );
 
@@ -620,7 +622,7 @@ describe('calculateFederalDeductions AGI-dependent SALT cap', () => {
 
     it('does not cap SALT below elevated limit', () => {
       const inputs = createDefaultDeductionInputs({
-        californiaTaxWithheld: 10000,
+        stateTaxWithheld: 10000,
         propertyTaxesPaid: 5000, // Total $15,000 SALT (below $20k limit)
         mortgageInterestPaid: 10000,
         mortgageBalance: 500000,
@@ -630,7 +632,7 @@ describe('calculateFederalDeductions AGI-dependent SALT cap', () => {
         inputs,
         'single',
         federalDeductions as DeductionsData,
-        limits as LimitsData,
+        federalLimits as FederalLimitsData,
         LOW_AGI
       );
 
@@ -642,7 +644,7 @@ describe('calculateFederalDeductions AGI-dependent SALT cap', () => {
   describe('AGI threshold boundary', () => {
     it('uses elevated cap when AGI is $499,999', () => {
       const inputs = createDefaultDeductionInputs({
-        californiaTaxWithheld: 15000,
+        stateTaxWithheld: 15000,
         propertyTaxesPaid: 10000, // Total $25,000 SALT
         mortgageInterestPaid: 20000,
         mortgageBalance: 500000,
@@ -652,7 +654,7 @@ describe('calculateFederalDeductions AGI-dependent SALT cap', () => {
         inputs,
         'single',
         federalDeductions as DeductionsData,
-        limits as LimitsData,
+        federalLimits as FederalLimitsData,
         499999
       );
 
@@ -662,7 +664,7 @@ describe('calculateFederalDeductions AGI-dependent SALT cap', () => {
 
     it('uses standard cap when AGI is exactly $500,000', () => {
       const inputs = createDefaultDeductionInputs({
-        californiaTaxWithheld: 15000,
+        stateTaxWithheld: 15000,
         propertyTaxesPaid: 10000, // Total $25,000 SALT
         mortgageInterestPaid: 20000,
         mortgageBalance: 500000,
@@ -672,7 +674,7 @@ describe('calculateFederalDeductions AGI-dependent SALT cap', () => {
         inputs,
         'single',
         federalDeductions as DeductionsData,
-        limits as LimitsData,
+        federalLimits as FederalLimitsData,
         500000
       );
 

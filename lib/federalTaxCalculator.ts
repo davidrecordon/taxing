@@ -3,14 +3,15 @@ import {
   TaxCalculationResult,
   TaxBracketsData,
   DeductionsData,
-  LimitsData,
+  SharedLimitsData,
+  FederalLimitsData,
   FicaData,
   FicaBreakdown,
   FilingStatus,
-  SafeHarbor,
 } from './types';
 import { calculateFederalDeductions } from './deductionCalculator';
 import { calculateTaxByBrackets, calculateLTCGTaxWithStacking } from './taxUtils';
+import { calculatePaymentSummary, calculateSafeHarbor } from './states/stateCalcUtils';
 
 function calculateFicaTaxes(
   wageIncome: number,
@@ -43,7 +44,8 @@ export function calculateFederalTax(
   federalBrackets: TaxBracketsData,
   ltcgBrackets: TaxBracketsData,
   federalDeductions: DeductionsData,
-  limits: LimitsData,
+  sharedLimits: SharedLimitsData,
+  federalLimits: FederalLimitsData,
   ficaData?: FicaData
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
@@ -60,8 +62,8 @@ export function calculateFederalTax(
   const remainingCarryover = stCarryover - stGainsOffset;
 
   const ordinaryIncomeLimit = filingStatus === 'marriedFilingSeparately'
-    ? limits.capitalLossLimit.marriedFilingSeparately
-    : limits.capitalLossLimit.default;
+    ? sharedLimits.capitalLossLimit.marriedFilingSeparately
+    : sharedLimits.capitalLossLimit.default;
   const ordinaryIncomeOffset = remainingCarryover > 0 && inputs.federalIncome > 0
     ? Math.min(remainingCarryover, ordinaryIncomeLimit, inputs.federalIncome)
     : 0;
@@ -87,12 +89,12 @@ export function calculateFederalTax(
       mortgageInterestPaid: inputs.mortgageInterestPaid,
       mortgageBalance: inputs.mortgageBalance,
       charitableContributions: inputs.charitableContributions,
-      californiaTaxWithheld: inputs.californiaTaxWithheld,
-      californiaEstimatedPaid: inputs.californiaEstimatedPaid,
+      stateTaxWithheld: inputs.stateTaxWithheld,
+      stateEstimatedPaid: inputs.stateEstimatedPaid,
     },
     filingStatus,
     federalDeductions,
-    limits,
+    federalLimits,
     preDeductionAgi
   );
 
@@ -148,25 +150,23 @@ export function calculateFederalTax(
   // Step 8: Sum up taxes
   const totalTax = ordinaryTax.total + ltcgTax.total + (ficaBreakdown?.totalFica ?? 0);
 
-  // Step 9: Calculate remaining owed
-  const totalPaid = inputs.federalTaxWithheld + inputs.federalEstimatedPaid;
-  const remainingOwed = Math.max(0, totalTax - totalPaid);
-  const refundDue = Math.max(0, totalPaid - totalTax);
+  // Step 9: Calculate remaining owed using shared utility
+  const { totalPaid, remainingOwed, refundDue } = calculatePaymentSummary(
+    totalTax,
+    inputs.federalTaxWithheld,
+    inputs.federalEstimatedPaid
+  );
 
-  // Step 10: Calculate safe harbor for estimated tax penalty avoidance
-  // Only use 110% prior year rule if prior year tax was entered
-  const safeHarbor90Percent = totalTax * limits.safeHarbor.currentYearPercent;
-  const safeHarbor110Percent = inputs.priorYearFederalTaxPaid * limits.safeHarbor.federalPriorYearPercent;
-  const safeHarborMinimum = inputs.priorYearFederalTaxPaid > 0
-    ? Math.min(safeHarbor90Percent, safeHarbor110Percent)
-    : safeHarbor90Percent;
-  const safeHarbor: SafeHarbor = {
-    currentYear90Percent: safeHarbor90Percent,
-    priorYearSafeHarbor: safeHarbor110Percent,
-    minimum: safeHarborMinimum,
-    met: totalPaid >= safeHarborMinimum,
-    remaining: Math.max(0, safeHarborMinimum - totalPaid),
-  };
+  // Step 10: Calculate safe harbor using shared utility
+  const safeHarbor = calculateSafeHarbor(
+    totalTax,
+    totalPaid,
+    inputs.priorYearFederalTaxPaid,
+    {
+      currentYearPercent: federalLimits.safeHarbor.currentYearPercent,
+      priorYearPercent: federalLimits.safeHarbor.priorYearPercent,
+    }
+  );
 
   return {
     wageIncome: inputs.federalIncome,

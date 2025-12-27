@@ -1,6 +1,8 @@
 import { TaxCalculationResult } from '@/lib/types';
 import { formatCurrency, formatPercent } from '@/lib/formatters';
 import { calculateEffectiveRates } from '@/lib/taxUtils';
+import BracketTable from './shared/BracketTable';
+import TaxSummarySection from './shared/TaxSummarySection';
 
 interface Props {
   result: TaxCalculationResult;
@@ -112,100 +114,22 @@ export default function FederalBreakdown({ result }: Props) {
       )}
 
       {/* Bracket Breakdown - Ordinary Income */}
-      {result.ordinaryIncomeBracketBreakdown.length > 0 && (
-        <div className="mb-4">
-          <h3 className="font-medium mb-2">Ordinary Income Tax by Bracket</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="text-left p-2">Bracket</th>
-                  <th className="text-right p-2">Rate</th>
-                  <th className="text-right p-2">Income</th>
-                  <th className="text-right p-2">Tax</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.ordinaryIncomeBracketBreakdown.map((bracket) => (
-                  <tr key={`${bracket.bracketMin}-${bracket.rate}`} className="border-b">
-                    <td className="p-2">
-                      {formatCurrency(bracket.bracketMin)} -{' '}
-                      {bracket.bracketMax
-                        ? formatCurrency(bracket.bracketMax)
-                        : '...'}
-                    </td>
-                    <td className="text-right p-2">{formatPercent(bracket.rate)}</td>
-                    <td className="text-right p-2 font-mono">
-                      {formatCurrency(bracket.incomeInBracket)}
-                    </td>
-                    <td className="text-right p-2 font-mono">
-                      {formatCurrency(bracket.taxForBracket)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot className="font-medium bg-gray-50">
-                <tr>
-                  <td colSpan={3} className="p-2 text-right">
-                    Ordinary Income Tax:
-                  </td>
-                  <td className="p-2 text-right font-mono">
-                    {formatCurrency(result.ordinaryIncomeTax)}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
-      )}
+      <BracketTable
+        breakdown={result.ordinaryIncomeBracketBreakdown}
+        title="Ordinary Income Tax by Bracket"
+        incomeLabel="Income"
+        totalLabel="Ordinary Income Tax:"
+        totalAmount={result.ordinaryIncomeTax}
+      />
 
       {/* Bracket Breakdown - LTCG */}
-      {result.ltcgBracketBreakdown.length > 0 && (
-        <div className="mb-4">
-          <h3 className="font-medium mb-2">Long-Term Capital Gains Tax by Bracket</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="text-left p-2">Bracket</th>
-                  <th className="text-right p-2">Rate</th>
-                  <th className="text-right p-2">Gains</th>
-                  <th className="text-right p-2">Tax</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.ltcgBracketBreakdown.map((bracket) => (
-                  <tr key={`${bracket.bracketMin}-${bracket.rate}`} className="border-b">
-                    <td className="p-2">
-                      {formatCurrency(bracket.bracketMin)} -{' '}
-                      {bracket.bracketMax
-                        ? formatCurrency(bracket.bracketMax)
-                        : '...'}
-                    </td>
-                    <td className="text-right p-2">{formatPercent(bracket.rate)}</td>
-                    <td className="text-right p-2 font-mono">
-                      {formatCurrency(bracket.incomeInBracket)}
-                    </td>
-                    <td className="text-right p-2 font-mono">
-                      {formatCurrency(bracket.taxForBracket)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot className="font-medium bg-gray-50">
-                <tr>
-                  <td colSpan={3} className="p-2 text-right">
-                    Long-Term Capital Gains Tax:
-                  </td>
-                  <td className="p-2 text-right font-mono">
-                    {formatCurrency(result.ltcgTax)}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
-      )}
+      <BracketTable
+        breakdown={result.ltcgBracketBreakdown}
+        title="Long-Term Capital Gains Tax by Bracket"
+        incomeLabel="Gains"
+        totalLabel="Long-Term Capital Gains Tax:"
+        totalAmount={result.ltcgTax}
+      />
 
       {/* FICA Taxes */}
       {result.ficaBreakdown && (
@@ -235,52 +159,16 @@ export default function FederalBreakdown({ result }: Props) {
       )}
 
       {/* Final Summary */}
-      <div className="bg-blue-50 p-3 rounded mb-4 space-y-2">
-        <div className="flex justify-between font-medium">
-          <span>Total Federal Tax</span>
-          <span className="font-mono">{formatCurrency(result.totalTax)}</span>
-        </div>
-        <div className="flex justify-between text-sm text-green-600">
-          <span>Less: Withheld</span>
-          <span className="font-mono">-{formatCurrency(result.withheld)}</span>
-        </div>
-        <div className="flex justify-between text-sm text-green-600">
-          <span>Less: Estimated Paid</span>
-          <span className="font-mono">-{formatCurrency(result.estimatedPaid)}</span>
-        </div>
-        <div className="flex justify-between font-bold text-lg pt-2 border-t border-blue-200">
-          {result.remainingOwed > 0 ? (
-            <>
-              <span>Estimated Tax Still Owed</span>
-              <span className="text-red-600 font-mono">
-                {formatCurrency(result.remainingOwed)}
-              </span>
-            </>
-          ) : (
-            <>
-              <span>Estimated Refund</span>
-              <span className="text-green-600 font-mono">
-                {formatCurrency(result.refundDue)}
-              </span>
-            </>
-          )}
-        </div>
-        {(() => {
-          const rates = calculateEffectiveRates(result);
-          return (
-            <div className="pt-2 mt-2 border-t border-blue-200 space-y-1">
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>Effective Rate (on taxable income)</span>
-                <span className="font-mono">{formatPercent(rates.onTaxableIncome)}</span>
-              </div>
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>Effective Rate (on gross income)</span>
-                <span className="font-mono">{formatPercent(rates.onGrossIncome)}</span>
-              </div>
-            </div>
-          );
-        })()}
-      </div>
+      <TaxSummarySection
+        totalTax={result.totalTax}
+        withheld={result.withheld}
+        estimatedPaid={result.estimatedPaid}
+        remainingOwed={result.remainingOwed}
+        refundDue={result.refundDue}
+        taxLabel="Federal"
+        showEffectiveRates={true}
+        effectiveRates={calculateEffectiveRates(result)}
+      />
 
       {/* Safe Harbor Section */}
       {result.safeHarbor && result.remainingOwed > 0 && (

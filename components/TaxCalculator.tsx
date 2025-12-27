@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { TaxInputs, FilingStatus, CalculationResults } from '@/lib/types';
+import { TaxInputs, FilingStatus, TaxState, CalculationResults, STATE_LABELS } from '@/lib/types';
 import { calculateFederalTax } from '@/lib/federalTaxCalculator';
-import { calculateCaliforniaTax } from '@/lib/californiaTaxCalculator';
-import FilingStatusSelect from './FilingStatusSelect';
+import { calculateCaliforniaTax } from '@/lib/states/californiaTaxCalculator';
+import { calculateWashingtonTax } from '@/lib/states/washingtonTaxCalculator';
+import ConfigurationSection from './ConfigurationSection';
 import IncomeInputs from './IncomeInputs';
 import WithholdingInputs from './WithholdingInputs';
 import DeductionInputs from './DeductionInputs';
@@ -18,7 +19,11 @@ import allLtcgBrackets from '@/data/federal-ltcg-brackets.json';
 import allFederalDeductions from '@/data/federal-deductions.json';
 import allCaliforniaBrackets from '@/data/california-brackets.json';
 import allCaliforniaDeductions from '@/data/california-deductions.json';
-import allLimits from '@/data/limits.json';
+import allWashingtonBrackets from '@/data/washington-brackets.json';
+import allSharedLimits from '@/data/limits.json';
+import allFederalLimits from '@/data/federal-limits.json';
+import allCaliforniaLimits from '@/data/california-limits.json';
+import allWashingtonLimits from '@/data/washington-limits.json';
 import allFicaData from '@/data/fica.json';
 
 import { TAX_YEAR } from '@/lib/config';
@@ -27,26 +32,31 @@ const ltcgBrackets = allLtcgBrackets[TAX_YEAR];
 const federalDeductions = allFederalDeductions[TAX_YEAR];
 const californiaBrackets = allCaliforniaBrackets[TAX_YEAR];
 const californiaDeductions = allCaliforniaDeductions[TAX_YEAR];
-const limits = allLimits[TAX_YEAR];
+const washingtonBrackets = allWashingtonBrackets[TAX_YEAR];
+const sharedLimits = allSharedLimits[TAX_YEAR];
+const federalLimits = allFederalLimits[TAX_YEAR];
+const californiaLimits = allCaliforniaLimits[TAX_YEAR];
+const washingtonLimits = allWashingtonLimits[TAX_YEAR];
 const ficaData = allFicaData[TAX_YEAR];
 
 const defaultInputs: TaxInputs = {
   federalIncome: 0,
-  californiaIncome: 0,
+  stateIncome: 0,
   shortTermCapitalGains: 0,
   longTermCapitalGains: 0,
   federalTaxWithheld: 0,
-  californiaTaxWithheld: 0,
+  stateTaxWithheld: 0,
   federalEstimatedPaid: 0,
-  californiaEstimatedPaid: 0,
+  stateEstimatedPaid: 0,
   filingStatus: 'single',
+  selectedState: 'california',
   propertyTaxesPaid: 0,
   mortgageInterestPaid: 0,
   mortgageBalance: 0,
   charitableContributions: 0,
   contributions401k: 0,
   priorYearFederalTaxPaid: 0,
-  priorYearCaliforniaTaxPaid: 0,
+  priorYearStateTaxPaid: 0,
   priorYearShortTermLossCarryover: 0,
   priorYearLongTermLossCarryover: 0,
 };
@@ -60,21 +70,23 @@ export default function TaxCalculator() {
       federalBrackets,
       ltcgBrackets,
       federalDeductions,
-      limits,
+      sharedLimits,
+      federalLimits,
       ficaData
     );
-    const california = calculateCaliforniaTax(
-      inputs,
-      californiaBrackets,
-      californiaDeductions,
-      limits
-    );
-    return { federal, california };
+
+    const state = inputs.selectedState === 'california'
+      ? calculateCaliforniaTax(inputs, californiaBrackets, californiaDeductions, sharedLimits, californiaLimits)
+      : calculateWashingtonTax(inputs, washingtonBrackets, washingtonLimits);
+
+    return { federal, state, selectedState: inputs.selectedState };
   }, [inputs]);
 
   const updateInput = <K extends keyof TaxInputs>(field: K, value: TaxInputs[K]) => {
     setInputs((prev) => ({ ...prev, [field]: value }));
   };
+
+  const stateLabel = STATE_LABELS[inputs.selectedState];
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6">
@@ -82,22 +94,24 @@ export default function TaxCalculator() {
         <h1 className="text-3xl font-bold text-gray-900">
           2025 Estimated Tax Calculator
         </h1>
-        <p className="text-gray-700 mt-2">Federal & California Tax Estimation</p>
+        <p className="text-gray-700 mt-2">Federal & {stateLabel} Tax Estimation</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column: Inputs */}
         <div className="space-y-6">
-          <FilingStatusSelect
-            value={inputs.filingStatus}
-            onChange={(status: FilingStatus) => updateInput('filingStatus', status)}
+          <ConfigurationSection
+            filingStatus={inputs.filingStatus}
+            selectedState={inputs.selectedState}
+            onFilingStatusChange={(status: FilingStatus) => updateInput('filingStatus', status)}
+            onStateChange={(state: TaxState) => updateInput('selectedState', state)}
           />
 
           <IncomeInputs inputs={inputs} onUpdate={updateInput} />
 
           <WithholdingInputs inputs={inputs} onUpdate={updateInput} />
 
-          <DeductionInputs inputs={inputs} onUpdate={updateInput} limits={limits} />
+          <DeductionInputs inputs={inputs} onUpdate={updateInput} sharedLimits={sharedLimits} federalLimits={federalLimits} />
 
           <PriorYearInputs inputs={inputs} onUpdate={updateInput} />
         </div>

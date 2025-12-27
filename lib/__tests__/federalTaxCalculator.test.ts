@@ -4,7 +4,8 @@ import {
   federalBrackets,
   ltcgBrackets,
   federalDeductions,
-  limits,
+  sharedLimits,
+  federalLimits,
   ficaData,
   createDefaultInputs,
 } from './testData';
@@ -28,7 +29,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits,
+        sharedLimits,
+        federalLimits,
         ficaData
       );
 
@@ -54,7 +56,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits,
+        sharedLimits,
+        federalLimits,
         ficaData
       );
 
@@ -81,7 +84,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       expect(result.taxableLTCG).toBe(30000);
@@ -101,7 +105,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       expect(result.taxableLTCG).toBe(100000);
@@ -128,7 +133,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits,
+        sharedLimits,
+        federalLimits,
         ficaData
       );
 
@@ -156,7 +162,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits,
+        sharedLimits,
+        federalLimits,
         ficaData
       );
 
@@ -178,7 +185,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits,
+        sharedLimits,
+        federalLimits,
         ficaData
       );
 
@@ -206,7 +214,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       expect(result.shortTermLossCarryoverOffset).toBe(13000); // 10k ST + 3k ordinary
@@ -227,7 +236,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       // Only $1,500 can offset ordinary income for MFS
@@ -247,7 +257,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       expect(result.shortTermLossCarryoverOffset).toBe(0);
@@ -270,7 +281,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       expect(result.longTermLossCarryoverOffset).toBe(20000);
@@ -291,7 +303,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       expect(result.longTermLossCarryoverOffset).toBe(30000);
@@ -316,7 +329,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       // ST loss: $15k offsets ST gains, $3k offsets ordinary income = $18k used
@@ -349,7 +363,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       expect(result.taxableOrdinaryIncome).toBe(40000);
@@ -379,7 +394,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       expect(result.taxableOrdinaryIncome).toBe(60000);
@@ -401,7 +417,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       expect(result.taxableOrdinaryIncome).toBe(0);
@@ -428,7 +445,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       expect(result.taxableOrdinaryIncome).toBe(4300);
@@ -454,7 +472,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       // Room in 0% bracket = $47,025 - $40,000 = $7,025
@@ -484,7 +503,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       // All LTCG would be taxed at 15%, so use full carryover
@@ -508,7 +528,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       // Room in 0% bracket = $47,025 - $40,000 = $7,025
@@ -534,7 +555,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       expect(result.taxableOrdinaryIncome).toBe(11925);
@@ -553,7 +575,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       expect(result.taxableOrdinaryIncome).toBe(11926);
@@ -575,7 +598,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits,
+        sharedLimits,
+        federalLimits,
         ficaData
       );
 
@@ -598,7 +622,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       expect(result.taxableOrdinaryIncome).toBe(0);
@@ -618,7 +643,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits,
+        sharedLimits,
+        federalLimits,
         ficaData
       );
 
@@ -640,7 +666,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits,
+        sharedLimits,
+        federalLimits,
         ficaData
       );
 
@@ -659,7 +686,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits,
+        sharedLimits,
+        federalLimits,
         ficaData
       );
 
@@ -681,7 +709,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       // Verify some LTCG taxed at 20%
@@ -705,7 +734,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits,
+        sharedLimits,
+        federalLimits,
         ficaData
       );
 
@@ -727,7 +757,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits,
+        sharedLimits,
+        federalLimits,
         ficaData
       );
 
@@ -750,7 +781,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       expect(result.wageIncome).toBe(0);
@@ -771,7 +803,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits,
+        sharedLimits,
+        federalLimits,
         ficaData
       );
 
@@ -787,7 +820,8 @@ describe('calculateFederalTax', () => {
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
-        limits
+        sharedLimits,
+        federalLimits
       );
 
       expect(result.grossIncome).toBe(0);

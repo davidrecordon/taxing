@@ -1,28 +1,26 @@
 'use client';
 
-import { TaxInputs, LimitsData } from '@/lib/types';
+import { TaxInputs, SharedLimitsData, FederalLimitsData } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
 import CurrencyInput from './CurrencyInput';
 
 interface Props {
   inputs: TaxInputs;
   onUpdate: <K extends keyof TaxInputs>(field: K, value: TaxInputs[K]) => void;
-  limits: LimitsData;
+  sharedLimits: SharedLimitsData;
+  federalLimits: FederalLimitsData;
 }
 
-export default function DeductionInputs({ inputs, onUpdate, limits }: Props) {
-  // Calculate total SALT for warning purposes
-  const totalSalt = inputs.propertyTaxesPaid + inputs.californiaTaxWithheld + inputs.californiaEstimatedPaid;
-
+export default function DeductionInputs({ inputs, onUpdate, sharedLimits, federalLimits }: Props) {
   // Calculate rough pre-deduction AGI to determine applicable SALT limit
   const roughAgi = inputs.federalIncome + inputs.shortTermCapitalGains + inputs.longTermCapitalGains - inputs.contributions401k;
 
   // Select SALT limit based on AGI threshold
-  const applicableSaltLimit = roughAgi < limits.saltLimit.elevatedAgiThreshold
-    ? limits.saltLimit.elevated[inputs.filingStatus]
+  const applicableSaltLimit = roughAgi < federalLimits.saltLimit.elevatedAgiThreshold
+    ? federalLimits.saltLimit.elevated[inputs.filingStatus]
     : (inputs.filingStatus === 'marriedFilingSeparately'
-        ? limits.saltLimit.marriedFilingSeparately
-        : limits.saltLimit.default);
+        ? federalLimits.saltLimit.marriedFilingSeparately
+        : federalLimits.saltLimit.default);
 
   // Generate SALT warning message
   const getSaltWarning = (): string | undefined => {
@@ -34,8 +32,8 @@ export default function DeductionInputs({ inputs, onUpdate, limits }: Props) {
 
   const contribution401kLimit =
     inputs.filingStatus === 'marriedFilingJointly'
-      ? limits.contribution401k.standard * 2
-      : limits.contribution401k.standard;
+      ? sharedLimits.contribution401k.standard * 2
+      : sharedLimits.contribution401k.standard;
 
   return (
     <div className="bg-white rounded-lg shadow p-4 space-y-4">
@@ -73,8 +71,8 @@ export default function DeductionInputs({ inputs, onUpdate, limits }: Props) {
           hint="Average balance across the year."
           warning={inputs.mortgageBalance > (
             inputs.filingStatus === 'marriedFilingSeparately'
-              ? limits.mortgageBalanceLimit.federal.marriedFilingSeparately
-              : limits.mortgageBalanceLimit.federal.default
+              ? federalLimits.mortgageBalanceLimit.marriedFilingSeparately
+              : federalLimits.mortgageBalanceLimit.default
           )
             ? `Interest deduction will be prorated to meet Federal and California limits.`
             : undefined}

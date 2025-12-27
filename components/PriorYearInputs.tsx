@@ -1,6 +1,6 @@
 'use client';
 
-import { TaxInputs } from '@/lib/types';
+import { TaxInputs, STATE_LABELS } from '@/lib/types';
 import CurrencyInput from './CurrencyInput';
 
 interface Props {
@@ -9,6 +9,8 @@ interface Props {
 }
 
 export default function PriorYearInputs({ inputs, onUpdate }: Props) {
+  const stateLabel = STATE_LABELS[inputs.selectedState] || 'State';
+
   return (
     <div className="bg-white rounded-lg shadow p-4 space-y-4">
       <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Prior Year</h2>
@@ -20,9 +22,9 @@ export default function PriorYearInputs({ inputs, onUpdate }: Props) {
           onChange={(v) => onUpdate('priorYearFederalTaxPaid', v)}
         />
         <CurrencyInput
-          label="California Tax Paid"
-          value={inputs.priorYearCaliforniaTaxPaid}
-          onChange={(v) => onUpdate('priorYearCaliforniaTaxPaid', v)}
+          label={`${stateLabel} Tax Paid`}
+          value={inputs.priorYearStateTaxPaid}
+          onChange={(v) => onUpdate('priorYearStateTaxPaid', v)}
         />
       </div>
 

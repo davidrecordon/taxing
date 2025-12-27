@@ -1,6 +1,7 @@
-import { CalculationResults } from '@/lib/types';
+import { CalculationResults, STATE_LABELS } from '@/lib/types';
 import FederalBreakdown from './FederalBreakdown';
-import CaliforniaBreakdown from './CaliforniaBreakdown';
+import CaliforniaBreakdown from './States/CaliforniaBreakdown';
+import WashingtonBreakdown from './States/WashingtonBreakdown';
 import { formatCurrency } from '@/lib/formatters';
 
 interface Props {
@@ -8,6 +9,8 @@ interface Props {
 }
 
 export default function TaxResultsDisplay({ results }: Props) {
+  const stateLabel = STATE_LABELS[results.selectedState] || 'State';
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -33,19 +36,19 @@ export default function TaxResultsDisplay({ results }: Props) {
 
         <div
           className={`p-4 rounded-lg ${
-            results.california.remainingOwed > 0
+            results.state.remainingOwed > 0
               ? 'bg-red-50 border border-red-200'
               : 'bg-green-50 border border-green-200'
           }`}
         >
-          <h3 className="text-sm font-medium text-gray-900">California</h3>
-          {results.california.remainingOwed > 0 ? (
+          <h3 className="text-sm font-medium text-gray-900">{stateLabel}</h3>
+          {results.state.remainingOwed > 0 ? (
             <p className="text-2xl font-bold text-red-600">
-              {formatCurrency(results.california.remainingOwed)} owed
+              {formatCurrency(results.state.remainingOwed)} owed
             </p>
           ) : (
             <p className="text-2xl font-bold text-green-600">
-              {formatCurrency(results.california.refundDue)} refund
+              {formatCurrency(results.state.refundDue)} refund
             </p>
           )}
         </div>
@@ -53,7 +56,12 @@ export default function TaxResultsDisplay({ results }: Props) {
 
       {/* Detailed Breakdowns */}
       <FederalBreakdown result={results.federal} />
-      <CaliforniaBreakdown result={results.california} />
+
+      {results.selectedState === 'california' ? (
+        <CaliforniaBreakdown result={results.state} />
+      ) : (
+        <WashingtonBreakdown result={results.state} />
+      )}
     </div>
   );
 }

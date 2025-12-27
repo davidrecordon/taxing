@@ -10,7 +10,8 @@
       "Bash(tsc:*)",
       "WebSearch",
       "WebFetch(domain:www.irs.gov)",
-      "WebFetch(domain:www.ftb.ca.gov)"
+      "WebFetch(domain:www.ftb.ca.gov)",
+      "WebFetch(domain:dor.wa.gov)"
     ]
   }
 }

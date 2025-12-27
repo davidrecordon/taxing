@@ -1,5 +1,12 @@
 export type FilingStatus = 'single' | 'marriedFilingJointly' | 'marriedFilingSeparately';
 
+export type TaxState = 'california' | 'washington';
+
+export const STATE_LABELS: Record<TaxState, string> = {
+  california: 'California',
+  washington: 'Washington',
+};
+
 export interface TaxBracket {
   min: number;
   max: number | null;
@@ -32,7 +39,20 @@ export interface DeductionsData {
 // Multi-year wrapper type for JSON files
 export type MultiYearDeductions = Record<string, DeductionsData>;
 
-export interface LimitsData {
+// Shared cross-cutting limits (applies to all jurisdictions)
+export interface SharedLimitsData {
+  contribution401k: {
+    standard: number;
+    catchUp50Plus: number;
+  };
+  capitalLossLimit: {
+    default: number;
+    marriedFilingSeparately: number;
+  };
+}
+
+// Federal-specific limits
+export interface FederalLimitsData {
   saltLimit: {
     default: number;
     marriedFilingSeparately: number;
@@ -43,35 +63,46 @@ export interface LimitsData {
     };
     elevatedAgiThreshold: number;
   };
-  contribution401k: {
-    standard: number;
-    catchUp50Plus: number;
-  };
   mortgageBalanceLimit: {
-    federal: {
-      default: number;
-      marriedFilingSeparately: number;
-    };
-    california: number;
-  };
-  capitalLossLimit: {
     default: number;
     marriedFilingSeparately: number;
   };
-  caMentalHealthTax: {
+  safeHarbor: {
+    currentYearPercent: number;
+    priorYearPercent: number;
+  };
+}
+
+// California-specific limits
+export interface CaliforniaLimitsData {
+  mortgageBalanceLimit: number;
+  mentalHealthTax: {
     threshold: number;
     thresholdMFS: number;
     rate: number;
   };
   safeHarbor: {
     currentYearPercent: number;
-    federalPriorYearPercent: number;
-    californiaPriorYearPercent: number;
+    priorYearPercent: number;
   };
 }
 
-// Multi-year wrapper type for JSON files
-export type MultiYearLimits = Record<string, LimitsData>;
+// Washington-specific limits
+export interface WashingtonLimitsData {
+  exemption: number;
+  surtaxThreshold: number;
+  baseRate: number;
+  surtaxRate: number;
+  safeHarbor: {
+    percent: number;
+  };
+}
+
+// Multi-year wrapper types for JSON files
+export type MultiYearSharedLimits = Record<string, SharedLimitsData>;
+export type MultiYearFederalLimits = Record<string, FederalLimitsData>;
+export type MultiYearCaliforniaLimits = Record<string, CaliforniaLimitsData>;
+export type MultiYearWashingtonLimits = Record<string, WashingtonLimitsData>;
 
 export interface FicaData {
   socialSecurity: {
@@ -98,18 +129,19 @@ export type MultiYearFica = Record<string, FicaData>;
 export interface TaxInputs {
   // Income fields
   federalIncome: number;
-  californiaIncome: number;
+  stateIncome: number;
   shortTermCapitalGains: number;
   longTermCapitalGains: number;
 
   // Withholding and estimated payments
   federalTaxWithheld: number;
-  californiaTaxWithheld: number;
+  stateTaxWithheld: number;
   federalEstimatedPaid: number;
-  californiaEstimatedPaid: number;
+  stateEstimatedPaid: number;
 
-  // Filing status
+  // Filing status and state selection
   filingStatus: FilingStatus;
+  selectedState: TaxState;
 
   // Deductions
   propertyTaxesPaid: number;
@@ -120,7 +152,7 @@ export interface TaxInputs {
 
   // Prior year
   priorYearFederalTaxPaid: number;
-  priorYearCaliforniaTaxPaid: number;
+  priorYearStateTaxPaid: number;
   priorYearShortTermLossCarryover: number;
   priorYearLongTermLossCarryover: number;
 }
@@ -207,5 +239,6 @@ export interface TaxCalculationResult {
 
 export interface CalculationResults {
   federal: TaxCalculationResult;
-  california: TaxCalculationResult;
+  state: TaxCalculationResult;
+  selectedState: TaxState;
 }

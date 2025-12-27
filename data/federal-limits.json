@@ -1,0 +1,42 @@
+{
+  "2025": {
+    "saltLimit": {
+      "default": 10000,
+      "marriedFilingSeparately": 5000,
+      "elevated": {
+        "marriedFilingJointly": 40000,
+        "single": 20000,
+        "marriedFilingSeparately": 20000
+      },
+      "elevatedAgiThreshold": 500000
+    },
+    "mortgageBalanceLimit": {
+      "default": 750000,
+      "marriedFilingSeparately": 375000
+    },
+    "safeHarbor": {
+      "currentYearPercent": 0.90,
+      "priorYearPercent": 1.10
+    }
+  },
+  "2026": {
+    "saltLimit": {
+      "default": 10000,
+      "marriedFilingSeparately": 5000,
+      "elevated": {
+        "marriedFilingJointly": 40000,
+        "single": 20000,
+        "marriedFilingSeparately": 20000
+      },
+      "elevatedAgiThreshold": 500000
+    },
+    "mortgageBalanceLimit": {
+      "default": 750000,
+      "marriedFilingSeparately": 375000
+    },
+    "safeHarbor": {
+      "currentYearPercent": 0.90,
+      "priorYearPercent": 1.10
+    }
+  }
+}

@@ -3,27 +3,29 @@ import {
   TaxCalculationResult,
   TaxBracketsData,
   DeductionsData,
-  LimitsData,
-  SafeHarbor,
-} from './types';
-import { calculateCaliforniaDeductions } from './deductionCalculator';
-import { calculateTaxByBrackets } from './taxUtils';
+  SharedLimitsData,
+  CaliforniaLimitsData,
+} from '../types';
+import { calculateCaliforniaDeductions } from '../deductionCalculator';
+import { calculateTaxByBrackets } from '../taxUtils';
+import { calculatePaymentSummary, calculateSafeHarbor } from './stateCalcUtils';
 
 export function calculateCaliforniaTax(
   inputs: TaxInputs,
   californiaBrackets: TaxBracketsData,
   californiaDeductions: DeductionsData,
-  limits: LimitsData
+  sharedLimits: SharedLimitsData,
+  californiaLimits: CaliforniaLimitsData
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
 
-  // Use federal income if California income is not specified
-  const californiaIncome = inputs.californiaIncome || inputs.federalIncome;
+  // Use federal income if state income is not specified
+  const stateIncome = inputs.stateIncome || inputs.federalIncome;
 
   // Step 1: Calculate Gross Income
   // California taxes ALL capital gains as ordinary income
   const grossIncome =
-    californiaIncome +
+    stateIncome +
     inputs.shortTermCapitalGains +
     inputs.longTermCapitalGains;
 
@@ -34,10 +36,10 @@ export function calculateCaliforniaTax(
   const remainingCarryover = stCarryover - stGainsOffset;
 
   const ordinaryIncomeLimit = filingStatus === 'marriedFilingSeparately'
-    ? limits.capitalLossLimit.marriedFilingSeparately
-    : limits.capitalLossLimit.default;
-  const ordinaryIncomeOffset = remainingCarryover > 0 && californiaIncome > 0
-    ? Math.min(remainingCarryover, ordinaryIncomeLimit, californiaIncome)
+    ? sharedLimits.capitalLossLimit.marriedFilingSeparately
+    : sharedLimits.capitalLossLimit.default;
+  const ordinaryIncomeOffset = remainingCarryover > 0 && stateIncome > 0
+    ? Math.min(remainingCarryover, ordinaryIncomeLimit, stateIncome)
     : 0;
 
   const shortTermLossCarryoverOffset = stGainsOffset + ordinaryIncomeOffset;
@@ -53,12 +55,12 @@ export function calculateCaliforniaTax(
       mortgageInterestPaid: inputs.mortgageInterestPaid,
       mortgageBalance: inputs.mortgageBalance,
       charitableContributions: inputs.charitableContributions,
-      californiaTaxWithheld: inputs.californiaTaxWithheld,
-      californiaEstimatedPaid: inputs.californiaEstimatedPaid,
+      stateTaxWithheld: inputs.stateTaxWithheld,
+      stateEstimatedPaid: inputs.stateEstimatedPaid,
     },
     filingStatus,
     californiaDeductions,
-    limits
+    californiaLimits
   );
 
   // Step 3b: Calculate AGI (includes all deductions for display)
@@ -78,44 +80,42 @@ export function calculateCaliforniaTax(
   );
 
   // Step 6: Calculate Mental Health Services Tax (1% on taxable income over $1M)
-  const mentalHealthThreshold = limits.caMentalHealthTax.threshold;
+  const mentalHealthThreshold = californiaLimits.mentalHealthTax.threshold;
   const mentalHealthTax = taxableOrdinaryIncome > mentalHealthThreshold
-    ? (taxableOrdinaryIncome - mentalHealthThreshold) * limits.caMentalHealthTax.rate
+    ? (taxableOrdinaryIncome - mentalHealthThreshold) * californiaLimits.mentalHealthTax.rate
     : 0;
 
   const totalTax = ordinaryTax.total + mentalHealthTax;
 
-  // Step 7: Calculate remaining owed
-  const totalPaid = inputs.californiaTaxWithheld + inputs.californiaEstimatedPaid;
-  const remainingOwed = Math.max(0, totalTax - totalPaid);
-  const refundDue = Math.max(0, totalPaid - totalTax);
+  // Step 7: Calculate remaining owed using shared utility
+  const { totalPaid, remainingOwed, refundDue } = calculatePaymentSummary(
+    totalTax,
+    inputs.stateTaxWithheld,
+    inputs.stateEstimatedPaid
+  );
 
-  // Step 8: Calculate safe harbor
+  // Step 8: Calculate safe harbor using shared utility
   // CA uses 100% prior year (not 110% like federal)
   // High income exception: AGI > $1M (single/MFJ) or $500K (MFS) - only 90% current year applies
   const highIncomeThreshold = filingStatus === 'marriedFilingSeparately'
-    ? limits.caMentalHealthTax.thresholdMFS
-    : limits.caMentalHealthTax.threshold;
+    ? californiaLimits.mentalHealthTax.thresholdMFS
+    : californiaLimits.mentalHealthTax.threshold;
   const caAgiForThreshold = grossIncome - shortTermLossCarryoverOffset - longTermLossCarryoverOffset - inputs.contributions401k;
   const isHighIncome = caAgiForThreshold > highIncomeThreshold;
 
-  const safeHarbor90Percent = totalTax * limits.safeHarbor.currentYearPercent;
-  const safeHarbor100Percent = inputs.priorYearCaliforniaTaxPaid * limits.safeHarbor.californiaPriorYearPercent;
-  const safeHarborMinimum = isHighIncome || inputs.priorYearCaliforniaTaxPaid === 0
-    ? safeHarbor90Percent
-    : Math.min(safeHarbor90Percent, safeHarbor100Percent);
-
-  const safeHarbor: SafeHarbor = {
-    currentYear90Percent: safeHarbor90Percent,
-    priorYearSafeHarbor: safeHarbor100Percent,
-    minimum: safeHarborMinimum,
-    met: totalPaid >= safeHarborMinimum,
-    remaining: Math.max(0, safeHarborMinimum - totalPaid),
-    highIncomeException: isHighIncome,
-  };
+  const safeHarbor = calculateSafeHarbor(
+    totalTax,
+    totalPaid,
+    inputs.priorYearStateTaxPaid,
+    {
+      currentYearPercent: californiaLimits.safeHarbor.currentYearPercent,
+      priorYearPercent: californiaLimits.safeHarbor.priorYearPercent,
+      isHighIncome,
+    }
+  );
 
   return {
-    wageIncome: californiaIncome,
+    wageIncome: stateIncome,
     shortTermCapitalGains: inputs.shortTermCapitalGains,
     longTermCapitalGains: inputs.longTermCapitalGains,
     grossIncome,
@@ -132,8 +132,8 @@ export function calculateCaliforniaTax(
     ltcgTax: 0,
     caMentalHealthTax: mentalHealthTax,
     totalTax,
-    withheld: inputs.californiaTaxWithheld,
-    estimatedPaid: inputs.californiaEstimatedPaid,
+    withheld: inputs.stateTaxWithheld,
+    estimatedPaid: inputs.stateEstimatedPaid,
     totalPaid,
     remainingOwed,
     refundDue,

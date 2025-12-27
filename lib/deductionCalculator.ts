@@ -1,12 +1,12 @@
-import { FilingStatus, DeductionBreakdown, LimitsData, DeductionsData } from './types';
+import { FilingStatus, DeductionBreakdown, FederalLimitsData, CaliforniaLimitsData, DeductionsData } from './types';
 
 interface DeductionInputs {
   propertyTaxesPaid: number;
   mortgageInterestPaid: number;
   mortgageBalance: number;
   charitableContributions: number;
-  californiaTaxWithheld: number;
-  californiaEstimatedPaid: number;
+  stateTaxWithheld: number;
+  stateEstimatedPaid: number;
 }
 
 function calculateDeductibleMortgageInterest(
@@ -28,25 +28,25 @@ export function calculateFederalDeductions(
   inputs: DeductionInputs,
   filingStatus: FilingStatus,
   federalDeductions: DeductionsData,
-  limits: LimitsData,
+  federalLimits: FederalLimitsData,
   agi: number
 ): DeductionBreakdown {
   const standardDeduction = federalDeductions.standardDeduction[filingStatus];
 
   // Calculate SALT (State and Local Taxes)
   const totalStateAndLocalTaxes =
-    inputs.californiaTaxWithheld +
-    inputs.californiaEstimatedPaid +
+    inputs.stateTaxWithheld +
+    inputs.stateEstimatedPaid +
     inputs.propertyTaxesPaid;
 
   // SALT cap is AGI-dependent for 2025:
   // - AGI < $500k: elevated limits ($40k MFJ, $20k Single/MFS)
   // - AGI >= $500k: standard limits ($10k default, $5k MFS)
-  const saltLimit = agi < limits.saltLimit.elevatedAgiThreshold
-    ? limits.saltLimit.elevated[filingStatus]
+  const saltLimit = agi < federalLimits.saltLimit.elevatedAgiThreshold
+    ? federalLimits.saltLimit.elevated[filingStatus]
     : (filingStatus === 'marriedFilingSeparately'
-        ? limits.saltLimit.marriedFilingSeparately
-        : limits.saltLimit.default);
+        ? federalLimits.saltLimit.marriedFilingSeparately
+        : federalLimits.saltLimit.default);
 
   const saltDeduction = Math.min(totalStateAndLocalTaxes, saltLimit);
   const saltCapped = totalStateAndLocalTaxes > saltLimit;
@@ -54,8 +54,8 @@ export function calculateFederalDeductions(
   // Calculate deductible mortgage interest (limited by balance)
   const mortgageBalanceLimit =
     filingStatus === 'marriedFilingSeparately'
-      ? limits.mortgageBalanceLimit.federal.marriedFilingSeparately
-      : limits.mortgageBalanceLimit.federal.default;
+      ? federalLimits.mortgageBalanceLimit.marriedFilingSeparately
+      : federalLimits.mortgageBalanceLimit.default;
 
   const deductibleMortgageInterest = calculateDeductibleMortgageInterest(
     inputs.mortgageInterestPaid,
@@ -87,7 +87,7 @@ export function calculateCaliforniaDeductions(
   inputs: DeductionInputs,
   filingStatus: FilingStatus,
   californiaDeductions: DeductionsData,
-  limits: LimitsData
+  californiaLimits: CaliforniaLimitsData
 ): DeductionBreakdown {
   const standardDeduction = californiaDeductions.standardDeduction[filingStatus];
 
@@ -95,7 +95,7 @@ export function calculateCaliforniaDeductions(
   const deductibleMortgageInterest = calculateDeductibleMortgageInterest(
     inputs.mortgageInterestPaid,
     inputs.mortgageBalance,
-    limits.mortgageBalanceLimit.california
+    californiaLimits.mortgageBalanceLimit
   );
 
   // California itemized deductions (no SALT)

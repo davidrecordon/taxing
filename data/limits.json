@@ -1,76 +1,22 @@
 {
   "2025": {
-    "saltLimit": {
-      "default": 10000,
-      "marriedFilingSeparately": 5000,
-      "elevated": {
-        "marriedFilingJointly": 40000,
-        "single": 20000,
-        "marriedFilingSeparately": 20000
-      },
-      "elevatedAgiThreshold": 500000
-    },
     "contribution401k": {
       "standard": 23500,
       "catchUp50Plus": 7500
     },
-    "mortgageBalanceLimit": {
-      "federal": {
-        "default": 750000,
-        "marriedFilingSeparately": 375000
-      },
-      "california": 1000000
-    },
     "capitalLossLimit": {
       "default": 3000,
       "marriedFilingSeparately": 1500
-    },
-    "caMentalHealthTax": {
-      "threshold": 1000000,
-      "thresholdMFS": 500000,
-      "rate": 0.01
-    },
-    "safeHarbor": {
-      "currentYearPercent": 0.90,
-      "federalPriorYearPercent": 1.10,
-      "californiaPriorYearPercent": 1.00
     }
   },
   "2026": {
-    "saltLimit": {
-      "default": 10000,
-      "marriedFilingSeparately": 5000,
-      "elevated": {
-        "marriedFilingJointly": 40000,
-        "single": 20000,
-        "marriedFilingSeparately": 20000
-      },
-      "elevatedAgiThreshold": 500000
-    },
     "contribution401k": {
       "standard": 24500,
       "catchUp50Plus": 8000
     },
-    "mortgageBalanceLimit": {
-      "federal": {
-        "default": 750000,
-        "marriedFilingSeparately": 375000
-      },
-      "california": 1000000
-    },
     "capitalLossLimit": {
       "default": 3000,
       "marriedFilingSeparately": 1500
-    },
-    "caMentalHealthTax": {
-      "threshold": 1000000,
-      "thresholdMFS": 500000,
-      "rate": 0.01
-    },
-    "safeHarbor": {
-      "currentYearPercent": 0.90,
-      "federalPriorYearPercent": 1.10,
-      "californiaPriorYearPercent": 1.00
     }
   }
 }

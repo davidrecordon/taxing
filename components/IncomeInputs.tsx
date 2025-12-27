@@ -1,6 +1,6 @@
 'use client';
 
-import { TaxInputs } from '@/lib/types';
+import { TaxInputs, STATE_LABELS } from '@/lib/types';
 import CurrencyInput from './CurrencyInput';
 
 interface Props {
@@ -9,6 +9,8 @@ interface Props {
 }
 
 export default function IncomeInputs({ inputs, onUpdate }: Props) {
+  const stateLabel = STATE_LABELS[inputs.selectedState] || 'State';
+
   return (
     <div className="bg-white rounded-lg shadow p-4 space-y-4">
       <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Income</h2>
@@ -20,10 +22,10 @@ export default function IncomeInputs({ inputs, onUpdate }: Props) {
           onChange={(v) => onUpdate('federalIncome', v)}
         />
         <CurrencyInput
-          label="California Income"
-          value={inputs.californiaIncome}
-          onChange={(v) => onUpdate('californiaIncome', v)}
-          hint={inputs.californiaIncome ? undefined : "Leave blank to use Federal amount."}
+          label={`${stateLabel} Income`}
+          value={inputs.stateIncome}
+          onChange={(v) => onUpdate('stateIncome', v)}
+          hint={inputs.stateIncome ? undefined : "Leave blank to use Federal amount."}
         />
       </div>
 

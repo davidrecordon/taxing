@@ -8,7 +8,14 @@ interface Props {
   onUpdate: <K extends keyof TaxInputs>(field: K, value: TaxInputs[K]) => void;
 }
 
+const STATE_LABELS: Record<string, string> = {
+  california: 'California',
+  washington: 'Washington',
+};
+
 export default function WithholdingInputs({ inputs, onUpdate }: Props) {
+  const stateLabel = STATE_LABELS[inputs.selectedState] || 'State';
+
   return (
     <div className="bg-white rounded-lg shadow p-4 space-y-4">
       <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Tax Withheld & Estimated Payments</h2>
@@ -22,9 +29,9 @@ export default function WithholdingInputs({ inputs, onUpdate }: Props) {
           hint="From W-2/1099"
         />
         <CurrencyInput
-          label="California Tax Withheld"
-          value={inputs.californiaTaxWithheld}
-          onChange={(v) => onUpdate('californiaTaxWithheld', v)}
+          label={`${stateLabel} Tax Withheld`}
+          value={inputs.stateTaxWithheld}
+          onChange={(v) => onUpdate('stateTaxWithheld', v)}
           hint="From W-2/1099"
         />
       </div>
@@ -37,9 +44,9 @@ export default function WithholdingInputs({ inputs, onUpdate }: Props) {
           onChange={(v) => onUpdate('federalEstimatedPaid', v)}
         />
         <CurrencyInput
-          label="California Estimated Paid"
-          value={inputs.californiaEstimatedPaid}
-          onChange={(v) => onUpdate('californiaEstimatedPaid', v)}
+          label={`${stateLabel} Estimated Paid`}
+          value={inputs.stateEstimatedPaid}
+          onChange={(v) => onUpdate('stateEstimatedPaid', v)}
         />
       </div>
     </div>
