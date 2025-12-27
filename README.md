@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Federal & California Tax Calculator
+
+**Live Demo:** https://taxing-one.vercel.app/
+
+A web-based tax estimation tool for calculating both Federal and California state income taxes. The calculator helps individuals estimate their tax liability, including support for various income types, deductions, and FICA taxes. Currently configured for the 2025 tax year, with 2026 Federal tax data being added.
+
+## Features
+
+- **Filing Statuses**: Single, Married Filing Jointly, Married Filing Separately
+- **Income Types**: W-2 wages, short-term and long-term capital gains
+- **Deductions**: Automatic standard vs. itemized comparison
+  - SALT (State and Local Taxes) with AGI-dependent caps
+  - Mortgage interest with balance-based limits
+  - Charitable contributions
+  - 401(k) pre-tax contributions
+- **FICA Taxes**: Social Security and Medicare calculations, including additional Medicare tax
+- **Safe Harbor**: Estimated payment calculations to avoid underpayment penalties
+- **Loss Carryover**: Support for prior year capital loss carryovers
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Run tests
+npm test
+
+# Build for production
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the calculator.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- [Next.js](https://nextjs.org/) - React framework
+- [TypeScript](https://www.typescriptlang.org/) - Type safety
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
 
-## Learn More
+## Disclaimer
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This calculator provides estimates only and should not be used as tax advice. Consult a qualified tax professional for actual tax planning and filing.
