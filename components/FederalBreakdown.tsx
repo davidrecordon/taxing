@@ -120,8 +120,8 @@ export default function FederalBreakdown({ result }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {result.ordinaryIncomeBracketBreakdown.map((bracket, i) => (
-                  <tr key={i} className="border-b">
+                {result.ordinaryIncomeBracketBreakdown.map((bracket) => (
+                  <tr key={`${bracket.bracketMin}-${bracket.rate}`} className="border-b">
                     <td className="p-2">
                       {formatCurrency(bracket.bracketMin)} -{' '}
                       {bracket.bracketMax
@@ -168,8 +168,8 @@ export default function FederalBreakdown({ result }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {result.ltcgBracketBreakdown.map((bracket, i) => (
-                  <tr key={i} className="border-b">
+                {result.ltcgBracketBreakdown.map((bracket) => (
+                  <tr key={`${bracket.bracketMin}-${bracket.rate}`} className="border-b">
                     <td className="p-2">
                       {formatCurrency(bracket.bracketMin)} -{' '}
                       {bracket.bracketMax
@@ -270,14 +270,14 @@ export default function FederalBreakdown({ result }: Props) {
               <span>90% of Current Year Tax</span>
               <span className="font-mono">{formatCurrency(result.safeHarbor.currentYear90Percent)}</span>
             </div>
-            {result.safeHarbor.priorYear110Percent > 0 && (
+            {result.safeHarbor.priorYearSafeHarbor > 0 && (
               <div className="flex justify-between">
                 <span>110% of Prior Year Tax</span>
-                <span className="font-mono">{formatCurrency(result.safeHarbor.priorYear110Percent)}</span>
+                <span className="font-mono">{formatCurrency(result.safeHarbor.priorYearSafeHarbor)}</span>
               </div>
             )}
             <div className="flex justify-between font-medium pt-1 border-t">
-              <span>Safe Harbor Minimum{result.safeHarbor.priorYear110Percent > 0 ? ' (lesser)' : ''}</span>
+              <span>Safe Harbor Minimum{result.safeHarbor.priorYearSafeHarbor > 0 ? ' (lesser)' : ''}</span>
               <span className="font-mono">{formatCurrency(result.safeHarbor.minimum)}</span>
             </div>
             <div className="flex justify-between text-green-600">

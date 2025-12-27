@@ -1,8 +1,6 @@
 import {
   TaxInputs,
   TaxCalculationResult,
-  TaxBracket,
-  BracketBreakdown,
   TaxBracketsData,
   DeductionsData,
   LimitsData,
@@ -12,6 +10,7 @@ import {
   SafeHarbor,
 } from './types';
 import { calculateFederalDeductions } from './deductionCalculator';
+import { calculateTaxByBrackets } from './taxUtils';
 
 function calculateFicaTaxes(
   wageIncome: number,
@@ -39,41 +38,6 @@ function calculateFicaTaxes(
   };
 }
 
-function calculateTaxByBrackets(
-  taxableIncome: number,
-  brackets: TaxBracket[]
-): { total: number; breakdown: BracketBreakdown[] } {
-  let remainingIncome = taxableIncome;
-  let totalTax = 0;
-  const breakdown: BracketBreakdown[] = [];
-
-  for (const bracket of brackets) {
-    if (remainingIncome <= 0) break;
-
-    const bracketSize =
-      bracket.max !== null ? bracket.max - bracket.min : Infinity;
-
-    const incomeInBracket = Math.min(remainingIncome, bracketSize);
-    const taxForBracket = incomeInBracket * bracket.rate;
-
-    if (incomeInBracket > 0) {
-      breakdown.push({
-        bracketMin: bracket.min,
-        bracketMax: bracket.max,
-        rate: bracket.rate,
-        incomeInBracket,
-        taxForBracket,
-      });
-    }
-
-    totalTax += taxForBracket;
-    remainingIncome -= incomeInBracket;
-  }
-
-  return { total: totalTax, breakdown };
-}
-
-
 export function calculateFederalTax(
   inputs: TaxInputs,
   federalBrackets: TaxBracketsData,
@@ -95,7 +59,9 @@ export function calculateFederalTax(
   const stGainsOffset = Math.min(stCarryover, inputs.shortTermCapitalGains);
   const remainingCarryover = stCarryover - stGainsOffset;
 
-  const ordinaryIncomeLimit = filingStatus === 'marriedFilingSeparately' ? 1500 : 3000;
+  const ordinaryIncomeLimit = filingStatus === 'marriedFilingSeparately'
+    ? limits.capitalLossLimit.marriedFilingSeparately
+    : limits.capitalLossLimit.default;
   const ordinaryIncomeOffset = remainingCarryover > 0 && inputs.federalIncome > 0
     ? Math.min(remainingCarryover, ordinaryIncomeLimit, inputs.federalIncome)
     : 0;
@@ -172,14 +138,14 @@ export function calculateFederalTax(
 
   // Step 10: Calculate safe harbor for estimated tax penalty avoidance
   // Only use 110% prior year rule if prior year tax was entered
-  const safeHarbor90Percent = totalTax * 0.90;
-  const safeHarbor110Percent = inputs.priorYearFederalTaxPaid * 1.10;
+  const safeHarbor90Percent = totalTax * limits.safeHarbor.currentYearPercent;
+  const safeHarbor110Percent = inputs.priorYearFederalTaxPaid * limits.safeHarbor.federalPriorYearPercent;
   const safeHarborMinimum = inputs.priorYearFederalTaxPaid > 0
     ? Math.min(safeHarbor90Percent, safeHarbor110Percent)
     : safeHarbor90Percent;
   const safeHarbor: SafeHarbor = {
     currentYear90Percent: safeHarbor90Percent,
-    priorYear110Percent: safeHarbor110Percent,
+    priorYearSafeHarbor: safeHarbor110Percent,
     minimum: safeHarborMinimum,
     met: totalPaid >= safeHarborMinimum,
     remaining: Math.max(0, safeHarborMinimum - totalPaid),

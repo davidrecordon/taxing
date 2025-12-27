@@ -1,45 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { calculateFederalTax } from '../federalTaxCalculator';
-import { TaxInputs, TaxBracketsData, DeductionsData, LimitsData, FicaData } from '../types';
-
-// Load data from JSON files (multi-year)
-import allFederalBrackets from '../../data/federal-brackets.json';
-import allLtcgBrackets from '../../data/federal-ltcg-brackets.json';
-import allFederalDeductions from '../../data/federal-deductions.json';
-import allLimits from '../../data/limits.json';
-import allFicaData from '../../data/fica.json';
-
-// Extract 2025 data for tests
-const TAX_YEAR = '2025';
-const federalBrackets = allFederalBrackets[TAX_YEAR];
-const ltcgBrackets = allLtcgBrackets[TAX_YEAR];
-const federalDeductions = allFederalDeductions[TAX_YEAR];
-const limits = allLimits[TAX_YEAR];
-const ficaData = allFicaData[TAX_YEAR];
-
-function createDefaultInputs(overrides: Partial<TaxInputs> = {}): TaxInputs {
-  return {
-    federalIncome: 0,
-    californiaIncome: 0,
-    shortTermCapitalGains: 0,
-    longTermCapitalGains: 0,
-    federalTaxWithheld: 0,
-    californiaTaxWithheld: 0,
-    federalEstimatedPaid: 0,
-    californiaEstimatedPaid: 0,
-    filingStatus: 'single',
-    propertyTaxesPaid: 0,
-    mortgageInterestPaid: 0,
-    mortgageBalance: 0,
-    charitableContributions: 0,
-    contributions401k: 0,
-    priorYearFederalTaxPaid: 0,
-    priorYearCaliforniaTaxPaid: 0,
-    priorYearShortTermLossCarryover: 0,
-    priorYearLongTermLossCarryover: 0,
-    ...overrides,
-  };
-}
+import {
+  federalBrackets,
+  ltcgBrackets,
+  federalDeductions,
+  limits,
+  ficaData,
+  createDefaultInputs,
+} from './testData';
 
 describe('calculateFederalTax', () => {
   describe('basic bracket math', () => {
@@ -57,11 +25,11 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData,
-        ficaData as FicaData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits,
+        ficaData
       );
 
       expect(result.taxableOrdinaryIncome).toBe(84300);
@@ -83,11 +51,11 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData,
-        ficaData as FicaData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits,
+        ficaData
       );
 
       expect(result.ficaBreakdown).toBeDefined();
@@ -110,10 +78,10 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
       );
 
       expect(result.taxableLTCG).toBe(30000);
@@ -130,10 +98,10 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
       );
 
       expect(result.taxableLTCG).toBe(100000);
@@ -157,11 +125,11 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData,
-        ficaData as FicaData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits,
+        ficaData
       );
 
       expect(result.taxableOrdinaryIncome).toBe(60800);
@@ -185,16 +153,16 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData,
-        ficaData as FicaData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits,
+        ficaData
       );
 
       expect(result.safeHarbor).toBeDefined();
       expect(result.safeHarbor!.currentYear90Percent).toBeCloseTo(21110 * 0.9, 2);
-      expect(result.safeHarbor!.priorYear110Percent).toBe(16500);
+      expect(result.safeHarbor!.priorYearSafeHarbor).toBe(16500);
       expect(result.safeHarbor!.minimum).toBe(16500);
     });
 
@@ -207,11 +175,11 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData,
-        ficaData as FicaData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits,
+        ficaData
       );
 
       expect(result.safeHarbor).toBeDefined();
@@ -235,10 +203,10 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
       );
 
       expect(result.shortTermLossCarryoverOffset).toBe(13000); // 10k ST + 3k ordinary
@@ -256,10 +224,10 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
       );
 
       // Only $1,500 can offset ordinary income for MFS
@@ -276,10 +244,10 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
       );
 
       expect(result.shortTermLossCarryoverOffset).toBe(0);
@@ -299,10 +267,10 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
       );
 
       expect(result.longTermLossCarryoverOffset).toBe(20000);
@@ -320,10 +288,10 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
       );
 
       expect(result.longTermLossCarryoverOffset).toBe(30000);
@@ -345,10 +313,10 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
       );
 
       // ST loss: $15k offsets ST gains, $3k offsets ordinary income = $18k used
@@ -370,10 +338,10 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
       );
 
       expect(result.taxableOrdinaryIncome).toBe(11925);
@@ -389,10 +357,10 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
       );
 
       expect(result.taxableOrdinaryIncome).toBe(11926);
@@ -411,11 +379,11 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData,
-        ficaData as FicaData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits,
+        ficaData
       );
 
       expect(result.taxableOrdinaryIncome).toBe(700000);
@@ -434,10 +402,10 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
       );
 
       expect(result.taxableOrdinaryIncome).toBe(0);
@@ -454,11 +422,11 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData,
-        ficaData as FicaData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits,
+        ficaData
       );
 
       expect(result.ficaBreakdown!.socialSecurityWages).toBe(168600);
@@ -476,11 +444,11 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData,
-        ficaData as FicaData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits,
+        ficaData
       );
 
       // Additional Medicare on $25,000 ($150k - $125k)
@@ -495,11 +463,11 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData,
-        ficaData as FicaData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits,
+        ficaData
       );
 
       // Under $250k threshold, no additional Medicare
@@ -517,10 +485,10 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
       );
 
       // Verify some LTCG taxed at 20%
@@ -541,11 +509,11 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData,
-        ficaData as FicaData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits,
+        ficaData
       );
 
       expect(result.totalPaid).toBe(15000);
@@ -563,15 +531,75 @@ describe('calculateFederalTax', () => {
 
       const result = calculateFederalTax(
         inputs,
-        federalBrackets as TaxBracketsData,
-        ltcgBrackets as TaxBracketsData,
-        federalDeductions as DeductionsData,
-        limits as LimitsData,
-        ficaData as FicaData
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits,
+        ficaData
       );
 
       expect(result.totalPaid).toBe(10000);
       expect(result.remainingOwed).toBeGreaterThan(0);
+      expect(result.refundDue).toBe(0);
+    });
+  });
+
+  describe('edge cases', () => {
+    it('handles zero income with capital gains only', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 0,
+        longTermCapitalGains: 50000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
+      );
+
+      expect(result.wageIncome).toBe(0);
+      expect(result.grossIncome).toBe(50000);
+      // LTCG should be taxed at 0% for first portion
+      expect(result.ltcgTax).toBeGreaterThanOrEqual(0);
+    });
+
+    it('handles FICA with zero wages', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 0,
+        longTermCapitalGains: 100000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits,
+        ficaData
+      );
+
+      // FICA only applies to wages, not capital gains
+      expect(result.ficaBreakdown?.totalFica).toBe(0);
+    });
+
+    it('handles all inputs at zero', () => {
+      const inputs = createDefaultInputs();
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        limits
+      );
+
+      expect(result.grossIncome).toBe(0);
+      expect(result.totalTax).toBe(0);
+      expect(result.remainingOwed).toBe(0);
       expect(result.refundDue).toBe(0);
     });
   });

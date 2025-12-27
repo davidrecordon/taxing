@@ -54,6 +54,20 @@ export interface LimitsData {
     };
     california: number;
   };
+  capitalLossLimit: {
+    default: number;
+    marriedFilingSeparately: number;
+  };
+  caMentalHealthTax: {
+    threshold: number;
+    thresholdMFS: number;
+    rate: number;
+  };
+  safeHarbor: {
+    currentYearPercent: number;
+    federalPriorYearPercent: number;
+    californiaPriorYearPercent: number;
+  };
 }
 
 // Multi-year wrapper type for JSON files
@@ -141,7 +155,7 @@ export interface FicaBreakdown {
 
 export interface SafeHarbor {
   currentYear90Percent: number;
-  priorYear110Percent: number;
+  priorYearSafeHarbor: number;
   minimum: number;
   met: boolean;
   remaining: number;
@@ -173,6 +187,7 @@ export interface TaxCalculationResult {
   // Tax totals
   ordinaryIncomeTax: number;
   ltcgTax: number;
+  caMentalHealthTax?: number;  // California only - 1% on income over $1M
   ficaBreakdown?: FicaBreakdown;
   totalTax: number;
 

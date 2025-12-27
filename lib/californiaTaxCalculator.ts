@@ -1,48 +1,13 @@
 import {
   TaxInputs,
   TaxCalculationResult,
-  TaxBracket,
-  BracketBreakdown,
   TaxBracketsData,
   DeductionsData,
   LimitsData,
   SafeHarbor,
 } from './types';
 import { calculateCaliforniaDeductions } from './deductionCalculator';
-
-function calculateTaxByBrackets(
-  taxableIncome: number,
-  brackets: TaxBracket[]
-): { total: number; breakdown: BracketBreakdown[] } {
-  let remainingIncome = taxableIncome;
-  let totalTax = 0;
-  const breakdown: BracketBreakdown[] = [];
-
-  for (const bracket of brackets) {
-    if (remainingIncome <= 0) break;
-
-    const bracketSize =
-      bracket.max !== null ? bracket.max - bracket.min : Infinity;
-
-    const incomeInBracket = Math.min(remainingIncome, bracketSize);
-    const taxForBracket = incomeInBracket * bracket.rate;
-
-    if (incomeInBracket > 0) {
-      breakdown.push({
-        bracketMin: bracket.min,
-        bracketMax: bracket.max,
-        rate: bracket.rate,
-        incomeInBracket,
-        taxForBracket,
-      });
-    }
-
-    totalTax += taxForBracket;
-    remainingIncome -= incomeInBracket;
-  }
-
-  return { total: totalTax, breakdown };
-}
+import { calculateTaxByBrackets } from './taxUtils';
 
 export function calculateCaliforniaTax(
   inputs: TaxInputs,
@@ -68,7 +33,9 @@ export function calculateCaliforniaTax(
   const stGainsOffset = Math.min(stCarryover, inputs.shortTermCapitalGains);
   const remainingCarryover = stCarryover - stGainsOffset;
 
-  const ordinaryIncomeLimit = filingStatus === 'marriedFilingSeparately' ? 1500 : 3000;
+  const ordinaryIncomeLimit = filingStatus === 'marriedFilingSeparately'
+    ? limits.capitalLossLimit.marriedFilingSeparately
+    : limits.capitalLossLimit.default;
   const ordinaryIncomeOffset = remainingCarryover > 0 && californiaIncome > 0
     ? Math.min(remainingCarryover, ordinaryIncomeLimit, californiaIncome)
     : 0;
@@ -111,9 +78,9 @@ export function calculateCaliforniaTax(
   );
 
   // Step 6: Calculate Mental Health Services Tax (1% on taxable income over $1M)
-  const mentalHealthThreshold = 1000000;
+  const mentalHealthThreshold = limits.caMentalHealthTax.threshold;
   const mentalHealthTax = taxableOrdinaryIncome > mentalHealthThreshold
-    ? (taxableOrdinaryIncome - mentalHealthThreshold) * 0.01
+    ? (taxableOrdinaryIncome - mentalHealthThreshold) * limits.caMentalHealthTax.rate
     : 0;
 
   const totalTax = ordinaryTax.total + mentalHealthTax;
@@ -126,19 +93,21 @@ export function calculateCaliforniaTax(
   // Step 8: Calculate safe harbor
   // CA uses 100% prior year (not 110% like federal)
   // High income exception: AGI > $1M (single/MFJ) or $500K (MFS) - only 90% current year applies
-  const highIncomeThreshold = filingStatus === 'marriedFilingSeparately' ? 500000 : 1000000;
+  const highIncomeThreshold = filingStatus === 'marriedFilingSeparately'
+    ? limits.caMentalHealthTax.thresholdMFS
+    : limits.caMentalHealthTax.threshold;
   const caAgiForThreshold = grossIncome - shortTermLossCarryoverOffset - longTermLossCarryoverOffset - inputs.contributions401k;
   const isHighIncome = caAgiForThreshold > highIncomeThreshold;
 
-  const safeHarbor90Percent = totalTax * 0.90;
-  const safeHarbor100Percent = inputs.priorYearCaliforniaTaxPaid * 1.00;
+  const safeHarbor90Percent = totalTax * limits.safeHarbor.currentYearPercent;
+  const safeHarbor100Percent = inputs.priorYearCaliforniaTaxPaid * limits.safeHarbor.californiaPriorYearPercent;
   const safeHarborMinimum = isHighIncome || inputs.priorYearCaliforniaTaxPaid === 0
     ? safeHarbor90Percent
     : Math.min(safeHarbor90Percent, safeHarbor100Percent);
 
   const safeHarbor: SafeHarbor = {
     currentYear90Percent: safeHarbor90Percent,
-    priorYear110Percent: safeHarbor100Percent,  // Reusing field, CA uses 100%
+    priorYearSafeHarbor: safeHarbor100Percent,
     minimum: safeHarborMinimum,
     met: totalPaid >= safeHarborMinimum,
     remaining: Math.max(0, safeHarborMinimum - totalPaid),
@@ -160,7 +129,8 @@ export function calculateCaliforniaTax(
     ordinaryIncomeBracketBreakdown: ordinaryTax.breakdown,
     ltcgBracketBreakdown: [], // No LTCG brackets for CA
     ordinaryIncomeTax: ordinaryTax.total,
-    ltcgTax: mentalHealthTax, // Repurposing this field for mental health tax
+    ltcgTax: 0,
+    caMentalHealthTax: mentalHealthTax,
     totalTax,
     withheld: inputs.californiaTaxWithheld,
     estimatedPaid: inputs.californiaEstimatedPaid,

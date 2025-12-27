@@ -16,7 +16,15 @@ export function formatPercent(rate: number): string {
 }
 
 export function parseNumericInput(value: string): number {
-  const cleaned = value.replace(/[^0-9.-]/g, '');
+  // Remove everything except digits and periods
+  let cleaned = value.replace(/[^0-9.]/g, '');
+
+  // Handle multiple decimal points - keep only the first
+  const parts = cleaned.split('.');
+  if (parts.length > 2) {
+    cleaned = parts[0] + '.' + parts.slice(1).join('');
+  }
+
   const parsed = parseFloat(cleaned);
-  return isNaN(parsed) ? 0 : parsed;
+  return isNaN(parsed) ? 0 : Math.max(0, parsed);
 }

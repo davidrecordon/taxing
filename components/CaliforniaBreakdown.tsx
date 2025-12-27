@@ -89,8 +89,8 @@ export default function CaliforniaBreakdown({ result }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {result.ordinaryIncomeBracketBreakdown.map((bracket, i) => (
-                  <tr key={i} className="border-b">
+                {result.ordinaryIncomeBracketBreakdown.map((bracket) => (
+                  <tr key={`${bracket.bracketMin}-${bracket.rate}`} className="border-b">
                     <td className="p-2">
                       {formatCurrency(bracket.bracketMin)} -{' '}
                       {bracket.bracketMax
@@ -128,11 +128,11 @@ export default function CaliforniaBreakdown({ result }: Props) {
       )}
 
       {/* Mental Health Services Tax */}
-      {result.ltcgTax > 0 && (
+      {(result.caMentalHealthTax ?? 0) > 0 && (
         <div className="bg-purple-50 p-3 rounded mb-4">
           <div className="flex justify-between font-medium">
             <span>Mental Health Services Tax (1% over $1M)</span>
-            <span className="font-mono">{formatCurrency(result.ltcgTax)}</span>
+            <span className="font-mono">{formatCurrency(result.caMentalHealthTax ?? 0)}</span>
           </div>
         </div>
       )}
@@ -179,10 +179,10 @@ export default function CaliforniaBreakdown({ result }: Props) {
               <span>90% of Current Year Tax</span>
               <span className="font-mono">{formatCurrency(result.safeHarbor.currentYear90Percent)}</span>
             </div>
-            {!result.safeHarbor.highIncomeException && result.safeHarbor.priorYear110Percent > 0 && (
+            {!result.safeHarbor.highIncomeException && result.safeHarbor.priorYearSafeHarbor > 0 && (
               <div className="flex justify-between">
                 <span>100% of Prior Year Tax</span>
-                <span className="font-mono">{formatCurrency(result.safeHarbor.priorYear110Percent)}</span>
+                <span className="font-mono">{formatCurrency(result.safeHarbor.priorYearSafeHarbor)}</span>
               </div>
             )}
             {result.safeHarbor.highIncomeException && (
@@ -191,7 +191,7 @@ export default function CaliforniaBreakdown({ result }: Props) {
               </p>
             )}
             <div className="flex justify-between font-medium pt-1 border-t">
-              <span>Safe Harbor Minimum{!result.safeHarbor.highIncomeException && result.safeHarbor.priorYear110Percent > 0 ? ' (lesser)' : ''}</span>
+              <span>Safe Harbor Minimum{!result.safeHarbor.highIncomeException && result.safeHarbor.priorYearSafeHarbor > 0 ? ' (lesser)' : ''}</span>
               <span className="font-mono">{formatCurrency(result.safeHarbor.minimum)}</span>
             </div>
             <div className="flex justify-between text-green-600">

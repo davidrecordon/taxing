@@ -10,6 +10,7 @@ import WithholdingInputs from './WithholdingInputs';
 import DeductionInputs from './DeductionInputs';
 import PriorYearInputs from './PriorYearInputs';
 import TaxResultsDisplay from './TaxResultsDisplay';
+import ErrorBoundary from './ErrorBoundary';
 
 // Import static data (multi-year files)
 import allFederalBrackets from '@/data/federal-brackets.json';
@@ -20,8 +21,7 @@ import allCaliforniaDeductions from '@/data/california-deductions.json';
 import allLimits from '@/data/limits.json';
 import allFicaData from '@/data/fica.json';
 
-// Extract 2025 data
-const TAX_YEAR = '2025';
+import { TAX_YEAR } from '@/lib/config';
 const federalBrackets = allFederalBrackets[TAX_YEAR];
 const ltcgBrackets = allLtcgBrackets[TAX_YEAR];
 const federalDeductions = allFederalDeductions[TAX_YEAR];
@@ -104,7 +104,9 @@ export default function TaxCalculator() {
 
         {/* Right Column: Results */}
         <div className="space-y-6">
-          <TaxResultsDisplay results={results} />
+          <ErrorBoundary>
+            <TaxResultsDisplay results={results} />
+          </ErrorBoundary>
         </div>
       </div>
 

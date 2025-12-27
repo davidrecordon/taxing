@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run:*)",
+      "Bash(vitest:*)",
+      "Bash(eslint:*)",
+      "Bash(prettier:*)",
+      "Bash(tsc:*)",
+      "WebSearch",
+      "WebFetch(domain:irs.gov)",
+      "WebFetch(domain:ftb.ca.gov)"
+    ]
+  }
+}

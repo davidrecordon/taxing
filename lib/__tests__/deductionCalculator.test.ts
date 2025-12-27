@@ -1,17 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { calculateFederalDeductions, calculateCaliforniaDeductions } from '../deductionCalculator';
-import { DeductionsData, LimitsData } from '../types';
-
-// Load data from JSON files (multi-year)
-import allFederalDeductions from '../../data/federal-deductions.json';
-import allCaliforniaDeductions from '../../data/california-deductions.json';
-import allLimits from '../../data/limits.json';
-
-// Extract 2025 data for tests
-const TAX_YEAR = '2025';
-const federalDeductions = allFederalDeductions[TAX_YEAR];
-const californiaDeductions = allCaliforniaDeductions[TAX_YEAR];
-const limits = allLimits[TAX_YEAR];
+import {
+  federalDeductions,
+  californiaDeductions,
+  limits,
+} from './testData';
 
 interface DeductionInputs {
   propertyTaxesPaid: number;
@@ -166,8 +159,8 @@ describe('calculateFederalDeductions MFS edge cases', () => {
     const result = calculateFederalDeductions(
       inputs,
       'marriedFilingSeparately',
-      federalDeductions as DeductionsData,
-      limits as LimitsData,
+      federalDeductions,
+      limits,
       HIGH_AGI
     );
 
@@ -189,8 +182,8 @@ describe('calculateFederalDeductions MFS edge cases', () => {
     const result = calculateFederalDeductions(
       inputs,
       'marriedFilingSeparately',
-      federalDeductions as DeductionsData,
-      limits as LimitsData,
+      federalDeductions,
+      limits,
       HIGH_AGI
     );
 
@@ -210,8 +203,8 @@ describe('calculateFederalDeductions boundary cases', () => {
     const result = calculateFederalDeductions(
       inputs,
       'single',
-      federalDeductions as DeductionsData,
-      limits as LimitsData,
+      federalDeductions,
+      limits,
       HIGH_AGI
     );
 
@@ -228,8 +221,8 @@ describe('calculateFederalDeductions boundary cases', () => {
     const result = calculateFederalDeductions(
       inputs,
       'single',
-      federalDeductions as DeductionsData,
-      limits as LimitsData,
+      federalDeductions,
+      limits,
       HIGH_AGI
     );
 
@@ -246,8 +239,8 @@ describe('calculateFederalDeductions boundary cases', () => {
     const result = calculateFederalDeductions(
       inputs,
       'single',
-      federalDeductions as DeductionsData,
-      limits as LimitsData,
+      federalDeductions,
+      limits,
       HIGH_AGI
     );
 
@@ -265,8 +258,8 @@ describe('calculateFederalDeductions boundary cases', () => {
     const result = calculateFederalDeductions(
       inputs,
       'single',
-      federalDeductions as DeductionsData,
-      limits as LimitsData,
+      federalDeductions,
+      limits,
       HIGH_AGI
     );
 
@@ -279,8 +272,8 @@ describe('calculateFederalDeductions boundary cases', () => {
     const result = calculateFederalDeductions(
       inputs,
       'single',
-      federalDeductions as DeductionsData,
-      limits as LimitsData,
+      federalDeductions,
+      limits,
       HIGH_AGI
     );
 
@@ -299,8 +292,8 @@ describe('calculateFederalDeductions MFJ', () => {
     const result = calculateFederalDeductions(
       inputs,
       'marriedFilingJointly',
-      federalDeductions as DeductionsData,
-      limits as LimitsData,
+      federalDeductions,
+      limits,
       HIGH_AGI
     );
 
@@ -320,8 +313,8 @@ describe('calculateFederalDeductions MFJ', () => {
     const result = calculateFederalDeductions(
       inputs,
       'marriedFilingJointly',
-      federalDeductions as DeductionsData,
-      limits as LimitsData,
+      federalDeductions,
+      limits,
       HIGH_AGI
     );
 
@@ -343,8 +336,8 @@ describe('calculateFederalDeductions SALT components', () => {
     const result = calculateFederalDeductions(
       inputs,
       'single',
-      federalDeductions as DeductionsData,
-      limits as LimitsData,
+      federalDeductions,
+      limits,
       HIGH_AGI
     );
 
@@ -363,8 +356,8 @@ describe('calculateFederalDeductions SALT components', () => {
     const result = calculateFederalDeductions(
       inputs,
       'single',
-      federalDeductions as DeductionsData,
-      limits as LimitsData,
+      federalDeductions,
+      limits,
       HIGH_AGI
     );
 
@@ -387,8 +380,8 @@ describe('calculateCaliforniaDeductions', () => {
     const result = calculateCaliforniaDeductions(
       inputs,
       'single',
-      californiaDeductions as DeductionsData,
-      limits as LimitsData
+      californiaDeductions,
+      limits
     );
 
     // Only mortgage interest + charitable = $15,000
@@ -409,8 +402,8 @@ describe('calculateCaliforniaDeductions', () => {
     const result = calculateCaliforniaDeductions(
       inputs,
       'single',
-      californiaDeductions as DeductionsData,
-      limits as LimitsData
+      californiaDeductions,
+      limits
     );
 
     // Full interest is deductible since $900k < $1M CA limit
@@ -432,8 +425,8 @@ describe('calculateCaliforniaDeductions edge cases', () => {
     const result = calculateCaliforniaDeductions(
       inputs,
       'single',
-      californiaDeductions as DeductionsData,
-      limits as LimitsData
+      californiaDeductions,
+      limits
     );
 
     expect(result.mortgageInterest).toBe(40000);
@@ -447,8 +440,8 @@ describe('calculateCaliforniaDeductions edge cases', () => {
     const result = calculateCaliforniaDeductions(
       inputs,
       'single',
-      californiaDeductions as DeductionsData,
-      limits as LimitsData
+      californiaDeductions,
+      limits
     );
 
     expect(result.standardDeduction).toBe(5540);
@@ -464,8 +457,8 @@ describe('calculateCaliforniaDeductions edge cases', () => {
     const result = calculateCaliforniaDeductions(
       inputs,
       'marriedFilingJointly',
-      californiaDeductions as DeductionsData,
-      limits as LimitsData
+      californiaDeductions,
+      limits
     );
 
     expect(result.standardDeduction).toBe(11080);
@@ -483,8 +476,8 @@ describe('calculateCaliforniaDeductions edge cases', () => {
     const result = calculateCaliforniaDeductions(
       inputs,
       'marriedFilingSeparately',
-      californiaDeductions as DeductionsData,
-      limits as LimitsData
+      californiaDeductions,
+      limits
     );
 
     // Full interest deductible
@@ -499,8 +492,8 @@ describe('calculateCaliforniaDeductions edge cases', () => {
     const result = calculateCaliforniaDeductions(
       inputs,
       'single',
-      californiaDeductions as DeductionsData,
-      limits as LimitsData
+      californiaDeductions,
+      limits
     );
 
     expect(result.itemizedDeduction).toBe(10000);
@@ -517,8 +510,8 @@ describe('calculateCaliforniaDeductions edge cases', () => {
     const result = calculateCaliforniaDeductions(
       inputs,
       'single',
-      californiaDeductions as DeductionsData,
-      limits as LimitsData
+      californiaDeductions,
+      limits
     );
 
     // Only charitable counts
@@ -541,16 +534,16 @@ describe('mortgage interest edge cases across both jurisdictions', () => {
     const federalResult = calculateFederalDeductions(
       inputs,
       'single',
-      federalDeductions as DeductionsData,
-      limits as LimitsData,
+      federalDeductions,
+      limits,
       HIGH_AGI
     );
 
     const caResult = calculateCaliforniaDeductions(
       inputs,
       'single',
-      californiaDeductions as DeductionsData,
-      limits as LimitsData
+      californiaDeductions,
+      limits
     );
 
     // Federal: ($750k / $800k) * $40k = $37,500

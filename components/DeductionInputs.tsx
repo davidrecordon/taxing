@@ -1,49 +1,13 @@
 'use client';
 
 import { TaxInputs, LimitsData } from '@/lib/types';
-import { parseNumericInput, formatCurrency } from '@/lib/formatters';
+import { formatCurrency } from '@/lib/formatters';
+import CurrencyInput from './CurrencyInput';
 
 interface Props {
   inputs: TaxInputs;
   onUpdate: <K extends keyof TaxInputs>(field: K, value: TaxInputs[K]) => void;
   limits: LimitsData;
-}
-
-function CurrencyInput({
-  label,
-  value,
-  onChange,
-  hint,
-  warning,
-  error,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  hint?: string;
-  warning?: string;
-  error?: string;
-}) {
-  return (
-    <div>
-      <label className="block text-sm font-medium text-gray-900 mb-1">
-        {label}
-      </label>
-      <div className="relative">
-        <span className="absolute left-3 top-2 text-gray-600">$</span>
-        <input
-          type="text"
-          value={value || ''}
-          onChange={(e) => onChange(parseNumericInput(e.target.value))}
-          className="w-full border border-gray-300 rounded-md pl-7 pr-3 py-2 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          placeholder="0"
-        />
-      </div>
-      {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
-      {warning && !error && <p className="text-xs text-amber-600 mt-1">{warning}</p>}
-      {hint && !error && !warning && <p className="text-xs text-gray-600 mt-1">{hint}</p>}
-    </div>
-  );
 }
 
 export default function DeductionInputs({ inputs, onUpdate, limits }: Props) {
