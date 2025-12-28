@@ -20,8 +20,11 @@ export function formatPercent(rate: number): string {
   }).format(rate);
 }
 
-export function parseNumericInput(value: string): number {
-  // Remove everything except digits and periods (strip commas too)
+export function parseNumericInput(value: string, allowNegative: boolean = false): number {
+  // Check for negative sign at start
+  const isNegative = allowNegative && value.trimStart().startsWith('-');
+
+  // Remove everything except digits and periods (strip commas and minus signs)
   let cleaned = value.replace(/[^0-9.]/g, '');
 
   // Handle multiple decimal points - keep only the first
@@ -30,8 +33,16 @@ export function parseNumericInput(value: string): number {
     cleaned = parts[0] + '.' + parts.slice(1).join('');
   }
 
-  const parsed = parseFloat(cleaned);
-  return isNaN(parsed) ? 0 : Math.max(0, parsed);
+  let parsed = parseFloat(cleaned);
+  if (isNaN(parsed)) return 0;
+
+  // Apply negative sign if detected and allowed
+  if (isNegative) {
+    parsed = -parsed;
+  }
+
+  // Only clamp to 0 if negative values are not allowed
+  return allowNegative ? parsed : Math.max(0, parsed);
 }
 
 export function formatNumberWithCommas(value: string): string {

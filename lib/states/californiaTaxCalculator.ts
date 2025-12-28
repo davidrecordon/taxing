@@ -22,12 +22,15 @@ export function calculateCaliforniaTax(
   // Use federal income if state income is not specified
   const stateIncome = inputs.stateIncome || inputs.federalIncome;
 
+  // Clamp negative LTCG to 0 (current year losses are carried forward, not deducted)
+  const effectiveLTCG = Math.max(0, inputs.longTermCapitalGains);
+
   // Step 1: Calculate Gross Income
   // California taxes ALL capital gains as ordinary income
   const grossIncome =
     stateIncome +
     inputs.shortTermCapitalGains +
-    inputs.longTermCapitalGains;
+    effectiveLTCG;
 
   // Step 1b: Apply short-term loss carryover (CA follows federal rules)
   // First offset short-term gains, then ordinary income up to limit
@@ -47,7 +50,7 @@ export function calculateCaliforniaTax(
 
   // Step 1c: Apply long-term loss carryover (CA taxes all gains as ordinary, so reduces gross income)
   const ltCarryover = inputs.priorYearLongTermLossCarryover;
-  const longTermLossCarryoverOffset = Math.min(ltCarryover, inputs.longTermCapitalGains);
+  const longTermLossCarryoverOffset = Math.min(ltCarryover, effectiveLTCG);
 
   // Step 3: Calculate deductions (CA doesn't allow SALT)
   const deductionBreakdown = calculateCaliforniaDeductions(

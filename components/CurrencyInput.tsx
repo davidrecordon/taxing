@@ -10,6 +10,7 @@ interface CurrencyInputProps {
   hint?: string;
   warning?: string;
   error?: string;
+  allowNegative?: boolean;
 }
 
 export default function CurrencyInput({
@@ -19,23 +20,34 @@ export default function CurrencyInput({
   hint,
   warning,
   error,
+  allowNegative = false,
 }: CurrencyInputProps) {
   const id = useId();
-  const [inputValue, setInputValue] = useState(
-    value ? formatNumberWithCommas(String(value)) : ''
-  );
+
+  // Format value for display, including negative sign if needed
+  const formatDisplayValue = (val: number): string => {
+    if (val === 0) return '';
+    const absValue = formatNumberWithCommas(String(Math.abs(val)));
+    return val < 0 ? `-${absValue}` : absValue;
+  };
+
+  const [inputValue, setInputValue] = useState(formatDisplayValue(value));
 
   // Sync with external value changes (e.g., form reset)
   useEffect(() => {
-    const numericValue = parseNumericInput(inputValue);
+    const numericValue = parseNumericInput(inputValue, allowNegative);
     if (value !== numericValue) {
-      setInputValue(value ? formatNumberWithCommas(String(value)) : '');
+      setInputValue(formatDisplayValue(value));
     }
-  }, [value, inputValue]);
+  }, [value, inputValue, allowNegative]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
-    // Only allow digits, decimal point, and commas
+
+    // Check for negative sign at the start
+    const hasNegative = allowNegative && raw.trimStart().startsWith('-');
+
+    // Only allow digits, decimal point, and commas (strip minus for processing)
     const cleaned = raw.replace(/[^0-9.,]/g, '');
 
     // Prevent multiple decimal points
@@ -43,11 +55,14 @@ export default function CurrencyInput({
     const validInput =
       parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned.replace(/,/g, '');
 
-    // Format with commas
+    // Format with commas and add back negative sign if present
     const formattedValue = formatNumberWithCommas(validInput);
-    setInputValue(formattedValue);
-    onChange(parseNumericInput(formattedValue));
+    const displayValue = hasNegative ? `-${formattedValue}` : formattedValue;
+    setInputValue(displayValue);
+    onChange(parseNumericInput(displayValue, allowNegative));
   };
+
+  const isNegative = value < 0;
 
   return (
     <div>
@@ -55,13 +70,13 @@ export default function CurrencyInput({
         {label}
       </label>
       <div className="relative">
-        <span className="absolute left-3 top-2 text-gray-600">$</span>
+        <span className={`absolute left-3 top-2 ${isNegative ? 'text-red-600' : 'text-gray-600'}`}>$</span>
         <input
           id={id}
           type="text"
           value={inputValue}
           onChange={handleChange}
-          className="w-full border border-gray-300 rounded-md pl-7 pr-3 py-2 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className={`w-full border border-gray-300 rounded-md pl-7 pr-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${isNegative ? 'text-red-600' : 'text-gray-900'}`}
           placeholder="0"
         />
       </div>

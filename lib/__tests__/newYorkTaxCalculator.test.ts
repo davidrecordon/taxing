@@ -377,6 +377,31 @@ describe('calculateNewYorkTax', () => {
     });
   });
 
+  describe('negative LTCG (current year losses)', () => {
+    it('treats negative LTCG as $0 for NY tax calculation', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        longTermCapitalGains: -25000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateNewYorkTax(
+        inputs,
+        newYorkBrackets,
+        nycBrackets,
+        newYorkDeductions,
+        sharedLimits,
+        federalLimits,
+        newYorkLimits
+      );
+
+      // Gross income should only include federal income (LTCG clamped to 0)
+      expect(result.grossIncome).toBe(100000);
+      // Original negative value should still be in result for display
+      expect(result.longTermCapitalGains).toBe(-25000);
+    });
+  });
+
   describe('NY bracket calculations', () => {
     it('calculates tax correctly through multiple brackets', () => {
       const inputs = createDefaultInputs({

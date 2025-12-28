@@ -416,6 +416,29 @@ describe('calculateCaliforniaTax', () => {
     });
   });
 
+  describe('negative LTCG (current year losses)', () => {
+    it('treats negative LTCG as $0 for CA tax calculation', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        longTermCapitalGains: -30000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits
+      );
+
+      // Gross income should only include federal income (LTCG clamped to 0)
+      expect(result.grossIncome).toBe(100000);
+      // Original negative value should still be in result for display
+      expect(result.longTermCapitalGains).toBe(-30000);
+    });
+  });
+
   describe('refund and remaining owed', () => {
     it('calculates CA refund correctly', () => {
       const inputs = createDefaultInputs({

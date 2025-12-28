@@ -37,12 +37,15 @@ export function calculateNewYorkTax(
   // Use federal income if state income is not specified
   const stateIncome = inputs.stateIncome || inputs.federalIncome;
 
+  // Clamp negative LTCG to 0 (current year losses are carried forward, not deducted)
+  const effectiveLTCG = Math.max(0, inputs.longTermCapitalGains);
+
   // Step 1: Calculate Gross Income
   // New York taxes ALL capital gains as ordinary income
   const grossIncome =
     stateIncome +
     inputs.shortTermCapitalGains +
-    inputs.longTermCapitalGains;
+    effectiveLTCG;
 
   // Step 1b: Apply short-term loss carryover (NY follows federal rules)
   const stCarryover = inputs.priorYearShortTermLossCarryover;
@@ -61,7 +64,7 @@ export function calculateNewYorkTax(
 
   // Step 1c: Apply long-term loss carryover
   const ltCarryover = inputs.priorYearLongTermLossCarryover;
-  const longTermLossCarryoverOffset = Math.min(ltCarryover, inputs.longTermCapitalGains);
+  const longTermLossCarryoverOffset = Math.min(ltCarryover, effectiveLTCG);
 
   // Step 2: Calculate deductions
   const deductionBreakdown = calculateNewYorkDeductions(

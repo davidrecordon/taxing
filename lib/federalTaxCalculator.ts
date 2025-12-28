@@ -50,10 +50,13 @@ export function calculateFederalTax(
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
 
+  // Clamp negative LTCG to 0 (current year losses are carried forward, not deducted)
+  const effectiveLTCG = Math.max(0, inputs.longTermCapitalGains);
+
   // Step 1: Calculate Gross Income
   // Short-term capital gains are taxed as ordinary income
   const grossOrdinaryIncome = inputs.federalIncome + inputs.shortTermCapitalGains;
-  const grossIncome = grossOrdinaryIncome + inputs.longTermCapitalGains;
+  const grossIncome = grossOrdinaryIncome + effectiveLTCG;
 
   // Step 1b: Apply short-term loss carryover
   // First offset short-term gains, then ordinary income up to limit
@@ -112,15 +115,15 @@ export function calculateFederalTax(
   // This preserves carryover for future years when it provides actual tax savings
   const zeroPercentThreshold = ltcgBrackets.brackets[filingStatus][0].max ?? 0;
   const roomInZeroBracket = Math.max(0, zeroPercentThreshold - taxableOrdinaryIncome);
-  const ltcgInZeroBracket = Math.min(inputs.longTermCapitalGains, roomInZeroBracket);
-  const ltcgInTaxedBrackets = inputs.longTermCapitalGains - ltcgInZeroBracket;
+  const ltcgInZeroBracket = Math.min(effectiveLTCG, roomInZeroBracket);
+  const ltcgInTaxedBrackets = effectiveLTCG - ltcgInZeroBracket;
 
   // Only apply carryover to offset gains that would actually be taxed
   const longTermLossCarryoverOffset = Math.min(ltCarryover, ltcgInTaxedBrackets);
   const longTermLossCarryoverUnused = ltCarryover - longTermLossCarryoverOffset;
 
   // Step 4c: Calculate taxable LTCG (after smart carryover)
-  const taxableLTCG = inputs.longTermCapitalGains - longTermLossCarryoverOffset;
+  const taxableLTCG = effectiveLTCG - longTermLossCarryoverOffset;
 
   // Step 4d: Calculate AGI (includes all deductions for display)
   const adjustedGrossIncome = grossIncome

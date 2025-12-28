@@ -40,6 +40,8 @@ export default function IncomeInputs({ inputs, onUpdate }: Props) {
           label="Long-Term Capital Gains"
           value={inputs.longTermCapitalGains}
           onChange={(v) => onUpdate('longTermCapitalGains', v)}
+          allowNegative={true}
+          warning={inputs.longTermCapitalGains < 0 ? "Long-term capital losses will be carried over to next year." : undefined}
         />
       </div>
 

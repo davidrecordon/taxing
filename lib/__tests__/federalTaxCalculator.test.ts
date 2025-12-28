@@ -203,6 +203,75 @@ describe('calculateFederalTax', () => {
     });
   });
 
+  describe('negative LTCG (current year losses)', () => {
+    it('treats negative LTCG as $0 for tax calculation', () => {
+      // $100,000 federal income with -$50,000 LTCG loss
+      // The loss should NOT reduce taxable income this year (carried forward)
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        longTermCapitalGains: -50000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      // Gross income should only include federal income (LTCG clamped to 0)
+      expect(result.grossIncome).toBe(100000);
+      // LTCG tax should be 0 (no gains to tax)
+      expect(result.ltcgTax).toBe(0);
+      expect(result.taxableLTCG).toBe(0);
+      // Original negative value should still be in result for display
+      expect(result.longTermCapitalGains).toBe(-50000);
+    });
+
+    it('does not reduce AGI with negative LTCG', () => {
+      // Verify that negative LTCG doesn't artificially reduce AGI
+      const inputsWithLoss = createDefaultInputs({
+        federalIncome: 100000,
+        longTermCapitalGains: -20000,
+        filingStatus: 'single',
+      });
+
+      const inputsWithoutLoss = createDefaultInputs({
+        federalIncome: 100000,
+        longTermCapitalGains: 0,
+        filingStatus: 'single',
+      });
+
+      const resultWithLoss = calculateFederalTax(
+        inputsWithLoss,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      const resultWithoutLoss = calculateFederalTax(
+        inputsWithoutLoss,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      // Tax should be identical - loss doesn't reduce current year tax
+      expect(resultWithLoss.totalTax).toBe(resultWithoutLoss.totalTax);
+      expect(resultWithLoss.adjustedGrossIncome).toBe(resultWithoutLoss.adjustedGrossIncome);
+    });
+  });
+
   describe('safe harbor calculations', () => {
     it('uses minimum of 90% current year and 110% prior year when prior year provided', () => {
       // $100k income, tax is $13,460 + FICA

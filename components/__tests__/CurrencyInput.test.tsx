@@ -159,4 +159,77 @@ describe('CurrencyInput', () => {
     });
   });
 
+  describe('negative values', () => {
+    it('displays negative values with red text styling', () => {
+      render(
+        <CurrencyInput
+          label="Amount"
+          value={-500}
+          onChange={() => {}}
+          allowNegative={true}
+        />
+      );
+
+      const input = screen.getByRole('textbox');
+      expect(input).toHaveClass('text-red-600');
+      expect(input).toHaveValue('-500');
+    });
+
+    it('displays dollar sign in red when value is negative', () => {
+      render(
+        <CurrencyInput
+          label="Amount"
+          value={-500}
+          onChange={() => {}}
+          allowNegative={true}
+        />
+      );
+
+      const dollarSign = screen.getByText('$');
+      expect(dollarSign).toHaveClass('text-red-600');
+    });
+
+    it('displays positive values with normal text styling', () => {
+      render(
+        <CurrencyInput
+          label="Amount"
+          value={500}
+          onChange={() => {}}
+          allowNegative={true}
+        />
+      );
+
+      const input = screen.getByRole('textbox');
+      expect(input).toHaveClass('text-gray-900');
+      expect(input).not.toHaveClass('text-red-600');
+    });
+
+    it('formats negative values with comma separators', () => {
+      render(
+        <CurrencyInput
+          label="Amount"
+          value={-1234567}
+          onChange={() => {}}
+          allowNegative={true}
+        />
+      );
+
+      expect(screen.getByRole('textbox')).toHaveValue('-1,234,567');
+    });
+
+    it('does not show red styling for zero values', () => {
+      render(
+        <CurrencyInput
+          label="Amount"
+          value={0}
+          onChange={() => {}}
+          allowNegative={true}
+        />
+      );
+
+      const input = screen.getByRole('textbox');
+      expect(input).not.toHaveClass('text-red-600');
+    });
+  });
+
 });

@@ -34,17 +34,20 @@ export function calculateWashingtonTax(
   // Use federal income if state income is not specified
   const stateIncome = inputs.stateIncome || inputs.federalIncome;
 
+  // Clamp negative LTCG to 0 (current year losses are carried forward, not deducted)
+  const effectiveLTCG = Math.max(0, inputs.longTermCapitalGains);
+
   // Washington only taxes LONG-TERM capital gains
   // Short-term gains and wages are NOT taxed
   const grossIncome =
     stateIncome +
     inputs.shortTermCapitalGains +
-    inputs.longTermCapitalGains;
+    effectiveLTCG;
 
   // Apply long-term loss carryover to LTCG only
   const ltCarryover = inputs.priorYearLongTermLossCarryover;
-  const longTermLossCarryoverOffset = Math.min(ltCarryover, inputs.longTermCapitalGains);
-  const netLTCG = Math.max(0, inputs.longTermCapitalGains - longTermLossCarryoverOffset);
+  const longTermLossCarryoverOffset = Math.min(ltCarryover, effectiveLTCG);
+  const netLTCG = Math.max(0, effectiveLTCG - longTermLossCarryoverOffset);
 
   // Get the brackets for the filing status
   const brackets = washingtonBrackets.brackets[filingStatus];
