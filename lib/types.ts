@@ -59,6 +59,14 @@ export interface FederalLimitsData {
     default: number;
     marriedFilingSeparately: number;
   };
+  niit: {
+    rate: number;
+    thresholds: {
+      marriedFilingJointly: number;
+      marriedFilingSeparately: number;
+      single: number;
+    };
+  };
   safeHarbor: {
     currentYearPercent: number;
     priorYearPercent: number;
@@ -224,6 +232,13 @@ export interface FicaBreakdown {
   totalFica: number;
 }
 
+export interface NIITBreakdown {
+  netInvestmentIncome: number;
+  magiOverThreshold: number;
+  taxableAmount: number;
+  tax: number;
+}
+
 export interface SafeHarbor {
   currentYear90Percent: number;
   priorYearSafeHarbor: number;
@@ -266,6 +281,7 @@ export interface TaxCalculationResult {
   nycTax?: number;  // New York City local tax
   nycBracketBreakdown?: BracketBreakdown[];  // NYC tax bracket breakdown
   ficaBreakdown?: FicaBreakdown;
+  niitBreakdown?: NIITBreakdown;
   totalTax: number;
 
   // Payments already made

@@ -8,6 +8,7 @@ import {
   FicaData,
   FicaBreakdown,
   FilingStatus,
+  NIITBreakdown,
 } from './types';
 import { calculateFederalDeductions } from './deductionCalculator';
 import { calculateTaxByBrackets, calculateLTCGTaxWithStacking } from './taxUtils';
@@ -154,8 +155,26 @@ export function calculateFederalTax(
     ? calculateFicaTaxes(inputs.federalIncome, filingStatus, ficaData)
     : undefined;
 
+  // Step 7.5: Calculate NIIT (3.8% Net Investment Income Tax for high earners)
+  // NIIT applies to the lesser of:
+  // 1. Net investment income (capital gains after losses)
+  // 2. MAGI exceeding threshold
+  const netInvestmentIncome = Math.max(0,
+    effectiveSTCG + effectiveLTCG - shortTermLossCarryoverOffset - longTermLossCarryoverOffset
+  );
+  const niitThreshold = federalLimits.niit.thresholds[filingStatus];
+  const magiOverThreshold = Math.max(0, preDeductionAgi - niitThreshold);
+  const niitTaxableAmount = Math.min(netInvestmentIncome, magiOverThreshold);
+  const niitTax = niitTaxableAmount > 0 ? niitTaxableAmount * federalLimits.niit.rate : 0;
+  const niitBreakdown: NIITBreakdown | undefined = niitTax > 0 ? {
+    netInvestmentIncome,
+    magiOverThreshold,
+    taxableAmount: niitTaxableAmount,
+    tax: niitTax,
+  } : undefined;
+
   // Step 8: Sum up taxes
-  const totalTax = ordinaryTax.total + ltcgTax.total + (ficaBreakdown?.totalFica ?? 0);
+  const totalTax = ordinaryTax.total + ltcgTax.total + (ficaBreakdown?.totalFica ?? 0) + niitTax;
 
   // Step 9: Calculate remaining owed using shared utility
   const { totalPaid, remainingOwed, refundDue } = calculatePaymentSummary(
@@ -195,6 +214,7 @@ export function calculateFederalTax(
     ordinaryIncomeTax: ordinaryTax.total,
     ltcgTax: ltcgTax.total,
     ficaBreakdown,
+    niitBreakdown,
     totalTax,
     withheld: inputs.federalTaxWithheld,
     estimatedPaid: inputs.federalEstimatedPaid,

@@ -1036,4 +1036,212 @@ describe('calculateFederalTax', () => {
       expect(result.refundDue).toBe(0);
     });
   });
+
+  describe('Net Investment Income Tax (NIIT)', () => {
+    it('applies 3.8% NIIT when MAGI exceeds threshold with capital gains', () => {
+      // Single filer with $250k wages + $100k LTCG = $350k MAGI
+      // Threshold: $200k, so $150k over threshold
+      // Net investment income: $100k (LTCG only)
+      // NIIT = 3.8% × min($100k, $150k) = $3,800
+      const inputs = createDefaultInputs({
+        federalIncome: 250000,
+        longTermCapitalGains: 100000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.niitBreakdown).toBeDefined();
+      expect(result.niitBreakdown!.netInvestmentIncome).toBe(100000);
+      expect(result.niitBreakdown!.magiOverThreshold).toBe(150000);
+      expect(result.niitBreakdown!.taxableAmount).toBe(100000);
+      expect(result.niitBreakdown!.tax).toBeCloseTo(3800, 2);
+    });
+
+    it('does not apply NIIT when MAGI is under threshold', () => {
+      // Single filer with $150k wages + $30k LTCG = $180k MAGI
+      // Threshold: $200k, so under threshold = no NIIT
+      const inputs = createDefaultInputs({
+        federalIncome: 150000,
+        longTermCapitalGains: 30000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.niitBreakdown).toBeUndefined();
+    });
+
+    it('uses MAGI over threshold when less than net investment income', () => {
+      // Single filer with $210k wages + $50k LTCG = $260k MAGI
+      // Threshold: $200k, so $60k over threshold
+      // Net investment income: $50k
+      // NIIT = 3.8% × min($50k, $60k) = 3.8% × $50k = $1,900
+      const inputs = createDefaultInputs({
+        federalIncome: 210000,
+        longTermCapitalGains: 50000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.niitBreakdown).toBeDefined();
+      expect(result.niitBreakdown!.taxableAmount).toBe(50000);
+      expect(result.niitBreakdown!.tax).toBeCloseTo(1900, 2);
+    });
+
+    it('uses lower threshold for MFS ($125k)', () => {
+      // MFS with $150k wages + $50k LTCG = $200k MAGI
+      // Threshold: $125k, so $75k over threshold
+      // Net investment income: $50k
+      // NIIT = 3.8% × min($50k, $75k) = $1,900
+      const inputs = createDefaultInputs({
+        federalIncome: 150000,
+        longTermCapitalGains: 50000,
+        filingStatus: 'marriedFilingSeparately',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.niitBreakdown).toBeDefined();
+      expect(result.niitBreakdown!.magiOverThreshold).toBe(75000);
+      expect(result.niitBreakdown!.tax).toBeCloseTo(1900, 2);
+    });
+
+    it('uses higher threshold for MFJ ($250k)', () => {
+      // MFJ with $260k wages + $50k LTCG = $310k MAGI
+      // Threshold: $250k, so $60k over threshold
+      // Net investment income: $50k
+      // NIIT = 3.8% × min($50k, $60k) = $1,900
+      const inputs = createDefaultInputs({
+        federalIncome: 260000,
+        longTermCapitalGains: 50000,
+        filingStatus: 'marriedFilingJointly',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.niitBreakdown).toBeDefined();
+      expect(result.niitBreakdown!.magiOverThreshold).toBe(60000);
+      expect(result.niitBreakdown!.taxableAmount).toBe(50000);
+      expect(result.niitBreakdown!.tax).toBeCloseTo(1900, 2);
+    });
+
+    it('reduces net investment income by capital loss carryover', () => {
+      // Single with $300k wages + $100k LTCG - $30k LT loss carryover
+      // Net investment income = $100k - $30k = $70k
+      // MAGI = $300k + $100k - $30k = $370k, over threshold by $170k
+      // NIIT = 3.8% × min($70k, $170k) = 3.8% × $70k = $2,660
+      const inputs = createDefaultInputs({
+        federalIncome: 300000,
+        longTermCapitalGains: 100000,
+        priorYearLongTermLossCarryover: 30000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.niitBreakdown).toBeDefined();
+      // Net investment income is reduced by carryover
+      expect(result.niitBreakdown!.netInvestmentIncome).toBe(70000);
+      expect(result.niitBreakdown!.tax).toBeCloseTo(2660, 2);
+    });
+
+    it('includes both STCG and LTCG in net investment income', () => {
+      // Single with $250k wages + $30k STCG + $70k LTCG = $350k MAGI
+      // Net investment income = $30k + $70k = $100k
+      // NIIT = 3.8% × min($100k, $150k) = $3,800
+      const inputs = createDefaultInputs({
+        federalIncome: 250000,
+        shortTermCapitalGains: 30000,
+        longTermCapitalGains: 70000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.niitBreakdown).toBeDefined();
+      expect(result.niitBreakdown!.netInvestmentIncome).toBe(100000);
+      expect(result.niitBreakdown!.tax).toBeCloseTo(3800, 2);
+    });
+
+    it('NIIT is included in total tax calculation', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 250000,
+        longTermCapitalGains: 100000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      // Total tax should include NIIT
+      const expectedNiit = result.niitBreakdown!.tax;
+      const taxWithoutNiit = result.ordinaryIncomeTax + result.ltcgTax + (result.ficaBreakdown?.totalFica ?? 0);
+      expect(result.totalTax).toBeCloseTo(taxWithoutNiit + expectedNiit, 2);
+    });
+  });
 });

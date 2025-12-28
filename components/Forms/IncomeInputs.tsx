@@ -17,9 +17,10 @@ export default function IncomeInputs({ inputs, onUpdate }: Props) {
 
       <div className="grid grid-cols-2 gap-4">
         <CurrencyInput
-          label="Federal Income"
+          label="Wages & Other Income"
           value={inputs.federalIncome}
           onChange={(v) => onUpdate('federalIncome', v)}
+          hint="W-2 wages, 1099 interest, dividends, etc."
         />
         <CurrencyInput
           label={`${stateLabel} Income`}

@@ -181,6 +181,31 @@ export default function FederalBreakdown({ result }: Props) {
         </div>
       )}
 
+      {/* NIIT (Net Investment Income Tax) */}
+      {result.niitBreakdown && (
+        <div className="bg-indigo-50 p-3 rounded mb-4">
+          <h3 className="font-medium mb-2">Net Investment Income Tax (NIIT)</h3>
+          <div className="text-sm space-y-1">
+            <div className="flex justify-between">
+              <span>Net Investment Income</span>
+              <span className="font-mono">{formatCurrency(result.niitBreakdown.netInvestmentIncome)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>MAGI Over Threshold</span>
+              <span className="font-mono">{formatCurrency(result.niitBreakdown.magiOverThreshold)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Taxable Amount (lesser)</span>
+              <span className="font-mono">{formatCurrency(result.niitBreakdown.taxableAmount)}</span>
+            </div>
+            <div className="flex justify-between font-medium pt-1 border-t border-indigo-200">
+              <span>NIIT ({formatPercent(federalLimits.niit.rate)})</span>
+              <span className="font-mono">{formatCurrency(result.niitBreakdown.tax)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Final Summary */}
       <TaxSummarySection
         totalTax={result.totalTax}
