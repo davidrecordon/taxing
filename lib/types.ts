@@ -1,10 +1,11 @@
 export type FilingStatus = 'single' | 'marriedFilingJointly' | 'marriedFilingSeparately';
 
-export type TaxState = 'california' | 'washington';
+export type TaxState = 'california' | 'washington' | 'newyork';
 
 export const STATE_LABELS: Record<TaxState, string> = {
   california: 'California',
   washington: 'Washington',
+  newyork: 'New York',
 };
 
 export interface TaxBracket {
@@ -98,11 +99,23 @@ export interface WashingtonLimitsData {
   };
 }
 
+// New York-specific limits
+export interface NewYorkLimitsData {
+  safeHarbor: {
+    currentYearPercent: number;
+    priorYearPercent: number;
+    highIncomeThreshold: number;
+    highIncomeThresholdMFS: number;
+    highIncomePercent: number;
+  };
+}
+
 // Multi-year wrapper types for JSON files
 export type MultiYearSharedLimits = Record<string, SharedLimitsData>;
 export type MultiYearFederalLimits = Record<string, FederalLimitsData>;
 export type MultiYearCaliforniaLimits = Record<string, CaliforniaLimitsData>;
 export type MultiYearWashingtonLimits = Record<string, WashingtonLimitsData>;
+export type MultiYearNewYorkLimits = Record<string, NewYorkLimitsData>;
 
 export interface FicaData {
   socialSecurity: {
@@ -142,6 +155,7 @@ export interface TaxInputs {
   // Filing status and state selection
   filingStatus: FilingStatus;
   selectedState: TaxState;
+  isNYCResident?: boolean;
 
   // Deductions
   propertyTaxesPaid: number;
@@ -192,6 +206,7 @@ export interface SafeHarbor {
   met: boolean;
   remaining: number;
   highIncomeException?: boolean;  // CA only - AGI over threshold
+  isHighIncome?: boolean;  // NY - whether 110% rule applies
 }
 
 export interface TaxCalculationResult {
@@ -221,6 +236,8 @@ export interface TaxCalculationResult {
   ordinaryIncomeTax: number;
   ltcgTax: number;
   caMentalHealthTax?: number;  // California only - 1% on income over $1M
+  nycTax?: number;  // New York City local tax
+  nycBracketBreakdown?: BracketBreakdown[];  // NYC tax bracket breakdown
   ficaBreakdown?: FicaBreakdown;
   totalTax: number;
 

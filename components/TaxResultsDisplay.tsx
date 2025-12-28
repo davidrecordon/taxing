@@ -2,6 +2,7 @@ import { CalculationResults, STATE_LABELS } from '@/lib/types';
 import FederalBreakdown from './FederalBreakdown';
 import CaliforniaBreakdown from './States/CaliforniaBreakdown';
 import WashingtonBreakdown from './States/WashingtonBreakdown';
+import NewYorkBreakdown from './States/NewYorkBreakdown';
 import { formatCurrency } from '@/lib/formatters';
 
 interface Props {
@@ -57,9 +58,13 @@ export default function TaxResultsDisplay({ results }: Props) {
       {/* Detailed Breakdowns */}
       <FederalBreakdown result={results.federal} />
 
-      {results.selectedState === 'california' ? (
+      {results.selectedState === 'california' && (
         <CaliforniaBreakdown result={results.state} />
-      ) : (
+      )}
+      {results.selectedState === 'newyork' && (
+        <NewYorkBreakdown result={results.state} />
+      )}
+      {results.selectedState === 'washington' && (
         <WashingtonBreakdown result={results.state} />
       )}
     </div>

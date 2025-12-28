@@ -1,4 +1,4 @@
-import { FilingStatus, DeductionBreakdown, FederalLimitsData, CaliforniaLimitsData, DeductionsData } from './types';
+import { FilingStatus, DeductionBreakdown, FederalLimitsData, CaliforniaLimitsData, DeductionsData, NewYorkLimitsData } from './types';
 
 interface DeductionInputs {
   propertyTaxesPaid: number;
@@ -110,6 +110,46 @@ export function calculateCaliforniaDeductions(
     deductionUsed: useItemized ? 'itemized' : 'standard',
     deductionAmount: useItemized ? itemizedDeduction : standardDeduction,
     saltDeduction: 0, // CA doesn't allow SALT
+    saltCapped: false,
+    mortgageInterest: useItemized ? deductibleMortgageInterest : 0,
+    charitableContributions: useItemized ? inputs.charitableContributions : 0,
+  };
+}
+
+// New York does NOT allow SALT deduction (can't deduct state tax from state tax)
+// NY follows federal mortgage interest limits
+export function calculateNewYorkDeductions(
+  inputs: DeductionInputs,
+  filingStatus: FilingStatus,
+  newYorkDeductions: DeductionsData,
+  federalLimits: FederalLimitsData
+): DeductionBreakdown {
+  const standardDeduction = newYorkDeductions.standardDeduction[filingStatus];
+
+  // NY follows federal mortgage balance limits
+  const mortgageBalanceLimit =
+    filingStatus === 'marriedFilingSeparately'
+      ? federalLimits.mortgageBalanceLimit.marriedFilingSeparately
+      : federalLimits.mortgageBalanceLimit.default;
+
+  const deductibleMortgageInterest = calculateDeductibleMortgageInterest(
+    inputs.mortgageInterestPaid,
+    inputs.mortgageBalance,
+    mortgageBalanceLimit
+  );
+
+  // New York itemized deductions (no SALT)
+  const itemizedDeduction =
+    deductibleMortgageInterest + inputs.charitableContributions;
+
+  const useItemized = itemizedDeduction > standardDeduction;
+
+  return {
+    standardDeduction,
+    itemizedDeduction,
+    deductionUsed: useItemized ? 'itemized' : 'standard',
+    deductionAmount: useItemized ? itemizedDeduction : standardDeduction,
+    saltDeduction: 0, // NY doesn't allow SALT
     saltCapped: false,
     mortgageInterest: useItemized ? deductibleMortgageInterest : 0,
     charitableContributions: useItemized ? inputs.charitableContributions : 0,

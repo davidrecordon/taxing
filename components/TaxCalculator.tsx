@@ -5,6 +5,7 @@ import { TaxInputs, FilingStatus, TaxState, CalculationResults, STATE_LABELS } f
 import { calculateFederalTax } from '@/lib/federalTaxCalculator';
 import { calculateCaliforniaTax } from '@/lib/states/californiaTaxCalculator';
 import { calculateWashingtonTax } from '@/lib/states/washingtonTaxCalculator';
+import { calculateNewYorkTax } from '@/lib/states/newYorkTaxCalculator';
 import ConfigurationSection from './ConfigurationSection';
 import IncomeInputs from './IncomeInputs';
 import WithholdingInputs from './WithholdingInputs';
@@ -24,6 +25,10 @@ import allSharedLimits from '@/data/limits.json';
 import allFederalLimits from '@/data/federal-limits.json';
 import allCaliforniaLimits from '@/data/california-limits.json';
 import allWashingtonLimits from '@/data/washington-limits.json';
+import allNewYorkBrackets from '@/data/newyork-brackets.json';
+import allNewYorkDeductions from '@/data/newyork-deductions.json';
+import allNewYorkLimits from '@/data/newyork-limits.json';
+import allNYCBrackets from '@/data/nyc-brackets.json';
 import allFicaData from '@/data/fica.json';
 
 import { TAX_YEAR } from '@/lib/config';
@@ -37,6 +42,10 @@ const sharedLimits = allSharedLimits[TAX_YEAR];
 const federalLimits = allFederalLimits[TAX_YEAR];
 const californiaLimits = allCaliforniaLimits[TAX_YEAR];
 const washingtonLimits = allWashingtonLimits[TAX_YEAR];
+const newYorkBrackets = allNewYorkBrackets[TAX_YEAR];
+const newYorkDeductions = allNewYorkDeductions[TAX_YEAR];
+const newYorkLimits = allNewYorkLimits[TAX_YEAR];
+const nycBrackets = allNYCBrackets[TAX_YEAR];
 const ficaData = allFicaData[TAX_YEAR];
 
 const defaultInputs: TaxInputs = {
@@ -75,9 +84,18 @@ export default function TaxCalculator() {
       ficaData
     );
 
-    const state = inputs.selectedState === 'california'
-      ? calculateCaliforniaTax(inputs, californiaBrackets, californiaDeductions, sharedLimits, californiaLimits)
-      : calculateWashingtonTax(inputs, washingtonBrackets, washingtonLimits);
+    let state;
+    switch (inputs.selectedState) {
+      case 'california':
+        state = calculateCaliforniaTax(inputs, californiaBrackets, californiaDeductions, sharedLimits, californiaLimits);
+        break;
+      case 'newyork':
+        state = calculateNewYorkTax(inputs, newYorkBrackets, nycBrackets, newYorkDeductions, sharedLimits, federalLimits, newYorkLimits);
+        break;
+      case 'washington':
+      default:
+        state = calculateWashingtonTax(inputs, washingtonBrackets, washingtonLimits);
+    }
 
     return { federal, state, selectedState: inputs.selectedState };
   }, [inputs]);
@@ -103,8 +121,10 @@ export default function TaxCalculator() {
           <ConfigurationSection
             filingStatus={inputs.filingStatus}
             selectedState={inputs.selectedState}
+            isNYCResident={inputs.isNYCResident}
             onFilingStatusChange={(status: FilingStatus) => updateInput('filingStatus', status)}
             onStateChange={(state: TaxState) => updateInput('selectedState', state)}
+            onNYCResidentChange={(isNYC: boolean) => updateInput('isNYCResident', isNYC)}
           />
 
           <IncomeInputs inputs={inputs} onUpdate={updateInput} />

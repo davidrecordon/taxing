@@ -3,8 +3,10 @@ import { FilingStatus, TaxState } from '@/lib/types';
 interface Props {
   filingStatus: FilingStatus;
   selectedState: TaxState;
+  isNYCResident?: boolean;
   onFilingStatusChange: (status: FilingStatus) => void;
   onStateChange: (state: TaxState) => void;
+  onNYCResidentChange?: (isNYC: boolean) => void;
 }
 
 const filingStatusOptions: { value: FilingStatus; label: string }[] = [
@@ -15,14 +17,17 @@ const filingStatusOptions: { value: FilingStatus; label: string }[] = [
 
 const stateOptions: { value: TaxState; label: string }[] = [
   { value: 'california', label: 'California' },
+  { value: 'newyork', label: 'New York' },
   { value: 'washington', label: 'Washington' },
 ];
 
 export default function ConfigurationSection({
   filingStatus,
   selectedState,
+  isNYCResident,
   onFilingStatusChange,
   onStateChange,
+  onNYCResidentChange,
 }: Props) {
   return (
     <div className="bg-white rounded-lg shadow p-4">
@@ -60,6 +65,26 @@ export default function ConfigurationSection({
           </select>
         </div>
       </div>
+
+      {/* NYC Resident Checkbox - only shown when NY is selected */}
+      {selectedState === 'newyork' && onNYCResidentChange && (
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isNYCResident ?? false}
+              onChange={(e) => onNYCResidentChange(e.target.checked)}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <span className="text-sm font-medium text-gray-900">
+              NYC Resident
+            </span>
+            <span className="text-xs text-gray-500">
+              (adds NYC local income tax)
+            </span>
+          </label>
+        </div>
+      )}
     </div>
   );
 }

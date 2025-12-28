@@ -8,10 +8,15 @@ export function formatCurrency(amount: number): string {
 }
 
 export function formatPercent(rate: number): string {
+  // Check if the percentage is a whole number (e.g., 0.90 = 90%)
+  const percentValue = rate * 100;
+  const isWholeNumber = Math.abs(percentValue - Math.round(percentValue)) < 0.0001;
+  const decimals = isWholeNumber ? 0 : 1;
+
   return new Intl.NumberFormat('en-US', {
     style: 'percent',
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
   }).format(rate);
 }
 

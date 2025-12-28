@@ -1,34 +1,37 @@
-import { TaxCalculationResult, CaliforniaLimitsData } from '@/lib/types';
+import { TaxCalculationResult, NewYorkLimitsData } from '@/lib/types';
 import { formatCurrency, formatPercent } from '@/lib/formatters';
 import { calculateEffectiveRates } from '@/lib/taxUtils';
 import { TAX_YEAR } from '@/lib/config';
 import BracketTable from '../shared/BracketTable';
 import TaxSummarySection from '../shared/TaxSummarySection';
-import allCaliforniaLimits from '@/data/california-limits.json';
+import allNewYorkLimits from '@/data/newyork-limits.json';
 
-const limits = allCaliforniaLimits[TAX_YEAR] as CaliforniaLimitsData;
+const limits = allNewYorkLimits[TAX_YEAR] as NewYorkLimitsData;
 
 interface Props {
   result: TaxCalculationResult;
 }
 
-export default function CaliforniaBreakdown({ result }: Props) {
+export default function NewYorkBreakdown({ result }: Props) {
+  const hasNYCTax = (result.nycTax ?? 0) > 0;
+
   return (
     <div className="bg-white rounded-lg shadow p-4 text-gray-900">
       <h2 className="text-lg font-semibold border-b pb-2 mb-4">
-        California Tax Breakdown
+        New York Tax Breakdown
       </h2>
 
       <div className="bg-blue-50 p-3 rounded mb-4">
         <p className="text-sm text-blue-800">
-          California taxes all capital gains as ordinary income.
+          New York taxes all capital gains as ordinary income.
+          {hasNYCTax && ' NYC local tax is added for city residents.'}
         </p>
       </div>
 
       {/* Income to Taxable Income Flow */}
       <div className="bg-gray-50 p-3 rounded mb-4 space-y-2">
         <div className="flex justify-between">
-          <span>California Income</span>
+          <span>New York Income</span>
           <span className="font-mono">{formatCurrency(result.wageIncome)}</span>
         </div>
         {result.shortTermCapitalGains > 0 && (
@@ -80,28 +83,47 @@ export default function CaliforniaBreakdown({ result }: Props) {
           </span>
         </div>
         <div className="flex justify-between font-medium border-t pt-1">
-          <span>California Adjusted Gross Income (AGI)</span>
+          <span>New York Adjusted Gross Income (AGI)</span>
           <span className="font-mono">
             {formatCurrency(result.taxableOrdinaryIncome)}
           </span>
         </div>
       </div>
 
-      {/* Bracket Breakdown */}
+      {/* NY State Bracket Breakdown */}
       <BracketTable
         breakdown={result.ordinaryIncomeBracketBreakdown}
-        title="Tax by Bracket"
+        title="NY State Tax by Bracket"
         incomeLabel="Income"
-        totalLabel="Ordinary Income Tax:"
+        totalLabel="NY State Tax:"
         totalAmount={result.ordinaryIncomeTax}
       />
 
-      {/* Mental Health Services Tax */}
-      {(result.caMentalHealthTax ?? 0) > 0 && (
+      {/* NYC Local Tax Section */}
+      {hasNYCTax && result.nycBracketBreakdown && (
+        <BracketTable
+          breakdown={result.nycBracketBreakdown}
+          title="NYC Local Tax by Bracket"
+          incomeLabel="Income"
+          totalLabel="NYC Local Tax:"
+          totalAmount={result.nycTax ?? 0}
+        />
+      )}
+
+      {/* Combined Tax Summary */}
+      {hasNYCTax && (
         <div className="bg-purple-50 p-3 rounded mb-4">
-          <div className="flex justify-between font-medium">
-            <span>Mental Health Services Tax ({formatPercent(limits.mentalHealthTax.rate)} over {formatCurrency(limits.mentalHealthTax.threshold)})</span>
-            <span className="font-mono">{formatCurrency(result.caMentalHealthTax ?? 0)}</span>
+          <div className="flex justify-between text-sm">
+            <span>NY State Tax</span>
+            <span className="font-mono">{formatCurrency(result.ordinaryIncomeTax)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span>NYC Local Tax</span>
+            <span className="font-mono">{formatCurrency(result.nycTax ?? 0)}</span>
+          </div>
+          <div className="flex justify-between font-medium pt-1 border-t border-purple-200">
+            <span>Combined NY + NYC Tax</span>
+            <span className="font-mono">{formatCurrency(result.totalTax)}</span>
           </div>
         </div>
       )}
@@ -113,7 +135,7 @@ export default function CaliforniaBreakdown({ result }: Props) {
         estimatedPaid={result.estimatedPaid}
         remainingOwed={result.remainingOwed}
         refundDue={result.refundDue}
-        taxLabel="California"
+        taxLabel="New York"
         showEffectiveRates={true}
         effectiveRates={calculateEffectiveRates(result)}
       />
@@ -127,19 +149,14 @@ export default function CaliforniaBreakdown({ result }: Props) {
               <span>{formatPercent(limits.safeHarbor.currentYearPercent)} of Current Year Tax</span>
               <span className="font-mono">{formatCurrency(result.safeHarbor.currentYear90Percent)}</span>
             </div>
-            {!result.safeHarbor.highIncomeException && result.safeHarbor.priorYearSafeHarbor > 0 && (
+            {result.safeHarbor.priorYearSafeHarbor > 0 && (
               <div className="flex justify-between">
-                <span>{formatPercent(limits.safeHarbor.priorYearPercent)} of Prior Year Tax</span>
+                <span>{formatPercent(result.safeHarbor.isHighIncome ? limits.safeHarbor.highIncomePercent : limits.safeHarbor.priorYearPercent)} of Prior Year Tax</span>
                 <span className="font-mono">{formatCurrency(result.safeHarbor.priorYearSafeHarbor)}</span>
               </div>
             )}
-            {result.safeHarbor.highIncomeException && (
-              <p className="text-xs text-gray-600 italic">
-                ({formatPercent(limits.safeHarbor.priorYearPercent)} prior year not available - CA AGI over {formatCurrency(limits.mentalHealthTax.threshold)} threshold)
-              </p>
-            )}
             <div className="flex justify-between font-medium pt-1 border-t">
-              <span>Safe Harbor Minimum{!result.safeHarbor.highIncomeException && result.safeHarbor.priorYearSafeHarbor > 0 ? ' (lesser)' : ''}</span>
+              <span>Safe Harbor Minimum (lesser)</span>
               <span className="font-mono">{formatCurrency(result.safeHarbor.minimum)}</span>
             </div>
             <div className="flex justify-between text-green-600">

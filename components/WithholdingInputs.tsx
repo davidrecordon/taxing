@@ -1,6 +1,6 @@
 'use client';
 
-import { TaxInputs } from '@/lib/types';
+import { TaxInputs, STATE_LABELS } from '@/lib/types';
 import CurrencyInput from './CurrencyInput';
 
 interface Props {
@@ -8,13 +8,8 @@ interface Props {
   onUpdate: <K extends keyof TaxInputs>(field: K, value: TaxInputs[K]) => void;
 }
 
-const STATE_LABELS: Record<string, string> = {
-  california: 'California',
-  washington: 'Washington',
-};
-
 export default function WithholdingInputs({ inputs, onUpdate }: Props) {
-  const stateLabel = STATE_LABELS[inputs.selectedState] || 'State';
+  const stateLabel = STATE_LABELS[inputs.selectedState];
 
   return (
     <div className="bg-white rounded-lg shadow p-4 space-y-4">

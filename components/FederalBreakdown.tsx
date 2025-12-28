@@ -1,8 +1,14 @@
-import { TaxCalculationResult } from '@/lib/types';
+import { TaxCalculationResult, FederalLimitsData, FicaData } from '@/lib/types';
 import { formatCurrency, formatPercent } from '@/lib/formatters';
 import { calculateEffectiveRates } from '@/lib/taxUtils';
+import { TAX_YEAR } from '@/lib/config';
 import BracketTable from './shared/BracketTable';
 import TaxSummarySection from './shared/TaxSummarySection';
+import allFederalLimits from '@/data/federal-limits.json';
+import allFicaData from '@/data/fica.json';
+
+const federalLimits = allFederalLimits[TAX_YEAR] as FederalLimitsData;
+const ficaData = allFicaData[TAX_YEAR] as FicaData;
 
 interface Props {
   result: TaxCalculationResult;
@@ -137,16 +143,16 @@ export default function FederalBreakdown({ result }: Props) {
           <h3 className="font-medium mb-2">FICA Taxes (Social Security & Medicare)</h3>
           <div className="text-sm space-y-1">
             <div className="flex justify-between">
-              <span>Social Security (6.2%{result.wageIncome > result.ficaBreakdown.socialSecurityWages && ` on first ${formatCurrency(result.ficaBreakdown.socialSecurityWages)}`})</span>
+              <span>Social Security ({formatPercent(ficaData.socialSecurity.rate)}{result.wageIncome > result.ficaBreakdown.socialSecurityWages && ` on first ${formatCurrency(result.ficaBreakdown.socialSecurityWages)}`})</span>
               <span className="font-mono">{formatCurrency(result.ficaBreakdown.socialSecurityTax)}</span>
             </div>
             <div className="flex justify-between">
-              <span>Medicare (1.45%)</span>
+              <span>Medicare ({formatPercent(ficaData.medicareBase.rate)})</span>
               <span className="font-mono">{formatCurrency(result.ficaBreakdown.medicareTax)}</span>
             </div>
             {result.ficaBreakdown.additionalMedicareTax > 0 && (
               <div className="flex justify-between">
-                <span>Additional Medicare (0.9%)</span>
+                <span>Additional Medicare ({formatPercent(ficaData.medicareAdditional.rate)})</span>
                 <span className="font-mono">{formatCurrency(result.ficaBreakdown.additionalMedicareTax)}</span>
               </div>
             )}
@@ -176,12 +182,12 @@ export default function FederalBreakdown({ result }: Props) {
           <h3 className="font-medium">Safe Harbor (Penalty Avoidance)</h3>
           <div className="text-sm space-y-1">
             <div className="flex justify-between">
-              <span>90% of Current Year Tax</span>
+              <span>{formatPercent(federalLimits.safeHarbor.currentYearPercent)} of Current Year Tax</span>
               <span className="font-mono">{formatCurrency(result.safeHarbor.currentYear90Percent)}</span>
             </div>
             {result.safeHarbor.priorYearSafeHarbor > 0 && (
               <div className="flex justify-between">
-                <span>110% of Prior Year Tax</span>
+                <span>{formatPercent(federalLimits.safeHarbor.priorYearPercent)} of Prior Year Tax</span>
                 <span className="font-mono">{formatCurrency(result.safeHarbor.priorYearSafeHarbor)}</span>
               </div>
             )}
