@@ -84,8 +84,8 @@ describe('TaxSummarySection', () => {
       );
       expect(screen.getByText('Effective Rate (on taxable income)')).toBeInTheDocument();
       expect(screen.getByText('Effective Rate (on gross income)')).toBeInTheDocument();
-      expect(screen.getByText('15%')).toBeInTheDocument();
-      expect(screen.getByText('12%')).toBeInTheDocument();
+      expect(screen.getByText('15.0%')).toBeInTheDocument();
+      expect(screen.getByText('12.0%')).toBeInTheDocument();
     });
 
     it('hides effective rates when disabled', () => {

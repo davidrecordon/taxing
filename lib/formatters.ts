@@ -7,25 +7,31 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-export function formatPercent(rate: number): string {
-  const percentValue = rate * 100;
+export function formatPercent(rate: number, decimals?: 0 | 1 | 2): string {
+  let decimalPlaces: number;
 
-  // Determine decimals needed (0, 1, or 2)
-  let decimals = 0;
-  if (Math.abs(percentValue - Math.round(percentValue)) >= 0.0001) {
-    // Need at least 1 decimal
-    const rounded1 = Math.round(percentValue * 10) / 10;
-    if (Math.abs(percentValue - rounded1) >= 0.0001) {
-      decimals = 2; // Need 2 decimals (e.g., 4.95%)
-    } else {
-      decimals = 1; // Need 1 decimal (e.g., 9.5%)
+  if (decimals !== undefined) {
+    // Use explicit decimal places if specified
+    decimalPlaces = decimals;
+  } else {
+    // Auto-detect decimals needed (0, 1, or 2)
+    const percentValue = rate * 100;
+    decimalPlaces = 0;
+    if (Math.abs(percentValue - Math.round(percentValue)) >= 0.0001) {
+      // Need at least 1 decimal
+      const rounded1 = Math.round(percentValue * 10) / 10;
+      if (Math.abs(percentValue - rounded1) >= 0.0001) {
+        decimalPlaces = 2; // Need 2 decimals (e.g., 4.95%)
+      } else {
+        decimalPlaces = 1; // Need 1 decimal (e.g., 9.5%)
+      }
     }
   }
 
   return new Intl.NumberFormat('en-US', {
     style: 'percent',
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces,
   }).format(rate);
 }
 

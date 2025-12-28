@@ -132,7 +132,7 @@ export default function CharitableWhatIfModal({
                         : `(${formatCurrency(Math.abs(scenario.results.remainingOwed))})`}
                     </td>
                     <td className="py-3 px-2 text-right text-gray-900">
-                      {formatPercent(scenario.results.effectiveRate)}
+                      {formatPercent(scenario.results.effectiveRate, 1)}
                     </td>
                     <td className="py-3 px-2 text-right">
                       {getSavingsDisplay(scenario.results, scenario.isCurrent)}

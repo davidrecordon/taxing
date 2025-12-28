@@ -82,11 +82,11 @@ export default function TaxSummarySection({
         <div className="pt-2 mt-2 border-t border-blue-200 space-y-1">
           <div className="flex justify-between text-sm text-gray-600">
             <span>Effective Rate (on taxable income)</span>
-            <span className="font-mono">{formatPercent(effectiveRates.onTaxableIncome)}</span>
+            <span className="font-mono">{formatPercent(effectiveRates.onTaxableIncome, 1)}</span>
           </div>
           <div className="flex justify-between text-sm text-gray-600">
             <span>Effective Rate (on gross income)</span>
-            <span className="font-mono">{formatPercent(effectiveRates.onGrossIncome)}</span>
+            <span className="font-mono">{formatPercent(effectiveRates.onGrossIncome, 1)}</span>
           </div>
         </div>
       )}

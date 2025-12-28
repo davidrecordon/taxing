@@ -24,6 +24,26 @@ describe('formatPercent', () => {
   it('handles zero', () => {
     expect(formatPercent(0)).toBe('0%');
   });
+
+  describe('explicit decimal places', () => {
+    it('forces 0 decimal places when specified', () => {
+      expect(formatPercent(0.0495, 0)).toBe('5%'); // Would be 4.95% without override
+      expect(formatPercent(0.125, 0)).toBe('13%'); // Rounds up
+      expect(formatPercent(0.10, 0)).toBe('10%');
+    });
+
+    it('forces 1 decimal place when specified', () => {
+      expect(formatPercent(0.0495, 1)).toBe('5.0%'); // Would be 4.95% without override
+      expect(formatPercent(0.10, 1)).toBe('10.0%'); // Adds trailing zero
+      expect(formatPercent(0.1234, 1)).toBe('12.3%'); // Rounds to 1 decimal
+    });
+
+    it('forces 2 decimal places when specified', () => {
+      expect(formatPercent(0.10, 2)).toBe('10.00%'); // Adds trailing zeros
+      expect(formatPercent(0.095, 2)).toBe('9.50%'); // Adds trailing zero
+      expect(formatPercent(0.1234, 2)).toBe('12.34%');
+    });
+  });
 });
 
 describe('formatCurrency', () => {
