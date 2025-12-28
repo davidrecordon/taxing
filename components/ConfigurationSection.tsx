@@ -17,6 +17,7 @@ const filingStatusOptions: { value: FilingStatus; label: string }[] = [
 
 const stateOptions: { value: TaxState; label: string }[] = [
   { value: 'california', label: 'California' },
+  { value: 'illinois', label: 'Illinois' },
   { value: 'newyork', label: 'New York' },
   { value: 'washington', label: 'Washington' },
 ];

@@ -8,10 +8,19 @@ export function formatCurrency(amount: number): string {
 }
 
 export function formatPercent(rate: number): string {
-  // Check if the percentage is a whole number (e.g., 0.90 = 90%)
   const percentValue = rate * 100;
-  const isWholeNumber = Math.abs(percentValue - Math.round(percentValue)) < 0.0001;
-  const decimals = isWholeNumber ? 0 : 1;
+
+  // Determine decimals needed (0, 1, or 2)
+  let decimals = 0;
+  if (Math.abs(percentValue - Math.round(percentValue)) >= 0.0001) {
+    // Need at least 1 decimal
+    const rounded1 = Math.round(percentValue * 10) / 10;
+    if (Math.abs(percentValue - rounded1) >= 0.0001) {
+      decimals = 2; // Need 2 decimals (e.g., 4.95%)
+    } else {
+      decimals = 1; // Need 1 decimal (e.g., 9.5%)
+    }
+  }
 
   return new Intl.NumberFormat('en-US', {
     style: 'percent',

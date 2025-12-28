@@ -1,11 +1,12 @@
 export type FilingStatus = 'single' | 'marriedFilingJointly' | 'marriedFilingSeparately';
 
-export type TaxState = 'california' | 'washington' | 'newyork';
+export type TaxState = 'california' | 'washington' | 'newyork' | 'illinois';
 
 export const STATE_LABELS: Record<TaxState, string> = {
   california: 'California',
   washington: 'Washington',
   newyork: 'New York',
+  illinois: 'Illinois',
 };
 
 export interface TaxBracket {
@@ -112,12 +113,33 @@ export interface NewYorkLimitsData {
   };
 }
 
+// Illinois-specific limits
+export interface IllinoisLimitsData {
+  safeHarbor: {
+    currentYearPercent: number;
+    priorYearPercent: number;
+  };
+}
+
+// Illinois personal exemptions (instead of standard deductions)
+export interface IllinoisPersonalExemptions {
+  single: number;
+  marriedFilingJointly: number;
+  marriedFilingSeparately: number;
+}
+
+export interface IllinoisDeductionsData {
+  personalExemption: IllinoisPersonalExemptions;
+}
+
 // Multi-year wrapper types for JSON files
 export type MultiYearSharedLimits = Record<string, SharedLimitsData>;
 export type MultiYearFederalLimits = Record<string, FederalLimitsData>;
 export type MultiYearCaliforniaLimits = Record<string, CaliforniaLimitsData>;
 export type MultiYearWashingtonLimits = Record<string, WashingtonLimitsData>;
 export type MultiYearNewYorkLimits = Record<string, NewYorkLimitsData>;
+export type MultiYearIllinoisLimits = Record<string, IllinoisLimitsData>;
+export type MultiYearIllinoisDeductions = Record<string, IllinoisDeductionsData>;
 
 export interface FicaData {
   socialSecurity: {

@@ -1,6 +1,7 @@
 import { CalculationResults, STATE_LABELS } from '@/lib/types';
 import FederalBreakdown from './FederalBreakdown';
 import CaliforniaBreakdown from './States/CaliforniaBreakdown';
+import IllinoisBreakdown from './States/IllinoisBreakdown';
 import WashingtonBreakdown from './States/WashingtonBreakdown';
 import NewYorkBreakdown from './States/NewYorkBreakdown';
 import { formatCurrency } from '@/lib/formatters';
@@ -60,6 +61,9 @@ export default function TaxResultsDisplay({ results }: Props) {
 
       {results.selectedState === 'california' && (
         <CaliforniaBreakdown result={results.state} />
+      )}
+      {results.selectedState === 'illinois' && (
+        <IllinoisBreakdown result={results.state} />
       )}
       {results.selectedState === 'newyork' && (
         <NewYorkBreakdown result={results.state} />

@@ -6,6 +6,7 @@ import { calculateFederalTax } from '@/lib/federalTaxCalculator';
 import { calculateCaliforniaTax } from '@/lib/states/californiaTaxCalculator';
 import { calculateWashingtonTax } from '@/lib/states/washingtonTaxCalculator';
 import { calculateNewYorkTax } from '@/lib/states/newYorkTaxCalculator';
+import { calculateIllinoisTax } from '@/lib/states/illinoisTaxCalculator';
 import ConfigurationSection from './ConfigurationSection';
 import IncomeInputs from './IncomeInputs';
 import WithholdingInputs from './WithholdingInputs';
@@ -29,6 +30,9 @@ import allNewYorkBrackets from '@/data/newyork-brackets.json';
 import allNewYorkDeductions from '@/data/newyork-deductions.json';
 import allNewYorkLimits from '@/data/newyork-limits.json';
 import allNYCBrackets from '@/data/nyc-brackets.json';
+import allIllinoisBrackets from '@/data/illinois-brackets.json';
+import allIllinoisDeductions from '@/data/illinois-deductions.json';
+import allIllinoisLimits from '@/data/illinois-limits.json';
 import allFicaData from '@/data/fica.json';
 
 import { TAX_YEAR } from '@/lib/config';
@@ -46,6 +50,9 @@ const newYorkBrackets = allNewYorkBrackets[TAX_YEAR];
 const newYorkDeductions = allNewYorkDeductions[TAX_YEAR];
 const newYorkLimits = allNewYorkLimits[TAX_YEAR];
 const nycBrackets = allNYCBrackets[TAX_YEAR];
+const illinoisBrackets = allIllinoisBrackets[TAX_YEAR];
+const illinoisDeductions = allIllinoisDeductions[TAX_YEAR];
+const illinoisLimits = allIllinoisLimits[TAX_YEAR];
 const ficaData = allFicaData[TAX_YEAR];
 
 const defaultInputs: TaxInputs = {
@@ -89,6 +96,9 @@ export default function TaxCalculator() {
     switch (inputs.selectedState) {
       case 'california':
         state = calculateCaliforniaTax(inputs, californiaBrackets, californiaDeductions, sharedLimits, californiaLimits);
+        break;
+      case 'illinois':
+        state = calculateIllinoisTax(inputs, illinoisBrackets, illinoisDeductions, sharedLimits, illinoisLimits);
         break;
       case 'newyork':
         state = calculateNewYorkTax(inputs, newYorkBrackets, nycBrackets, newYorkDeductions, sharedLimits, federalLimits, newYorkLimits);
