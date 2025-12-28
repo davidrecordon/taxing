@@ -109,10 +109,10 @@ export default function TaxCalculator() {
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold text-[#0f2439]">
           2025 Estimated Tax Calculator
         </h1>
-        <p className="text-gray-700 mt-2">Federal & {stateLabel} Tax Estimation</p>
+        <p className="text-[#0f2439] mt-2">Federal & {stateLabel} Tax Estimation</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

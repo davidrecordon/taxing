@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "2025 Estimated Tax Calculator - Federal & California ",
+  title: "Estimated Taxes Calculator",
   description:
-    "Calculate your 2025 estimated taxes for both Federal and California returns. Supports all filing statuses, capital gains, and common deductions.",
+    "Calculate your 2025 estimated taxes for both Federal and California, New York or Washington returns. Supports all filing statuses, capital gains, and common deductions.",
   icons: {
     icon: '/favicon-32x32.png',
     apple: '/apple-touch-icon.png',
