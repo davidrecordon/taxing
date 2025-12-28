@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { TaxInputs, FilingStatus, TaxState, CalculationResults, STATE_LABELS } from '@/lib/types';
 import { calculateFederalTax } from '@/lib/federalTaxCalculator';
 import { calculateCaliforniaTax } from '@/lib/states/californiaTaxCalculator';
@@ -104,6 +104,39 @@ export default function TaxCalculator() {
     setInputs((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Calculate federal tax scenario with different charitable contributions
+  const calculateCharitableScenario = useCallback(
+    (contributions: number) => {
+      const modifiedInputs = { ...inputs, charitableContributions: contributions };
+      const scenarioResult = calculateFederalTax(
+        modifiedInputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+      return {
+        totalTax: scenarioResult.totalTax,
+        remainingOwed: scenarioResult.remainingOwed,
+        effectiveRate: scenarioResult.grossIncome > 0
+          ? scenarioResult.totalTax / scenarioResult.grossIncome
+          : 0,
+      };
+    },
+    [inputs]
+  );
+
+  // Extract federal results for the modal
+  const federalResultsForModal = useMemo(() => ({
+    totalTax: results.federal.totalTax,
+    remainingOwed: results.federal.remainingOwed,
+    effectiveRate: results.federal.grossIncome > 0
+      ? results.federal.totalTax / results.federal.grossIncome
+      : 0,
+  }), [results.federal]);
+
   const stateLabel = STATE_LABELS[inputs.selectedState];
 
   return (
@@ -131,7 +164,15 @@ export default function TaxCalculator() {
 
           <WithholdingInputs inputs={inputs} onUpdate={updateInput} />
 
-          <DeductionInputs inputs={inputs} onUpdate={updateInput} sharedLimits={sharedLimits} federalLimits={federalLimits} />
+          <DeductionInputs
+            inputs={inputs}
+            onUpdate={updateInput}
+            sharedLimits={sharedLimits}
+            federalLimits={federalLimits}
+            federalAgi={results.federal.adjustedGrossIncome}
+            federalResults={federalResultsForModal}
+            calculateCharitableScenario={calculateCharitableScenario}
+          />
 
           <PriorYearInputs inputs={inputs} onUpdate={updateInput} />
         </div>

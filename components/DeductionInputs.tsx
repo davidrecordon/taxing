@@ -1,17 +1,38 @@
 'use client';
 
+import { useState } from 'react';
 import { TaxInputs, SharedLimitsData, FederalLimitsData } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
 import CurrencyInput from './CurrencyInput';
+import CharitableWhatIfModal from './CharitableWhatIfModal';
+
+interface ScenarioResult {
+  totalTax: number;
+  remainingOwed: number;
+  effectiveRate: number;
+}
 
 interface Props {
   inputs: TaxInputs;
   onUpdate: <K extends keyof TaxInputs>(field: K, value: TaxInputs[K]) => void;
   sharedLimits: SharedLimitsData;
   federalLimits: FederalLimitsData;
+  federalAgi?: number;
+  federalResults?: ScenarioResult;
+  calculateCharitableScenario?: (contributions: number) => ScenarioResult;
 }
 
-export default function DeductionInputs({ inputs, onUpdate, sharedLimits, federalLimits }: Props) {
+export default function DeductionInputs({
+  inputs,
+  onUpdate,
+  sharedLimits,
+  federalLimits,
+  federalAgi,
+  federalResults,
+  calculateCharitableScenario,
+}: Props) {
+  const [isWhatIfOpen, setIsWhatIfOpen] = useState(false);
+
   // Calculate rough pre-deduction AGI to determine applicable SALT limit
   const roughAgi = inputs.federalIncome + inputs.shortTermCapitalGains + inputs.longTermCapitalGains - inputs.contributions401k;
 
@@ -79,11 +100,35 @@ export default function DeductionInputs({ inputs, onUpdate, sharedLimits, federa
         />
       </div>
 
-      <CurrencyInput
-        label="Charitable Contributions"
-        value={inputs.charitableContributions}
-        onChange={(v) => onUpdate('charitableContributions', v)}
-      />
+      <div className="flex gap-4 items-end">
+        <div className="flex-1">
+          <CurrencyInput
+            label="Charitable Contributions"
+            value={inputs.charitableContributions}
+            onChange={(v) => onUpdate('charitableContributions', v)}
+          />
+        </div>
+        {federalResults && calculateCharitableScenario && (
+          <button
+            onClick={() => setIsWhatIfOpen(true)}
+            className="px-4 py-2 bg-blue-50 text-blue-700 text-sm font-medium rounded-md hover:bg-blue-100 whitespace-nowrap"
+          >
+            What if...
+          </button>
+        )}
+      </div>
+
+      {federalResults && calculateCharitableScenario && (
+        <CharitableWhatIfModal
+          isOpen={isWhatIfOpen}
+          onClose={() => setIsWhatIfOpen(false)}
+          currentContributions={inputs.charitableContributions}
+          federalAgi={federalAgi ?? 0}
+          currentResults={federalResults}
+          calculateScenario={calculateCharitableScenario}
+          onApply={(value) => onUpdate('charitableContributions', value)}
+        />
+      )}
 
     </div>
   );
