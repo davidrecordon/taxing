@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import BracketTable from '../shared/BracketTable';
+import BracketTable from '../BracketTable';
 import { BracketBreakdown } from '@/lib/types';
 
 const sampleBreakdown: BracketBreakdown[] = [

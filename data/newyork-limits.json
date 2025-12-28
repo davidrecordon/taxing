@@ -2,10 +2,10 @@
   "2025": {
     "safeHarbor": {
       "currentYearPercent": 0.90,
-      "priorYearPercent": 1.00,
+      "highIncomePercent": 1.10,
       "highIncomeThreshold": 150000,
       "highIncomeThresholdMFS": 75000,
-      "highIncomePercent": 1.10
+      "priorYearPercent": 1.00
     }
   }
 }

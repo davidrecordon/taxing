@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import AnalyticsWrapper from "@/components/AnalyticsWrapper";
+import AnalyticsWrapper from "@/components/UI/AnalyticsWrapper";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Estimated Taxes Calculator",
   description:
-    "Calculate your 2025 estimated taxes for both Federal and California, New York or Washington returns. Supports all filing statuses, capital gains, and common deductions.",
+    "Calculate your 2025 estimated taxes for both Federal and California, Illinois, New York or Washington returns. Supports all filing statuses, capital gains, and common deductions.",
   icons: {
     icon: '/favicon-32x32.png',
     apple: '/apple-touch-icon.png',

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import TaxSummarySection from '../shared/TaxSummarySection';
+import TaxSummarySection from '../TaxSummarySection';
 
 describe('TaxSummarySection', () => {
   describe('tax owed scenario', () => {

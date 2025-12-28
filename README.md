@@ -2,14 +2,15 @@
 
 **Live Demo:** https://taxing-one.vercel.app/
 
-A web-based tax estimation tool for calculating Federal and state income taxes. Supports California, Washington, and New York (including NYC local tax). The calculator helps individuals estimate their tax liability, including support for various income types, deductions, and FICA taxes. Currently configured for the 2025 tax year.
+A web-based tax estimation tool for calculating Federal and state income taxes. Supports California, Illinois, New York (including NYC local tax), and Washington. The calculator helps individuals estimate their tax liability, including support for various income types, deductions, and FICA taxes. Currently configured for the 2025 tax year.
 
 ## Features
 
 - **Multi-State Support**:
   - **California**: Full income tax with mental health services tax for high earners
-  - **Washington**: Capital gains tax only (no wage income tax)
+  - **Illinois**: Flat-rate income tax with personal exemptions
   - **New York**: State income tax with optional NYC local tax for city residents
+  - **Washington**: Capital gains tax only (no wage income tax)
 - **Filing Statuses**: Single, Married Filing Jointly, Married Filing Separately
 - **Income Types**: W-2 wages, short-term and long-term capital gains
 - **Deductions**: Automatic standard vs. itemized comparison
@@ -38,6 +39,29 @@ npm run build
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to view the calculator.
+
+## Testing
+
+The project uses [Vitest](https://vitest.dev/) with [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/).
+
+### Running Tests
+
+```bash
+npm test              # Run all tests in watch mode
+npm run test:run      # Run tests once (CI mode)
+npm run test:coverage # Run with coverage report
+```
+
+### Test Structure
+
+- **`lib/__tests__/`** - Unit tests for calculation logic
+  - Tax calculators (federal, state-specific)
+  - Deduction calculations
+  - Utility functions and formatters
+- **`components/*/__tests__/`** - React component tests (colocated with components)
+  - Form input behavior
+  - Display rendering
+  - User interactions
 
 ## Adding a New State
 

@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { TaxInputs, SharedLimitsData, FederalLimitsData } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
-import CurrencyInput from './CurrencyInput';
-import CharitableWhatIfModal from './CharitableWhatIfModal';
+import CurrencyInput from '../UI/CurrencyInput';
+import CharitableWhatIfModal from '../Modals/CharitableWhatIfModal';
 
 interface ScenarioResult {
   totalTax: number;

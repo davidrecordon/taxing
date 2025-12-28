@@ -1,7 +1,7 @@
 'use client';
 
 import { TaxInputs, STATE_LABELS } from '@/lib/types';
-import CurrencyInput from './CurrencyInput';
+import CurrencyInput from '../UI/CurrencyInput';
 
 interface Props {
   inputs: TaxInputs;

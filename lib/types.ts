@@ -1,12 +1,12 @@
 export type FilingStatus = 'single' | 'marriedFilingJointly' | 'marriedFilingSeparately';
 
-export type TaxState = 'california' | 'washington' | 'newyork' | 'illinois';
+export type TaxState = 'california' | 'illinois' | 'newyork' | 'washington';
 
 export const STATE_LABELS: Record<TaxState, string> = {
   california: 'California',
-  washington: 'Washington',
-  newyork: 'New York',
   illinois: 'Illinois',
+  newyork: 'New York',
+  washington: 'Washington',
 };
 
 export interface TaxBracket {
@@ -16,9 +16,9 @@ export interface TaxBracket {
 }
 
 export interface TaxBrackets {
-  single: TaxBracket[];
   marriedFilingJointly: TaxBracket[];
   marriedFilingSeparately: TaxBracket[];
+  single: TaxBracket[];
 }
 
 export interface TaxBracketsData {
@@ -29,9 +29,9 @@ export interface TaxBracketsData {
 export type MultiYearTaxBrackets = Record<string, TaxBracketsData>;
 
 export interface StandardDeductions {
-  single: number;
   marriedFilingJointly: number;
   marriedFilingSeparately: number;
+  single: number;
 }
 
 export interface DeductionsData {
@@ -43,28 +43,18 @@ export type MultiYearDeductions = Record<string, DeductionsData>;
 
 // Shared cross-cutting limits (applies to all jurisdictions)
 export interface SharedLimitsData {
-  contribution401k: {
-    standard: number;
-    catchUp50Plus: number;
-  };
   capitalLossLimit: {
     default: number;
     marriedFilingSeparately: number;
+  };
+  contribution401k: {
+    catchUp50Plus: number;
+    standard: number;
   };
 }
 
 // Federal-specific limits
 export interface FederalLimitsData {
-  saltLimit: {
-    default: number;
-    marriedFilingSeparately: number;
-    elevated: {
-      marriedFilingJointly: number;
-      single: number;
-      marriedFilingSeparately: number;
-    };
-    elevatedAgiThreshold: number;
-  };
   mortgageBalanceLimit: {
     default: number;
     marriedFilingSeparately: number;
@@ -73,43 +63,53 @@ export interface FederalLimitsData {
     currentYearPercent: number;
     priorYearPercent: number;
   };
+  saltLimit: {
+    default: number;
+    elevated: {
+      marriedFilingJointly: number;
+      marriedFilingSeparately: number;
+      single: number;
+    };
+    elevatedAgiThreshold: number;
+    marriedFilingSeparately: number;
+  };
 }
 
 // California-specific limits
 export interface CaliforniaLimitsData {
-  mortgageBalanceLimit: number;
   mentalHealthTax: {
+    rate: number;
     threshold: number;
     thresholdMFS: number;
-    rate: number;
   };
+  mortgageBalanceLimit: number;
   safeHarbor: {
     currentYearPercent: number;
-    priorYearPercent: number;
     highIncomeThreshold: number;
     highIncomeThresholdMFS: number;
+    priorYearPercent: number;
   };
 }
 
 // Washington-specific limits
 export interface WashingtonLimitsData {
-  exemption: number;
-  surtaxThreshold: number;
   baseRate: number;
-  surtaxRate: number;
+  exemption: number;
   safeHarbor: {
     percent: number;
   };
+  surtaxRate: number;
+  surtaxThreshold: number;
 }
 
 // New York-specific limits
 export interface NewYorkLimitsData {
   safeHarbor: {
     currentYearPercent: number;
-    priorYearPercent: number;
+    highIncomePercent: number;
     highIncomeThreshold: number;
     highIncomeThresholdMFS: number;
-    highIncomePercent: number;
+    priorYearPercent: number;
   };
 }
 
@@ -123,9 +123,9 @@ export interface IllinoisLimitsData {
 
 // Illinois personal exemptions (instead of standard deductions)
 export interface IllinoisPersonalExemptions {
-  single: number;
   marriedFilingJointly: number;
   marriedFilingSeparately: number;
+  single: number;
 }
 
 export interface IllinoisDeductionsData {
@@ -142,20 +142,20 @@ export type MultiYearIllinoisLimits = Record<string, IllinoisLimitsData>;
 export type MultiYearIllinoisDeductions = Record<string, IllinoisDeductionsData>;
 
 export interface FicaData {
-  socialSecurity: {
-    rate: number;
-    wageBaseCap: number;
-  };
   medicareAdditional: {
     rate: number;
     thresholds: {
-      single: number;
       marriedFilingJointly: number;
       marriedFilingSeparately: number;
+      single: number;
     };
   };
   medicareBase: {
     rate: number;
+  };
+  socialSecurity: {
+    rate: number;
+    wageBaseCap: number;
   };
 }
 

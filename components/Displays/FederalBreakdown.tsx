@@ -2,8 +2,8 @@ import { TaxCalculationResult, FederalLimitsData, FicaData } from '@/lib/types';
 import { formatCurrency, formatPercent } from '@/lib/formatters';
 import { calculateEffectiveRates } from '@/lib/taxUtils';
 import { TAX_YEAR } from '@/lib/config';
-import BracketTable from './shared/BracketTable';
-import TaxSummarySection from './shared/TaxSummarySection';
+import BracketTable from '../shared/BracketTable';
+import TaxSummarySection from '../shared/TaxSummarySection';
 import allFederalLimits from '@/data/federal-limits.json';
 import allFicaData from '@/data/fica.json';
 

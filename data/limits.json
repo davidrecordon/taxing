@@ -1,22 +1,22 @@
 {
   "2025": {
-    "contribution401k": {
-      "standard": 23500,
-      "catchUp50Plus": 7500
-    },
     "capitalLossLimit": {
       "default": 3000,
       "marriedFilingSeparately": 1500
+    },
+    "contribution401k": {
+      "catchUp50Plus": 7500,
+      "standard": 23500
     }
   },
   "2026": {
-    "contribution401k": {
-      "standard": 24500,
-      "catchUp50Plus": 8000
-    },
     "capitalLossLimit": {
       "default": 3000,
       "marriedFilingSeparately": 1500
+    },
+    "contribution401k": {
+      "catchUp50Plus": 8000,
+      "standard": 24500
     }
   }
 }
