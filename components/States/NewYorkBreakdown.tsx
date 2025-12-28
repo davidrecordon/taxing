@@ -156,7 +156,7 @@ export default function NewYorkBreakdown({ result }: Props) {
               </div>
             )}
             <div className="flex justify-between font-medium pt-1 border-t">
-              <span>Safe Harbor Minimum (lesser)</span>
+              <span>Safe Harbor Minimum{result.safeHarbor.priorYearSafeHarbor > 0 ? ' (lesser)' : ''}</span>
               <span className="font-mono">{formatCurrency(result.safeHarbor.minimum)}</span>
             </div>
             <div className="flex justify-between text-green-600">

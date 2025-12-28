@@ -43,6 +43,7 @@ export function calculateCaliforniaTax(
     : 0;
 
   const shortTermLossCarryoverOffset = stGainsOffset + ordinaryIncomeOffset;
+  const shortTermLossCarryoverUnused = stCarryover - shortTermLossCarryoverOffset;
 
   // Step 1c: Apply long-term loss carryover (CA taxes all gains as ordinary, so reduces gross income)
   const ltCarryover = inputs.priorYearLongTermLossCarryover;
@@ -98,8 +99,8 @@ export function calculateCaliforniaTax(
   // CA uses 100% prior year (not 110% like federal)
   // High income exception: AGI > $1M (single/MFJ) or $500K (MFS) - only 90% current year applies
   const highIncomeThreshold = filingStatus === 'marriedFilingSeparately'
-    ? californiaLimits.mentalHealthTax.thresholdMFS
-    : californiaLimits.mentalHealthTax.threshold;
+    ? californiaLimits.safeHarbor.highIncomeThresholdMFS
+    : californiaLimits.safeHarbor.highIncomeThreshold;
   const caAgiForThreshold = grossIncome - shortTermLossCarryoverOffset - longTermLossCarryoverOffset - inputs.contributions401k;
   const isHighIncome = caAgiForThreshold > highIncomeThreshold;
 
@@ -120,6 +121,7 @@ export function calculateCaliforniaTax(
     longTermCapitalGains: inputs.longTermCapitalGains,
     grossIncome,
     shortTermLossCarryoverOffset,
+    shortTermLossCarryoverUnused,
     longTermLossCarryoverOffset,
     contributions401k: inputs.contributions401k,
     adjustedGrossIncome,

@@ -42,10 +42,10 @@ describe('calculateFederalTax', () => {
   describe('FICA taxes', () => {
     it('caps Social Security tax at wage base and applies additional Medicare above threshold', () => {
       // $250,000 wages for single filer
-      // SS: $168,600 * 6.2% = $10,453.20
+      // SS: $176,100 * 6.2% = $10,918.20 (capped at wage base)
       // Medicare base: $250,000 * 1.45% = $3,625
       // Additional Medicare: ($250,000 - $200,000) * 0.9% = $450
-      // Total FICA = $14,528.20
+      // Total FICA = $14,993.20
       const inputs = createDefaultInputs({
         federalIncome: 250000,
         filingStatus: 'single',

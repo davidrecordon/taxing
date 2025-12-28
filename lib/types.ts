@@ -85,6 +85,8 @@ export interface CaliforniaLimitsData {
   safeHarbor: {
     currentYearPercent: number;
     priorYearPercent: number;
+    highIncomeThreshold: number;
+    highIncomeThresholdMFS: number;
   };
 }
 

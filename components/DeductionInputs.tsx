@@ -74,7 +74,7 @@ export default function DeductionInputs({ inputs, onUpdate, sharedLimits, federa
               ? federalLimits.mortgageBalanceLimit.marriedFilingSeparately
               : federalLimits.mortgageBalanceLimit.default
           )
-            ? `Interest deduction will be prorated to meet Federal and California limits.`
+            ? `Interest deduction will be prorated based on mortgage limits.`
             : undefined}
         />
       </div>

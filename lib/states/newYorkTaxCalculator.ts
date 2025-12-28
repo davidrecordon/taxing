@@ -57,6 +57,7 @@ export function calculateNewYorkTax(
     : 0;
 
   const shortTermLossCarryoverOffset = stGainsOffset + ordinaryIncomeOffset;
+  const shortTermLossCarryoverUnused = stCarryover - shortTermLossCarryoverOffset;
 
   // Step 1c: Apply long-term loss carryover
   const ltCarryover = inputs.priorYearLongTermLossCarryover;
@@ -141,6 +142,7 @@ export function calculateNewYorkTax(
     longTermCapitalGains: inputs.longTermCapitalGains,
     grossIncome,
     shortTermLossCarryoverOffset,
+    shortTermLossCarryoverUnused,
     longTermLossCarryoverOffset,
     contributions401k: inputs.contributions401k,
     adjustedGrossIncome,

@@ -8,7 +8,9 @@
     },
     "safeHarbor": {
       "currentYearPercent": 0.90,
-      "priorYearPercent": 1.00
+      "priorYearPercent": 1.00,
+      "highIncomeThreshold": 1000000,
+      "highIncomeThresholdMFS": 500000
     }
   },
   "2026": {
@@ -20,7 +22,9 @@
     },
     "safeHarbor": {
       "currentYearPercent": 0.90,
-      "priorYearPercent": 1.00
+      "priorYearPercent": 1.00,
+      "highIncomeThreshold": 1000000,
+      "highIncomeThresholdMFS": 500000
     }
   }
 }
