@@ -10,6 +10,7 @@ import {
   FederalLimitsData,
   CaliforniaLimitsData,
   WashingtonLimitsData,
+  NewYorkLimitsData,
   FicaData,
   TaxInputs,
 } from '../types';
@@ -26,6 +27,10 @@ import allSharedLimits from '../../data/limits.json';
 import allFederalLimits from '../../data/federal-limits.json';
 import allCaliforniaLimits from '../../data/california-limits.json';
 import allWashingtonLimits from '../../data/washington-limits.json';
+import allNewYorkBrackets from '../../data/newyork-brackets.json';
+import allNewYorkDeductions from '../../data/newyork-deductions.json';
+import allNewYorkLimits from '../../data/newyork-limits.json';
+import allNYCBrackets from '../../data/nyc-brackets.json';
 import allFicaData from '../../data/fica.json';
 
 // Export typed data for the current tax year
@@ -39,6 +44,10 @@ export const sharedLimits = allSharedLimits[TAX_YEAR] as SharedLimitsData;
 export const federalLimits = allFederalLimits[TAX_YEAR] as FederalLimitsData;
 export const californiaLimits = allCaliforniaLimits[TAX_YEAR] as CaliforniaLimitsData;
 export const washingtonLimits = allWashingtonLimits[TAX_YEAR] as WashingtonLimitsData;
+export const newYorkBrackets = allNewYorkBrackets[TAX_YEAR] as TaxBracketsData;
+export const newYorkDeductions = allNewYorkDeductions[TAX_YEAR] as DeductionsData;
+export const newYorkLimits = allNewYorkLimits[TAX_YEAR] as NewYorkLimitsData;
+export const nycBrackets = allNYCBrackets[TAX_YEAR] as TaxBracketsData;
 export const ficaData = allFicaData[TAX_YEAR] as FicaData;
 
 /**
