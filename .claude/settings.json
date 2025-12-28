@@ -11,7 +11,8 @@
       "WebSearch",
       "WebFetch(domain:www.irs.gov)",
       "WebFetch(domain:www.ftb.ca.gov)",
-      "WebFetch(domain:dor.wa.gov)"
+      "WebFetch(domain:dor.wa.gov)",
+      "WebFetch(domain:www.tax.ny.gov)"
     ]
   }
 }
