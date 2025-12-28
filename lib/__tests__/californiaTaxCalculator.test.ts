@@ -439,6 +439,33 @@ describe('calculateCaliforniaTax', () => {
     });
   });
 
+  describe('negative STCG (current year short-term losses)', () => {
+    it('combines negative STCG with prior year carryover', () => {
+      // $100,000 federal income, -$5,000 STCG, $2,000 prior carryover
+      // Combined carryover = $7,000, offsets $3,000 ordinary income
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        shortTermCapitalGains: -5000,
+        priorYearShortTermLossCarryover: 2000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits
+      );
+
+      // Gross income should not include negative STCG
+      expect(result.grossIncome).toBe(100000);
+      // Combined $7,000 carryover, $3,000 offsets ordinary income
+      expect(result.shortTermLossCarryoverOffset).toBe(3000);
+      expect(result.shortTermLossCarryoverUnused).toBe(4000);
+    });
+  });
+
   describe('refund and remaining owed', () => {
     it('calculates CA refund correctly', () => {
       const inputs = createDefaultInputs({

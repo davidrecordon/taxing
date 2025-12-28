@@ -272,6 +272,83 @@ describe('calculateFederalTax', () => {
     });
   });
 
+  describe('negative STCG (current year short-term losses)', () => {
+    it('treats negative STCG as $0 for gross income but adds to carryover', () => {
+      // $100,000 federal income with -$10,000 STCG loss
+      // The loss should be treated as carryover, offsetting up to $3,000 ordinary income
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        shortTermCapitalGains: -10000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      // Gross income should not include negative STCG
+      expect(result.grossIncome).toBe(100000);
+      // The $10,000 loss becomes carryover, $3,000 offsets ordinary income
+      expect(result.shortTermLossCarryoverOffset).toBe(3000);
+      // Taxable ordinary = $100k - $3k - $15.7k std = $81,300
+      expect(result.taxableOrdinaryIncome).toBe(81300);
+    });
+
+    it('combines negative STCG with prior year carryover', () => {
+      // $100,000 federal income, -$5,000 STCG, $2,000 prior carryover
+      // Combined carryover = $7,000, offsets $3,000 ordinary income
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        shortTermCapitalGains: -5000,
+        priorYearShortTermLossCarryover: 2000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      // Combined $7,000 carryover, $3,000 offsets ordinary income
+      expect(result.shortTermLossCarryoverOffset).toBe(3000);
+      expect(result.shortTermLossCarryoverUnused).toBe(4000);
+    });
+
+    it('applies $3,000 limit even with large current year loss', () => {
+      // Large negative STCG should still only offset $3,000 ordinary income
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        shortTermCapitalGains: -50000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      // Only $3,000 can offset ordinary income
+      expect(result.shortTermLossCarryoverOffset).toBe(3000);
+      expect(result.shortTermLossCarryoverUnused).toBe(47000);
+    });
+  });
+
   describe('safe harbor calculations', () => {
     it('uses minimum of 90% current year and 110% prior year when prior year provided', () => {
       // $100k income, tax is $13,460 + FICA

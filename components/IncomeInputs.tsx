@@ -35,6 +35,8 @@ export default function IncomeInputs({ inputs, onUpdate }: Props) {
           label="Short-Term Capital Gains"
           value={inputs.shortTermCapitalGains}
           onChange={(v) => onUpdate('shortTermCapitalGains', v)}
+          allowNegative={true}
+          warning={inputs.shortTermCapitalGains < 0 ? "Short-term losses offset up to $3,000 of ordinary income." : undefined}
         />
         <CurrencyInput
           label="Long-Term Capital Gains"

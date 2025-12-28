@@ -50,18 +50,20 @@ export function calculateFederalTax(
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
 
-  // Clamp negative LTCG to 0 (current year losses are carried forward, not deducted)
+  // Clamp negative capital gains to 0 (current year losses become carryover)
+  const effectiveSTCG = Math.max(0, inputs.shortTermCapitalGains);
   const effectiveLTCG = Math.max(0, inputs.longTermCapitalGains);
+  const currentYearSTLoss = Math.max(0, -inputs.shortTermCapitalGains);
 
   // Step 1: Calculate Gross Income
   // Short-term capital gains are taxed as ordinary income
-  const grossOrdinaryIncome = inputs.federalIncome + inputs.shortTermCapitalGains;
+  const grossOrdinaryIncome = inputs.federalIncome + effectiveSTCG;
   const grossIncome = grossOrdinaryIncome + effectiveLTCG;
 
-  // Step 1b: Apply short-term loss carryover
+  // Step 1b: Apply short-term loss carryover (includes current year losses)
   // First offset short-term gains, then ordinary income up to limit
-  const stCarryover = inputs.priorYearShortTermLossCarryover;
-  const stGainsOffset = Math.min(stCarryover, inputs.shortTermCapitalGains);
+  const stCarryover = inputs.priorYearShortTermLossCarryover + currentYearSTLoss;
+  const stGainsOffset = Math.min(stCarryover, effectiveSTCG);
   const remainingCarryover = stCarryover - stGainsOffset;
 
   const ordinaryIncomeLimit = filingStatus === 'marriedFilingSeparately'
