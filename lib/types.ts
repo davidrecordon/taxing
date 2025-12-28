@@ -216,6 +216,7 @@ export interface TaxCalculationResult {
   longTermCapitalGains: number;
   grossIncome: number;
   shortTermLossCarryoverOffset: number;
+  shortTermLossCarryoverUnused?: number;  // Preserved for future years
   longTermLossCarryoverOffset: number;
   longTermLossCarryoverUnused?: number;  // Preserved for future years (0% bracket optimization)
   contributions401k: number;

@@ -69,6 +69,7 @@ export function calculateFederalTax(
     : 0;
 
   const shortTermLossCarryoverOffset = stGainsOffset + ordinaryIncomeOffset;
+  const shortTermLossCarryoverUnused = stCarryover - shortTermLossCarryoverOffset;
 
   // Step 1c: Long-term loss carryover is applied AFTER we know taxable ordinary income
   // (for smart 0% bracket optimization - see Step 4b below)
@@ -174,6 +175,7 @@ export function calculateFederalTax(
     longTermCapitalGains: inputs.longTermCapitalGains,
     grossIncome,
     shortTermLossCarryoverOffset,
+    shortTermLossCarryoverUnused,
     longTermLossCarryoverOffset,
     longTermLossCarryoverUnused,
     contributions401k: inputs.contributions401k,

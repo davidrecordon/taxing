@@ -44,25 +44,34 @@ export default function FederalBreakdown({ result }: Props) {
           <span className="font-mono">{formatCurrency(result.grossIncome)}</span>
         </div>
         {result.shortTermLossCarryoverOffset > 0 && (
-          <div className="flex justify-between text-green-700">
-            <span>Less: Short-Term Carryover Offset</span>
-            <span className="font-mono">
-              -{formatCurrency(result.shortTermLossCarryoverOffset)}
-            </span>
-          </div>
+          <>
+            <div className="flex justify-between text-green-700">
+              <span>Less: Short-Term Carryover Offset</span>
+              <span className="font-mono">
+                -{formatCurrency(result.shortTermLossCarryoverOffset)}
+              </span>
+            </div>
+            {(result.shortTermLossCarryoverUnused ?? 0) > 0 && (
+              <p className="text-xs text-gray-500 ml-4">
+                (Preserving {formatCurrency(result.shortTermLossCarryoverUnused!)} in ST carryover)
+              </p>
+            )}
+          </>
         )}
         {result.longTermLossCarryoverOffset > 0 && (
-          <div className="flex justify-between text-green-700">
-            <span>Less: Long-Term Carryover Offset</span>
-            <span className="font-mono">
-              -{formatCurrency(result.longTermLossCarryoverOffset)}
-            </span>
-          </div>
-        )}
-        {(result.longTermLossCarryoverUnused ?? 0) > 0 && (
-          <p className="text-xs text-gray-500 ml-4">
-            (Preserving {formatCurrency(result.longTermLossCarryoverUnused!)} in carryover)
-          </p>
+          <>
+            <div className="flex justify-between text-green-700">
+              <span>Less: Long-Term Carryover Offset</span>
+              <span className="font-mono">
+                -{formatCurrency(result.longTermLossCarryoverOffset)}
+              </span>
+            </div>
+            {(result.longTermLossCarryoverUnused ?? 0) > 0 && (
+              <p className="text-xs text-gray-500 ml-4">
+                (Preserving {formatCurrency(result.longTermLossCarryoverUnused!)} in LT carryover)
+              </p>
+            )}
+          </>
         )}
         {result.contributions401k > 0 && (
           <div className="flex justify-between text-green-700">
