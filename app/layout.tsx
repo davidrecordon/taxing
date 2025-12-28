@@ -17,6 +17,10 @@ export const metadata: Metadata = {
   title: "2025 Estimated Tax Calculator - Federal & California ",
   description:
     "Calculate your 2025 estimated taxes for both Federal and California returns. Supports all filing statuses, capital gains, and common deductions.",
+  icons: {
+    icon: '/favicon-32x32.png',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({
