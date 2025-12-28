@@ -127,6 +127,40 @@ California-specific limits and thresholds.
 }
 ```
 
+### New York
+
+#### `newyork-brackets.json`
+New York state income tax brackets.
+
+Same structure as `federal-brackets.json`. Note: NY taxes all capital gains as ordinary income.
+
+#### `newyork-deductions.json`
+New York standard deduction amounts.
+
+Same structure as `federal-deductions.json`.
+
+#### `newyork-limits.json`
+New York-specific limits and thresholds.
+
+```typescript
+{
+  safeHarbor: {
+    currentYearPercent: number,      // 90% of current year
+    priorYearPercent: number,        // 100% of prior year (default)
+    highIncomeThreshold: number,     // $150,000 AGI threshold
+    highIncomeThresholdMFS: number,  // $75,000 for MFS
+    highIncomePercent: number        // 110% for high income
+  }
+}
+```
+
+### NYC (New York City)
+
+#### `nyc-brackets.json`
+NYC local income tax brackets for city residents.
+
+Same structure as `federal-brackets.json`. This is an additional tax on top of NY state tax.
+
 ### Washington
 
 #### `washington-brackets.json`
@@ -186,7 +220,9 @@ Cross-cutting limits that apply to all jurisdictions.
 
 ## Data Sources
 
-- Federal brackets: [IRS Revenue Procedures](https://www.irs.gov/newsroom/irs-provides-tax-inflation-adjustments)
 - California brackets: [FTB Tax Rates](https://www.ftb.ca.gov/file/personal/tax-calculator-tables.html)
-- Washington capital gains: [WA DOR](https://dor.wa.gov/taxes-rates/other-taxes/capital-gains-tax)
+- Federal brackets: [IRS Revenue Procedures](https://www.irs.gov/newsroom/irs-provides-tax-inflation-adjustments)
 - FICA limits: [SSA Wage Base](https://www.ssa.gov/oact/cola/cbb.html)
+- New York brackets: [NY Tax Tables](https://www.tax.ny.gov/pit/file/tax-tables.htm)
+- NYC brackets: [NYC Tax Rates](https://www.tax.ny.gov/pit/file/tax-tables.htm)
+- Washington capital gains: [WA DOR](https://dor.wa.gov/taxes-rates/other-taxes/capital-gains-tax)
