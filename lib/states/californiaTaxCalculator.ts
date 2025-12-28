@@ -65,10 +65,11 @@ export function calculateCaliforniaTax(
   );
 
   // Step 3b: Calculate AGI (includes all deductions for display)
+  const preTaxDeductions = inputs.contributions401k + inputs.preTaxMedical;
   const adjustedGrossIncome = grossIncome
     - shortTermLossCarryoverOffset
     - longTermLossCarryoverOffset
-    - inputs.contributions401k
+    - preTaxDeductions
     - deductionBreakdown.deductionAmount;
 
   // Step 4: Calculate taxable income (same as AGI for CA since all deductions are included)
@@ -101,7 +102,7 @@ export function calculateCaliforniaTax(
   const highIncomeThreshold = filingStatus === 'marriedFilingSeparately'
     ? californiaLimits.safeHarbor.highIncomeThresholdMFS
     : californiaLimits.safeHarbor.highIncomeThreshold;
-  const caAgiForThreshold = grossIncome - shortTermLossCarryoverOffset - longTermLossCarryoverOffset - inputs.contributions401k;
+  const caAgiForThreshold = grossIncome - shortTermLossCarryoverOffset - longTermLossCarryoverOffset - preTaxDeductions;
   const isHighIncome = caAgiForThreshold > highIncomeThreshold;
 
   const safeHarbor = calculateSafeHarbor(
@@ -124,6 +125,7 @@ export function calculateCaliforniaTax(
     shortTermLossCarryoverUnused,
     longTermLossCarryoverOffset,
     contributions401k: inputs.contributions401k,
+    preTaxMedical: inputs.preTaxMedical,
     adjustedGrossIncome,
     deductionBreakdown,
     taxableOrdinaryIncome,

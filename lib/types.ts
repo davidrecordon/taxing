@@ -165,6 +165,7 @@ export interface TaxInputs {
   mortgageBalance: number;
   charitableContributions: number;
   contributions401k: number;
+  preTaxMedical: number;
 
   // Prior year
   priorYearFederalTaxPaid: number;
@@ -222,6 +223,7 @@ export interface TaxCalculationResult {
   longTermLossCarryoverOffset: number;
   longTermLossCarryoverUnused?: number;  // Preserved for future years (0% bracket optimization)
   contributions401k: number;
+  preTaxMedical: number;
   adjustedGrossIncome: number;
 
   // Deduction details

@@ -34,7 +34,7 @@ export default function DeductionInputs({
   const [isWhatIfOpen, setIsWhatIfOpen] = useState(false);
 
   // Calculate rough pre-deduction AGI to determine applicable SALT limit
-  const roughAgi = inputs.federalIncome + inputs.shortTermCapitalGains + inputs.longTermCapitalGains - inputs.contributions401k;
+  const roughAgi = inputs.federalIncome + inputs.shortTermCapitalGains + inputs.longTermCapitalGains - inputs.contributions401k - inputs.preTaxMedical;
 
   // Select SALT limit based on AGI threshold
   const applicableSaltLimit = roughAgi < federalLimits.saltLimit.elevatedAgiThreshold
@@ -60,14 +60,22 @@ export default function DeductionInputs({
     <div className="bg-white rounded-lg shadow p-4 space-y-4">
       <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Deductions</h2>
 
-      <CurrencyInput
-        label="401(k) Pre-Tax Contributions"
-        value={inputs.contributions401k}
-        onChange={(v) => onUpdate('contributions401k', v)}
-        error={inputs.contributions401k > contribution401kLimit
-          ? `Exceeds 2025 limit of ${formatCurrency(contribution401kLimit)}.`
-          : undefined}
-      />
+      <div className="grid grid-cols-2 gap-4">
+        <CurrencyInput
+          label="401(k) Pre-Tax Contributions"
+          value={inputs.contributions401k}
+          onChange={(v) => onUpdate('contributions401k', v)}
+          error={inputs.contributions401k > contribution401kLimit
+            ? `Exceeds 2025 limit of ${formatCurrency(contribution401kLimit)}.`
+            : undefined}
+        />
+        <CurrencyInput
+          label="Pre-Tax Medical"
+          value={inputs.preTaxMedical}
+          onChange={(v) => onUpdate('preTaxMedical', v)}
+          hint="HSA/FSA and insurance"
+        />
+      </div>
 
       <h3 className="text-md font-medium text-gray-900 pt-2">Itemized Deduction Items</h3>
 

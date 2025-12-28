@@ -116,6 +116,7 @@ export function calculateWashingtonTax(
     shortTermLossCarryoverOffset: 0, // WA doesn't tax short-term gains
     longTermLossCarryoverOffset,
     contributions401k: 0, // Not relevant for WA capital gains tax
+    preTaxMedical: 0, // Not relevant for WA capital gains tax
     adjustedGrossIncome: 0, // Not applicable for WA (no income tax)
     deductionBreakdown: emptyDeductionBreakdown,
     taxableOrdinaryIncome: 0, // WA has no ordinary income tax

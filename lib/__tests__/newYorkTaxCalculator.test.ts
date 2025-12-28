@@ -329,6 +329,54 @@ describe('calculateNewYorkTax', () => {
     });
   });
 
+  describe('pre-tax medical deduction', () => {
+    it('reduces NY taxable income by pre-tax medical contributions', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        preTaxMedical: 10000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateNewYorkTax(
+        inputs,
+        newYorkBrackets,
+        nycBrackets,
+        newYorkDeductions,
+        sharedLimits,
+        federalLimits,
+        newYorkLimits
+      );
+
+      // Gross = $100k, after pre-tax medical and std ded: $100k - $10k - $8,000 = $82,000
+      expect(result.preTaxMedical).toBe(10000);
+      expect(result.taxableOrdinaryIncome).toBe(82000);
+    });
+
+    it('combines with 401k to reduce NY taxable income', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        contributions401k: 20000,
+        preTaxMedical: 5000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateNewYorkTax(
+        inputs,
+        newYorkBrackets,
+        nycBrackets,
+        newYorkDeductions,
+        sharedLimits,
+        federalLimits,
+        newYorkLimits
+      );
+
+      // Gross = $100k, after both deductions: $100k - $20k - $5k - $8,000 = $67,000
+      expect(result.contributions401k).toBe(20000);
+      expect(result.preTaxMedical).toBe(5000);
+      expect(result.taxableOrdinaryIncome).toBe(67000);
+    });
+  });
+
   describe('NY bracket calculations', () => {
     it('calculates tax correctly through multiple brackets', () => {
       const inputs = createDefaultInputs({

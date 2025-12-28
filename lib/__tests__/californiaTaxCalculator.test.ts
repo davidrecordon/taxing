@@ -372,6 +372,50 @@ describe('calculateCaliforniaTax', () => {
     });
   });
 
+  describe('pre-tax medical deduction in California', () => {
+    it('reduces CA taxable income by pre-tax medical contributions', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        preTaxMedical: 10000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits
+      );
+
+      // Gross = $100k, after pre-tax medical and std ded: $100k - $10k - $5,540 = $84,460
+      expect(result.preTaxMedical).toBe(10000);
+      expect(result.taxableOrdinaryIncome).toBe(84460);
+    });
+
+    it('combines with 401k to reduce CA taxable income', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        contributions401k: 20000,
+        preTaxMedical: 5000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits
+      );
+
+      // Gross = $100k, after both deductions: $100k - $20k - $5k - $5,540 = $69,460
+      expect(result.contributions401k).toBe(20000);
+      expect(result.preTaxMedical).toBe(5000);
+      expect(result.taxableOrdinaryIncome).toBe(69460);
+    });
+  });
+
   describe('refund and remaining owed', () => {
     it('calculates CA refund correctly', () => {
       const inputs = createDefaultInputs({

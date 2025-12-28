@@ -74,6 +74,14 @@ export default function NewYorkBreakdown({ result }: Props) {
             </span>
           </div>
         )}
+        {result.preTaxMedical > 0 && (
+          <div className="flex justify-between text-green-700">
+            <span>Less: Pre-Tax Medical</span>
+            <span className="font-mono">
+              -{formatCurrency(result.preTaxMedical)}
+            </span>
+          </div>
+        )}
         <div className="flex justify-between text-green-700">
           <span>
             Less: {result.deductionBreakdown.deductionUsed === 'standard' ? 'Standard' : 'Itemized'} Deduction

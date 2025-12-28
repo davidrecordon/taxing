@@ -64,6 +64,7 @@ const defaultInputs: TaxInputs = {
   mortgageBalance: 0,
   charitableContributions: 0,
   contributions401k: 0,
+  preTaxMedical: 0,
   priorYearFederalTaxPaid: 0,
   priorYearStateTaxPaid: 0,
   priorYearShortTermLossCarryover: 0,

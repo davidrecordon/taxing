@@ -79,10 +79,11 @@ export function calculateNewYorkTax(
   );
 
   // Step 3: Calculate AGI
+  const preTaxDeductions = inputs.contributions401k + inputs.preTaxMedical;
   const adjustedGrossIncome = grossIncome
     - shortTermLossCarryoverOffset
     - longTermLossCarryoverOffset
-    - inputs.contributions401k
+    - preTaxDeductions
     - deductionBreakdown.deductionAmount;
 
   // Step 4: Calculate taxable income
@@ -121,7 +122,7 @@ export function calculateNewYorkTax(
   const highIncomeThreshold = filingStatus === 'marriedFilingSeparately'
     ? newYorkLimits.safeHarbor.highIncomeThresholdMFS
     : newYorkLimits.safeHarbor.highIncomeThreshold;
-  const nyAgi = grossIncome - shortTermLossCarryoverOffset - longTermLossCarryoverOffset - inputs.contributions401k;
+  const nyAgi = grossIncome - shortTermLossCarryoverOffset - longTermLossCarryoverOffset - preTaxDeductions;
   const isHighIncome = nyAgi > highIncomeThreshold;
 
   const safeHarbor = calculateSafeHarbor(
@@ -145,6 +146,7 @@ export function calculateNewYorkTax(
     shortTermLossCarryoverUnused,
     longTermLossCarryoverOffset,
     contributions401k: inputs.contributions401k,
+    preTaxMedical: inputs.preTaxMedical,
     adjustedGrossIncome,
     deductionBreakdown,
     taxableOrdinaryIncome,

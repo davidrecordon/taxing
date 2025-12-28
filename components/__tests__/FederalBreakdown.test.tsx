@@ -11,6 +11,7 @@ const createMockResult = (overrides: Partial<TaxCalculationResult> = {}): TaxCal
   shortTermLossCarryoverOffset: 0,
   longTermLossCarryoverOffset: 0,
   contributions401k: 0,
+  preTaxMedical: 0,
   adjustedGrossIncome: 84300,
   deductionBreakdown: {
     standardDeduction: 15700,

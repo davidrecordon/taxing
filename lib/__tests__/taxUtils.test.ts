@@ -40,6 +40,7 @@ describe('calculateEffectiveRates', () => {
     shortTermLossCarryoverOffset: 0,
     longTermLossCarryoverOffset: 0,
     contributions401k: 0,
+    preTaxMedical: 0,
     adjustedGrossIncome: 0,
     deductionBreakdown: {
       standardDeduction: 0,

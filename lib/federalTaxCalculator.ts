@@ -76,12 +76,13 @@ export function calculateFederalTax(
   const ltCarryover = inputs.priorYearLongTermLossCarryover;
 
   // Step 2: Calculate ordinary AGI (for tax bracket calculation)
-  // 401k reduces ordinary income, not capital gains
-  const agiOrdinary = Math.max(0, grossOrdinaryIncome - shortTermLossCarryoverOffset - inputs.contributions401k);
+  // 401k and pre-tax medical reduce ordinary income, not capital gains
+  const preTaxDeductions = inputs.contributions401k + inputs.preTaxMedical;
+  const agiOrdinary = Math.max(0, grossOrdinaryIncome - shortTermLossCarryoverOffset - preTaxDeductions);
 
   // Pre-deduction AGI for SALT cap threshold
   // Use conservative estimate (before LT carryover optimization)
-  const preDeductionAgi = grossIncome - shortTermLossCarryoverOffset - inputs.contributions401k;
+  const preDeductionAgi = grossIncome - shortTermLossCarryoverOffset - preTaxDeductions;
 
   // Step 3: Calculate deductions
   const deductionBreakdown = calculateFederalDeductions(
@@ -125,7 +126,7 @@ export function calculateFederalTax(
   const adjustedGrossIncome = grossIncome
     - shortTermLossCarryoverOffset
     - longTermLossCarryoverOffset
-    - inputs.contributions401k
+    - preTaxDeductions
     - deductionBreakdown.deductionAmount;
 
   // Step 5: Calculate ordinary income tax
@@ -179,6 +180,7 @@ export function calculateFederalTax(
     longTermLossCarryoverOffset,
     longTermLossCarryoverUnused,
     contributions401k: inputs.contributions401k,
+    preTaxMedical: inputs.preTaxMedical,
     adjustedGrossIncome,
     deductionBreakdown,
     taxableOrdinaryIncome,

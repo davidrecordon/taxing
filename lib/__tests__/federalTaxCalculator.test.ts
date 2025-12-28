@@ -143,6 +143,66 @@ describe('calculateFederalTax', () => {
     });
   });
 
+  describe('pre-tax medical deductions', () => {
+    it('reduces taxable ordinary income by pre-tax medical contributions', () => {
+      // $100,000 income - $10,000 (pre-tax medical) - $15,700 (std deduction) = $74,300 taxable
+      // Bracket breakdown:
+      // $11,925 @ 10% = $1,192.50
+      // $36,550 @ 12% = $4,386.00
+      // $25,825 ($74,300 - $48,475) @ 22% = $5,681.50
+      // Total = $11,260
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        preTaxMedical: 10000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.taxableOrdinaryIncome).toBe(74300);
+      expect(result.ordinaryIncomeTax).toBe(11260);
+      expect(result.preTaxMedical).toBe(10000);
+    });
+
+    it('combines with 401k contributions to reduce taxable income', () => {
+      // $100,000 income - $23,500 (401k) - $5,000 (pre-tax medical) - $15,700 (std deduction) = $55,800 taxable
+      // Bracket breakdown:
+      // $11,925 @ 10% = $1,192.50
+      // $36,550 @ 12% = $4,386.00
+      // $7,325 ($55,800 - $48,475) @ 22% = $1,611.50
+      // Total = $7,190
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        contributions401k: 23500,
+        preTaxMedical: 5000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.taxableOrdinaryIncome).toBe(55800);
+      expect(result.ordinaryIncomeTax).toBe(7190);
+      expect(result.contributions401k).toBe(23500);
+      expect(result.preTaxMedical).toBe(5000);
+    });
+  });
+
   describe('safe harbor calculations', () => {
     it('uses minimum of 90% current year and 110% prior year when prior year provided', () => {
       // $100k income, tax is $13,460 + FICA
