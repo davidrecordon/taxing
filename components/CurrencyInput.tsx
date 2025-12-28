@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useState, useEffect } from 'react';
-import { parseNumericInput } from '@/lib/formatters';
+import { parseNumericInput, formatNumberWithCommas } from '@/lib/formatters';
 
 interface CurrencyInputProps {
   label: string;
@@ -21,28 +21,32 @@ export default function CurrencyInput({
   error,
 }: CurrencyInputProps) {
   const id = useId();
-  const [inputValue, setInputValue] = useState(value ? String(value) : '');
+  const [inputValue, setInputValue] = useState(
+    value ? formatNumberWithCommas(String(value)) : ''
+  );
 
   // Sync with external value changes (e.g., form reset)
   useEffect(() => {
     const numericValue = parseNumericInput(inputValue);
     if (value !== numericValue) {
-      setInputValue(value ? String(value) : '');
+      setInputValue(value ? formatNumberWithCommas(String(value)) : '');
     }
   }, [value, inputValue]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
-    // Only allow digits and decimal point
-    const cleaned = raw.replace(/[^0-9.]/g, '');
+    // Only allow digits, decimal point, and commas
+    const cleaned = raw.replace(/[^0-9.,]/g, '');
 
     // Prevent multiple decimal points
-    const parts = cleaned.split('.');
+    const parts = cleaned.replace(/,/g, '').split('.');
     const validInput =
-      parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
+      parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned.replace(/,/g, '');
 
-    setInputValue(validInput);
-    onChange(parseNumericInput(validInput));
+    // Format with commas
+    const formattedValue = formatNumberWithCommas(validInput);
+    setInputValue(formattedValue);
+    onChange(parseNumericInput(formattedValue));
   };
 
   return (

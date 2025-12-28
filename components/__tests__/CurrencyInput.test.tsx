@@ -19,11 +19,18 @@ describe('CurrencyInput', () => {
       expect(screen.getByText('$')).toBeInTheDocument();
     });
 
-    it('shows current value in input', () => {
+    it('shows current value in input with comma formatting', () => {
       render(
         <CurrencyInput label="Amount" value={1000} onChange={() => {}} />
       );
-      expect(screen.getByRole('textbox')).toHaveValue('1000');
+      expect(screen.getByRole('textbox')).toHaveValue('1,000');
+    });
+
+    it('formats large numbers with commas', () => {
+      render(
+        <CurrencyInput label="Amount" value={1234567} onChange={() => {}} />
+      );
+      expect(screen.getByRole('textbox')).toHaveValue('1,234,567');
     });
 
     it('shows empty input when value is 0', () => {
@@ -151,4 +158,5 @@ describe('CurrencyInput', () => {
       expect(handleChange).toHaveBeenLastCalledWith(5);
     });
   });
+
 });

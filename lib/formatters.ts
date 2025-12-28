@@ -21,7 +21,7 @@ export function formatPercent(rate: number): string {
 }
 
 export function parseNumericInput(value: string): number {
-  // Remove everything except digits and periods
+  // Remove everything except digits and periods (strip commas too)
   let cleaned = value.replace(/[^0-9.]/g, '');
 
   // Handle multiple decimal points - keep only the first
@@ -32,4 +32,21 @@ export function parseNumericInput(value: string): number {
 
   const parsed = parseFloat(cleaned);
   return isNaN(parsed) ? 0 : Math.max(0, parsed);
+}
+
+export function formatNumberWithCommas(value: string): string {
+  if (!value) return '';
+
+  // Split on decimal point
+  const [integerPart, decimalPart] = value.split('.');
+
+  // Remove existing commas and add new ones
+  const cleanInteger = integerPart.replace(/,/g, '');
+  const formattedInteger = cleanInteger.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  // Reconstruct the number
+  if (decimalPart !== undefined) {
+    return formattedInteger + '.' + decimalPart;
+  }
+  return formattedInteger;
 }
