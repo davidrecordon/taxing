@@ -18,7 +18,11 @@ export const metadata: Metadata = {
   description:
     "Calculate your 2025 estimated taxes for both Federal and California, Colorado, District of Columbia, Florida, Illinois, New York, or Washington returns. Supports all filing statuses, capital gains, and common deductions.",
   icons: {
-    icon: '/favicon-32x32.png',
+    icon: [
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
     apple: '/apple-touch-icon.png',
   },
 };
