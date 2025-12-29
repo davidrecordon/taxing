@@ -17,7 +17,9 @@
       "WebFetch(domain:tax.illinois.gov)",
       "WebFetch(domain:tax.colorado.gov)",
       "WebFetch(domain:floridarevenue.com)",
-      "WebFetch(domain:otr.cfo.dc.gov)"
+      "WebFetch(domain:otr.cfo.dc.gov)",
+      "WebFetch(domain:www.marylandcomptroller.gov)",
+      "WebFetch(domain:www.tax.virginia.gov)"
     ]
   }
 }
