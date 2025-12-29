@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    "target": "ES2022",
     "lib": ["dom", "dom.iterable", "esnext"],
+    "types": ["vitest/globals"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -24,6 +25,7 @@
   },
   "include": [
     "next-env.d.ts",
+    "vitest.setup.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
