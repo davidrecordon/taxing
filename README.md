@@ -2,12 +2,14 @@
 
 **Live Demo:** https://taxing-one.vercel.app/
 
-A web-based tax estimation tool for calculating Federal and state income taxes. Supports California, Illinois, New York (including NYC local tax), and Washington. The calculator helps individuals estimate their tax liability, including support for various income types, deductions, and FICA taxes. Currently configured for the 2025 tax year.
+A web-based tax estimation tool for calculating Federal and state income taxes. Supports California, Colorado, Florida, Illinois, New York (including NYC local tax), and Washington. The calculator helps individuals estimate their tax liability, including support for various income types, deductions, and FICA taxes. Currently configured for the 2025 tax year.
 
 ## Features
 
 - **Multi-State Support**:
   - **California**: Full income tax with mental health services tax for high earners
+  - **Colorado**: Flat 4.4% income tax using federal taxable income
+  - **Florida**: No state income tax
   - **Illinois**: Flat-rate income tax with personal exemptions
   - **New York**: State income tax with optional NYC local tax for city residents
   - **Washington**: Capital gains tax only (no wage income tax)

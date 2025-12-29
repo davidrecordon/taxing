@@ -183,6 +183,43 @@ Washington-specific limits and thresholds.
 }
 ```
 
+### Colorado
+
+#### `colorado-brackets.json`
+Colorado state income tax brackets (flat 4.4% rate).
+
+Same structure as `federal-brackets.json`. Note: Colorado uses federal taxable income as the starting point, so there is no separate deductions file.
+
+#### `colorado-limits.json`
+Colorado-specific limits and thresholds.
+
+```typescript
+{
+  safeHarbor: {
+    currentYearPercent: number,  // 90% of current year tax
+    priorYearPercent: number     // 100% of prior year tax
+  }
+}
+```
+
+### Florida
+
+#### `florida-brackets.json`
+Florida has no state income tax, so brackets are 0%.
+
+Same structure as `federal-brackets.json` with rate of 0 for all brackets.
+
+#### `florida-limits.json`
+Florida-specific limits.
+
+```typescript
+{
+  safeHarbor: {
+    percent: number  // 0 (no tax to safe harbor against)
+  }
+}
+```
+
 ### Shared
 
 #### `limits.json`
@@ -226,8 +263,10 @@ Official sources for tax data:
 - **Federal**: [IRS Rev. Proc. 2024-40](https://www.irs.gov/pub/irs-drop/rp-24-40.pdf) (brackets, deductions, LTCG thresholds)
 - **FICA**: [SSA Fact Sheet](https://www.ssa.gov/news/press/factsheets/colafacts2025.pdf) (wage base, rates)
 - **California**: [FTB Tax Rate Schedules](https://www.ftb.ca.gov/forms/2025/2025-540-tax-rate-schedules.pdf)
+- **Colorado**: [CO DOR Income Tax Guide](https://tax.colorado.gov/individual-income-tax-guide)
+- **Florida**: [FL DOR Taxes and Fees](https://floridarevenue.com/taxes/taxesfees/Pages/default.aspx) (no personal income tax)
+- **Illinois**: [IL IDOR Tax Rates](https://tax.illinois.gov/research/taxrates/income.html)
 - **New York**: [NY DTF Tax Tables](https://www.tax.ny.gov/pit/file/tax-tables.htm)
 - **Washington**: [WA DOR Capital Gains](https://dor.wa.gov/taxes-rates/other-taxes/capital-gains-tax)
-- **Illinois**: [IL IDOR Tax Rates](https://tax.illinois.gov/research/taxrates/income.html)
 
 See [`VERIFICATION.md`](VERIFICATION.md) for detailed verification of each value against official sources.

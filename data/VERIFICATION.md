@@ -166,6 +166,38 @@ This document verifies that all tax data in the JSON files matches official gove
 
 ---
 
+## Colorado (2025)
+
+### Tax Rate
+**Source:** [CO DOR Income Tax Guide](https://tax.colorado.gov/individual-income-tax-guide)
+
+| Item | Our Data | Official | Match |
+|------|----------|----------|-------|
+| Flat Rate | 4.4% | 4.4% | Yes |
+
+**Note:** Colorado uses federal taxable income as the starting point for state tax calculation. Capital gains are taxed at the same 4.4% flat rate as ordinary income.
+
+### Safe Harbor
+| Item | Our Data | Official | Match |
+|------|----------|----------|-------|
+| Current Year | 90% | 90% | Yes |
+| Prior Year | 100% | 100% | Yes |
+
+---
+
+## Florida (2025)
+
+### No State Income Tax
+**Source:** [FL DOR Taxes and Fees](https://floridarevenue.com/taxes/taxesfees/Pages/default.aspx)
+
+| Item | Our Data | Official | Match |
+|------|----------|----------|-------|
+| Income Tax Rate | 0% | N/A | Yes |
+
+**Note:** Florida does not levy a personal income tax. Individual income tax is not listed among Florida's taxes and fees.
+
+---
+
 ## Discrepancies Fixed (2025-12-28)
 
 ### 1. Federal Standard Deduction

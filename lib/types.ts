@@ -1,9 +1,11 @@
 export type FilingStatus = 'single' | 'marriedFilingJointly' | 'marriedFilingSeparately';
 
-export type TaxState = 'california' | 'illinois' | 'newyork' | 'washington';
+export type TaxState = 'california' | 'colorado' | 'florida' | 'illinois' | 'newyork' | 'washington';
 
 export const STATE_LABELS: Record<TaxState, string> = {
   california: 'California',
+  colorado: 'Colorado',
+  florida: 'Florida',
   illinois: 'Illinois',
   newyork: 'New York',
   washington: 'Washington',
@@ -142,6 +144,21 @@ export interface IllinoisLimitsData {
   };
 }
 
+// Colorado-specific limits
+export interface ColoradoLimitsData {
+  safeHarbor: {
+    currentYearPercent: number;
+    priorYearPercent: number;
+  };
+}
+
+// Florida-specific limits (no income tax state)
+export interface FloridaLimitsData {
+  safeHarbor: {
+    percent: number;
+  };
+}
+
 // Illinois personal exemptions (instead of standard deductions)
 export interface IllinoisPersonalExemptions {
   marriedFilingJointly: number;
@@ -161,6 +178,8 @@ export type MultiYearWashingtonLimits = Record<string, WashingtonLimitsData>;
 export type MultiYearNewYorkLimits = Record<string, NewYorkLimitsData>;
 export type MultiYearIllinoisLimits = Record<string, IllinoisLimitsData>;
 export type MultiYearIllinoisDeductions = Record<string, IllinoisDeductionsData>;
+export type MultiYearColoradoLimits = Record<string, ColoradoLimitsData>;
+export type MultiYearFloridaLimits = Record<string, FloridaLimitsData>;
 
 export interface FicaData {
   medicareAdditional: {

@@ -18,6 +18,8 @@ const filingStatusOptions: { value: FilingStatus; label: string }[] = [
 
 const stateOptions: { value: TaxState; label: string }[] = [
   { value: 'california', label: 'California' },
+  { value: 'colorado', label: 'Colorado' },
+  { value: 'florida', label: 'Florida' },
   { value: 'illinois', label: 'Illinois' },
   { value: 'newyork', label: 'New York' },
   { value: 'washington', label: 'Washington' },

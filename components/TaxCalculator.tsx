@@ -4,6 +4,8 @@ import { useState, useMemo, useCallback } from 'react';
 import { TaxInputs, FilingStatus, TaxState, CalculationResults, STATE_LABELS } from '@/lib/types';
 import { calculateFederalTax } from '@/lib/federalTaxCalculator';
 import { calculateCaliforniaTax } from '@/lib/states/californiaTaxCalculator';
+import { calculateColoradoTax } from '@/lib/states/coloradoTaxCalculator';
+import { calculateFloridaTax } from '@/lib/states/floridaTaxCalculator';
 import { calculateIllinoisTax } from '@/lib/states/illinoisTaxCalculator';
 import { calculateNewYorkTax } from '@/lib/states/newYorkTaxCalculator';
 import { calculateWashingtonTax } from '@/lib/states/washingtonTaxCalculator';
@@ -24,10 +26,14 @@ import FilingStatusComparisonModal, {
 import allCaliforniaBrackets from '@/data/california-brackets.json';
 import allCaliforniaDeductions from '@/data/california-deductions.json';
 import allCaliforniaLimits from '@/data/california-limits.json';
+import allColoradoBrackets from '@/data/colorado-brackets.json';
+import allColoradoLimits from '@/data/colorado-limits.json';
 import allFederalBrackets from '@/data/federal-brackets.json';
 import allFederalDeductions from '@/data/federal-deductions.json';
 import allFederalLimits from '@/data/federal-limits.json';
 import allFicaData from '@/data/fica.json';
+import allFloridaBrackets from '@/data/florida-brackets.json';
+import allFloridaLimits from '@/data/florida-limits.json';
 import allIllinoisBrackets from '@/data/illinois-brackets.json';
 import allIllinoisDeductions from '@/data/illinois-deductions.json';
 import allIllinoisLimits from '@/data/illinois-limits.json';
@@ -44,10 +50,14 @@ import { TAX_YEAR } from '@/lib/config';
 const californiaBrackets = allCaliforniaBrackets[TAX_YEAR];
 const californiaDeductions = allCaliforniaDeductions[TAX_YEAR];
 const californiaLimits = allCaliforniaLimits[TAX_YEAR];
+const coloradoBrackets = allColoradoBrackets[TAX_YEAR];
+const coloradoLimits = allColoradoLimits[TAX_YEAR];
 const federalBrackets = allFederalBrackets[TAX_YEAR];
 const federalDeductions = allFederalDeductions[TAX_YEAR];
 const federalLimits = allFederalLimits[TAX_YEAR];
 const ficaData = allFicaData[TAX_YEAR];
+const floridaBrackets = allFloridaBrackets[TAX_YEAR];
+const floridaLimits = allFloridaLimits[TAX_YEAR];
 const illinoisBrackets = allIllinoisBrackets[TAX_YEAR];
 const illinoisDeductions = allIllinoisDeductions[TAX_YEAR];
 const illinoisLimits = allIllinoisLimits[TAX_YEAR];
@@ -103,6 +113,12 @@ export default function TaxCalculator() {
     switch (inputs.selectedState) {
       case 'california':
         state = calculateCaliforniaTax(inputs, californiaBrackets, californiaDeductions, sharedLimits, californiaLimits, ficaData);
+        break;
+      case 'colorado':
+        state = calculateColoradoTax(inputs, coloradoBrackets, sharedLimits, coloradoLimits, federal.taxableOrdinaryIncome + federal.taxableLTCG, ficaData);
+        break;
+      case 'florida':
+        state = calculateFloridaTax(inputs);
         break;
       case 'illinois':
         state = calculateIllinoisTax(inputs, illinoisBrackets, illinoisDeductions, sharedLimits, illinoisLimits, ficaData);
@@ -160,6 +176,13 @@ export default function TaxCalculator() {
     switch (stateInputs.selectedState) {
       case 'california':
         return calculateCaliforniaTax(stateInputs, californiaBrackets, californiaDeductions, sharedLimits, californiaLimits, ficaData);
+      case 'colorado': {
+        // Colorado needs federal taxable income, so calculate federal first
+        const federalResult = calculateFederalTax(stateInputs, federalBrackets, ltcgBrackets, federalDeductions, sharedLimits, federalLimits, ficaData);
+        return calculateColoradoTax(stateInputs, coloradoBrackets, sharedLimits, coloradoLimits, federalResult.taxableOrdinaryIncome + federalResult.taxableLTCG, ficaData);
+      }
+      case 'florida':
+        return calculateFloridaTax(stateInputs);
       case 'illinois':
         return calculateIllinoisTax(stateInputs, illinoisBrackets, illinoisDeductions, sharedLimits, illinoisLimits, ficaData);
       case 'newyork':
