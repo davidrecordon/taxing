@@ -7,6 +7,7 @@ interface Props {
   onFilingStatusChange: (status: FilingStatus) => void;
   onStateChange: (state: TaxState) => void;
   onNYCResidentChange?: (isNYC: boolean) => void;
+  onCompareFilingStatus?: () => void;
 }
 
 const filingStatusOptions: { value: FilingStatus; label: string }[] = [
@@ -29,7 +30,11 @@ export default function ConfigurationSection({
   onFilingStatusChange,
   onStateChange,
   onNYCResidentChange,
+  onCompareFilingStatus,
 }: Props) {
+  const showCompareButton =
+    (filingStatus === 'marriedFilingJointly' || filingStatus === 'marriedFilingSeparately') &&
+    onCompareFilingStatus;
   return (
     <div className="bg-white rounded-lg shadow p-4">
       <div className="grid grid-cols-2 gap-4">
@@ -48,6 +53,14 @@ export default function ConfigurationSection({
               </option>
             ))}
           </select>
+          {showCompareButton && (
+            <button
+              onClick={onCompareFilingStatus}
+              className="mt-2 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              Compare MFJ vs MFS
+            </button>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-2">

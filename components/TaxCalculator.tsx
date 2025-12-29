@@ -14,6 +14,11 @@ import PriorYearInputs from './Forms/PriorYearInputs';
 import TaxResultsDisplay from './Displays/TaxResultsDisplay';
 import WithholdingInputs from './Forms/WithholdingInputs';
 import ErrorBoundary from './UI/ErrorBoundary';
+import FilingStatusComparisonModal, {
+  SplitConfig,
+  ScenarioResult,
+  MFSScenarioResult,
+} from './Modals/FilingStatusComparisonModal';
 
 // Import static data (multi-year files)
 import allCaliforniaBrackets from '@/data/california-brackets.json';
@@ -81,6 +86,7 @@ const defaultInputs: TaxInputs = {
 
 export default function TaxCalculator() {
   const [inputs, setInputs] = useState<TaxInputs>(defaultInputs);
+  const [isFilingCompareOpen, setIsFilingCompareOpen] = useState(false);
 
   const results: CalculationResults = useMemo(() => {
     const federal = calculateFederalTax(
@@ -149,6 +155,115 @@ export default function TaxCalculator() {
       : 0,
   }), [results.federal]);
 
+  // Helper to calculate state tax for a given set of inputs
+  const calculateStateForInputs = useCallback((stateInputs: TaxInputs) => {
+    switch (stateInputs.selectedState) {
+      case 'california':
+        return calculateCaliforniaTax(stateInputs, californiaBrackets, californiaDeductions, sharedLimits, californiaLimits, ficaData);
+      case 'illinois':
+        return calculateIllinoisTax(stateInputs, illinoisBrackets, illinoisDeductions, sharedLimits, illinoisLimits, ficaData);
+      case 'newyork':
+        return calculateNewYorkTax(stateInputs, newYorkBrackets, nycBrackets, newYorkDeductions, sharedLimits, federalLimits, newYorkLimits, ficaData);
+      case 'washington':
+      default:
+        return calculateWashingtonTax(stateInputs, washingtonBrackets, washingtonLimits);
+    }
+  }, []);
+
+  // Calculate MFJ scenario results for filing status comparison
+  const mfjResults: ScenarioResult = useMemo(() => {
+    const mfjInputs = { ...inputs, filingStatus: 'marriedFilingJointly' as const };
+    const federal = calculateFederalTax(mfjInputs, federalBrackets, ltcgBrackets, federalDeductions, sharedLimits, federalLimits, ficaData);
+    const state = calculateStateForInputs(mfjInputs);
+    return {
+      federalTax: federal.totalTax,
+      stateTax: state.totalTax,
+      totalTax: federal.totalTax + state.totalTax,
+    };
+  }, [inputs, calculateStateForInputs]);
+
+  // Calculate MFS scenario with spouse splits
+  const calculateMFSScenario = useCallback(
+    (splits: SplitConfig): MFSScenarioResult => {
+      // Build Spouse 1 inputs
+      const spouse1Inputs: TaxInputs = {
+        ...inputs,
+        filingStatus: 'marriedFilingSeparately',
+        federalIncome: inputs.federalIncome * (splits.wages / 100),
+        stateIncome: inputs.stateIncome * (splits.wages / 100),
+        selfEmploymentIncome: (inputs.selfEmploymentIncome || 0) * (splits.wages / 100),
+        shortTermCapitalGains: inputs.shortTermCapitalGains * (splits.stcg / 100),
+        longTermCapitalGains: inputs.longTermCapitalGains * (splits.ltcg / 100),
+        contributions401k: inputs.contributions401k * (splits.contributions401k / 100),
+        preTaxMedical: inputs.preTaxMedical * (splits.preTaxMedical / 100),
+        mortgageInterestPaid: inputs.mortgageInterestPaid * (splits.deductions / 100),
+        mortgageBalance: inputs.mortgageBalance * (splits.deductions / 100),
+        propertyTaxesPaid: inputs.propertyTaxesPaid * (splits.deductions / 100),
+        charitableContributions: inputs.charitableContributions * (splits.deductions / 100),
+        // Split loss carryovers proportionally to capital gains
+        priorYearShortTermLossCarryover: inputs.priorYearShortTermLossCarryover * (splits.stcg / 100),
+        priorYearLongTermLossCarryover: inputs.priorYearLongTermLossCarryover * (splits.ltcg / 100),
+        // Withholding/payments - assume proportional to wages
+        federalTaxWithheld: inputs.federalTaxWithheld * (splits.wages / 100),
+        stateTaxWithheld: inputs.stateTaxWithheld * (splits.wages / 100),
+        federalEstimatedPaid: inputs.federalEstimatedPaid * (splits.wages / 100),
+        stateEstimatedPaid: inputs.stateEstimatedPaid * (splits.wages / 100),
+        priorYearFederalTaxPaid: inputs.priorYearFederalTaxPaid * (splits.wages / 100),
+        priorYearStateTaxPaid: inputs.priorYearStateTaxPaid * (splits.wages / 100),
+      };
+
+      // Build Spouse 2 inputs (inverse percentages)
+      const spouse2Inputs: TaxInputs = {
+        ...inputs,
+        filingStatus: 'marriedFilingSeparately',
+        federalIncome: inputs.federalIncome * ((100 - splits.wages) / 100),
+        stateIncome: inputs.stateIncome * ((100 - splits.wages) / 100),
+        selfEmploymentIncome: (inputs.selfEmploymentIncome || 0) * ((100 - splits.wages) / 100),
+        shortTermCapitalGains: inputs.shortTermCapitalGains * ((100 - splits.stcg) / 100),
+        longTermCapitalGains: inputs.longTermCapitalGains * ((100 - splits.ltcg) / 100),
+        contributions401k: inputs.contributions401k * ((100 - splits.contributions401k) / 100),
+        preTaxMedical: inputs.preTaxMedical * ((100 - splits.preTaxMedical) / 100),
+        mortgageInterestPaid: inputs.mortgageInterestPaid * ((100 - splits.deductions) / 100),
+        mortgageBalance: inputs.mortgageBalance * ((100 - splits.deductions) / 100),
+        propertyTaxesPaid: inputs.propertyTaxesPaid * ((100 - splits.deductions) / 100),
+        charitableContributions: inputs.charitableContributions * ((100 - splits.deductions) / 100),
+        priorYearShortTermLossCarryover: inputs.priorYearShortTermLossCarryover * ((100 - splits.stcg) / 100),
+        priorYearLongTermLossCarryover: inputs.priorYearLongTermLossCarryover * ((100 - splits.ltcg) / 100),
+        federalTaxWithheld: inputs.federalTaxWithheld * ((100 - splits.wages) / 100),
+        stateTaxWithheld: inputs.stateTaxWithheld * ((100 - splits.wages) / 100),
+        federalEstimatedPaid: inputs.federalEstimatedPaid * ((100 - splits.wages) / 100),
+        stateEstimatedPaid: inputs.stateEstimatedPaid * ((100 - splits.wages) / 100),
+        priorYearFederalTaxPaid: inputs.priorYearFederalTaxPaid * ((100 - splits.wages) / 100),
+        priorYearStateTaxPaid: inputs.priorYearStateTaxPaid * ((100 - splits.wages) / 100),
+      };
+
+      // Calculate each spouse's taxes
+      const spouse1Federal = calculateFederalTax(spouse1Inputs, federalBrackets, ltcgBrackets, federalDeductions, sharedLimits, federalLimits, ficaData);
+      const spouse1State = calculateStateForInputs(spouse1Inputs);
+      const spouse2Federal = calculateFederalTax(spouse2Inputs, federalBrackets, ltcgBrackets, federalDeductions, sharedLimits, federalLimits, ficaData);
+      const spouse2State = calculateStateForInputs(spouse2Inputs);
+
+      return {
+        spouse1: {
+          federalTax: spouse1Federal.totalTax,
+          stateTax: spouse1State.totalTax,
+          totalTax: spouse1Federal.totalTax + spouse1State.totalTax,
+        },
+        spouse2: {
+          federalTax: spouse2Federal.totalTax,
+          stateTax: spouse2State.totalTax,
+          totalTax: spouse2Federal.totalTax + spouse2State.totalTax,
+        },
+        combined: {
+          federalTax: spouse1Federal.totalTax + spouse2Federal.totalTax,
+          stateTax: spouse1State.totalTax + spouse2State.totalTax,
+          totalTax: spouse1Federal.totalTax + spouse2Federal.totalTax + spouse1State.totalTax + spouse2State.totalTax,
+        },
+      };
+    },
+    [inputs, calculateStateForInputs]
+  );
+
   const stateLabel = STATE_LABELS[inputs.selectedState];
 
   return (
@@ -170,6 +285,7 @@ export default function TaxCalculator() {
             onFilingStatusChange={(status: FilingStatus) => updateInput('filingStatus', status)}
             onStateChange={(state: TaxState) => updateInput('selectedState', state)}
             onNYCResidentChange={(isNYC: boolean) => updateInput('isNYCResident', isNYC)}
+            onCompareFilingStatus={() => setIsFilingCompareOpen(true)}
           />
 
           <IncomeInputs inputs={inputs} onUpdate={updateInput} />
@@ -203,6 +319,14 @@ export default function TaxCalculator() {
           actual tax advice.
         </p>
       </footer>
+
+      <FilingStatusComparisonModal
+        isOpen={isFilingCompareOpen}
+        onClose={() => setIsFilingCompareOpen(false)}
+        currentInputs={inputs}
+        mfjResults={mfjResults}
+        calculateMFSScenario={calculateMFSScenario}
+      />
     </div>
   );
 }
