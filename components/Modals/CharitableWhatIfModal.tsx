@@ -90,7 +90,7 @@ export default function CharitableWhatIfModal({
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
+        <div className="relative bg-white rounded-lg shadow-xl max-w-full sm:max-w-2xl w-full p-4 sm:p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900">
@@ -121,7 +121,7 @@ export default function CharitableWhatIfModal({
                   <th className="text-left py-2 px-2 font-medium text-gray-700">Scenario</th>
                   <th className="text-right py-2 px-2 font-medium text-gray-700">Amount</th>
                   <th className="text-right py-2 px-2 font-medium text-gray-700">Tax Due</th>
-                  <th className="text-right py-2 px-2 font-medium text-gray-700">Eff. Rate</th>
+                  <th className="hidden sm:table-cell text-right py-2 px-2 font-medium text-gray-700">Eff. Rate</th>
                   <th className="text-right py-2 px-2 font-medium text-gray-700">Total Tax Impact</th>
                   <th className="py-2 px-2"></th>
                 </tr>
@@ -145,7 +145,7 @@ export default function CharitableWhatIfModal({
                         ? formatCurrency(scenario.results.remainingOwed)
                         : `(${formatCurrency(Math.abs(scenario.results.remainingOwed))})`}
                     </td>
-                    <td className="py-3 px-2 text-right text-gray-900">
+                    <td className="hidden sm:table-cell py-3 px-2 text-right text-gray-900">
                       {formatPercent(scenario.results.effectiveRate, 1)}
                     </td>
                     <td className="py-3 px-2 text-right">

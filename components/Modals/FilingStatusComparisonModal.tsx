@@ -49,14 +49,13 @@ function SplitSlider({ label, totalAmount, spouse1Percent, onChange }: SplitSlid
   }
 
   return (
-    <div className="flex items-center gap-3 py-2">
-      {/* Column 1: Category */}
-      <div className="w-52 shrink-0 text-sm text-gray-700">
-        <span className="font-medium">{label}</span>
-        <span className="text-gray-500 ml-1">({formatCurrency(totalAmount)})</span>
-      </div>
-      {/* Column 2: Slider */}
-      <div className="flex-1">
+    <div className="py-2">
+      {/* Mobile: Stacked layout */}
+      <div className="sm:hidden space-y-1">
+        <div className="flex justify-between text-sm">
+          <span className="font-medium text-gray-700">{label}</span>
+          <span className="text-gray-500">({formatCurrency(totalAmount)})</span>
+        </div>
         <input
           type="range"
           min="0"
@@ -66,16 +65,41 @@ function SplitSlider({ label, totalAmount, spouse1Percent, onChange }: SplitSlid
           onChange={(e) => onChange(Number(e.target.value))}
           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
         />
+        <div className="flex justify-between text-sm tabular-nums">
+          <span className="text-gray-700">{spouse1Percent}% / {100 - spouse1Percent}%</span>
+          <span className="text-gray-400">{formatCurrency(spouse1Amount)} / {formatCurrency(spouse2Amount)}</span>
+        </div>
       </div>
-      {/* Column 3: Percentages */}
-      <div className="w-24 shrink-0 text-sm text-right tabular-nums">
-        <span className="text-gray-700">{spouse1Percent}%</span>
-        <span className="text-gray-400 mx-1">/</span>
-        <span className="text-gray-700">{100 - spouse1Percent}%</span>
-      </div>
-      {/* Column 4: Dollars */}
-      <div className="w-44 shrink-0 text-sm text-right text-gray-400 tabular-nums">
-        {formatCurrency(spouse1Amount)} / {formatCurrency(spouse2Amount)}
+
+      {/* Desktop: Horizontal layout */}
+      <div className="hidden sm:flex items-center gap-3">
+        {/* Column 1: Category */}
+        <div className="w-52 shrink-0 text-sm text-gray-700">
+          <span className="font-medium">{label}</span>
+          <span className="text-gray-500 ml-1">({formatCurrency(totalAmount)})</span>
+        </div>
+        {/* Column 2: Slider */}
+        <div className="flex-1">
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="5"
+            value={spouse1Percent}
+            onChange={(e) => onChange(Number(e.target.value))}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+          />
+        </div>
+        {/* Column 3: Percentages */}
+        <div className="w-24 shrink-0 text-sm text-right tabular-nums">
+          <span className="text-gray-700">{spouse1Percent}%</span>
+          <span className="text-gray-400 mx-1">/</span>
+          <span className="text-gray-700">{100 - spouse1Percent}%</span>
+        </div>
+        {/* Column 4: Dollars */}
+        <div className="w-44 shrink-0 text-sm text-right text-gray-400 tabular-nums">
+          {formatCurrency(spouse1Amount)} / {formatCurrency(spouse2Amount)}
+        </div>
       </div>
     </div>
   );
@@ -147,7 +171,7 @@ export default function FilingStatusComparisonModal({
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full p-6">
+        <div className="relative bg-white rounded-lg shadow-xl max-w-full sm:max-w-4xl w-full p-4 sm:p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900">
@@ -171,7 +195,7 @@ export default function FilingStatusComparisonModal({
 
           {/* Split Configuration */}
           <div className="border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50">
-            <div className="flex items-center justify-between mb-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <div className="hidden sm:flex items-center justify-between mb-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
               <span>Category</span>
               <span>Spouse 1 / Spouse 2</span>
             </div>

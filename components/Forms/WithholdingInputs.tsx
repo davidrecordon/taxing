@@ -16,7 +16,7 @@ export default function WithholdingInputs({ inputs, onUpdate }: Props) {
       <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Tax Withheld & Estimated Payments</h2>
 
       <h3 className="text-md font-medium text-gray-900">Tax Withheld</h3>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CurrencyInput
           label="Federal Tax Withheld"
           value={inputs.federalTaxWithheld}
@@ -32,7 +32,7 @@ export default function WithholdingInputs({ inputs, onUpdate }: Props) {
       </div>
 
       <h3 className="text-md font-medium text-gray-900 pt-2">Estimated Taxes Already Paid</h3>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CurrencyInput
           label="Federal Estimated Paid"
           value={inputs.federalEstimatedPaid}

@@ -15,7 +15,7 @@ export default function IncomeInputs({ inputs, onUpdate }: Props) {
     <div className="bg-white rounded-lg shadow p-4 space-y-4">
       <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Income</h2>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CurrencyInput
           label="Wages & Other Income"
           value={inputs.federalIncome}
@@ -38,7 +38,7 @@ export default function IncomeInputs({ inputs, onUpdate }: Props) {
       />
 
       <h3 className="text-md font-medium text-gray-900 pt-2">Capital Gains</h3>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CurrencyInput
           label="Short-Term Capital Gains"
           value={inputs.shortTermCapitalGains}

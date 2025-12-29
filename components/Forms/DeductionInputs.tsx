@@ -60,7 +60,7 @@ export default function DeductionInputs({
     <div className="bg-white rounded-lg shadow p-4 space-y-4">
       <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Deductions</h2>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CurrencyInput
           label="401(k) Pre-Tax Contributions"
           value={inputs.contributions401k}
@@ -86,7 +86,7 @@ export default function DeductionInputs({
         warning={getSaltWarning()}
       />
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CurrencyInput
           label="Mortgage Interest Paid"
           value={inputs.mortgageInterestPaid}

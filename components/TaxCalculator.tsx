@@ -310,7 +310,7 @@ export default function TaxCalculator() {
         <p className="text-[#0f2439] mt-2">Federal & {stateLabel} Tax Estimation</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Column: Inputs */}
         <div className="space-y-6">
           <ConfigurationSection

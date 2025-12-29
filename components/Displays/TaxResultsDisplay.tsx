@@ -19,7 +19,7 @@ export default function TaxResultsDisplay({ results }: Props) {
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div
           className={`p-4 rounded-lg ${
             results.federal.remainingOwed > 0

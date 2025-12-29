@@ -15,7 +15,7 @@ export default function PriorYearInputs({ inputs, onUpdate }: Props) {
     <div className="bg-white rounded-lg shadow p-4 space-y-4">
       <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Prior Year</h2>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CurrencyInput
           label="Federal Tax Paid"
           value={inputs.priorYearFederalTaxPaid}
@@ -28,7 +28,7 @@ export default function PriorYearInputs({ inputs, onUpdate }: Props) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CurrencyInput
           label="Short-Term Loss Carryover"
           value={inputs.priorYearShortTermLossCarryover}
