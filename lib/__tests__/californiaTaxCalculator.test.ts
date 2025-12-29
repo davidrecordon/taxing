@@ -632,6 +632,136 @@ describe('calculateCaliforniaTax', () => {
     });
   });
 
+  describe('exact tax table verification', () => {
+    it('single filer $100k matches CA FTB tax table - exact calculation', () => {
+      // Gross: $100,000
+      // Standard deduction: $5,540
+      // Taxable: $94,460
+      //
+      // CA 2025 brackets (single):
+      // $0 - $11,079 @ 1% = $110.79
+      // $11,079 - $26,264 @ 2% = $15,185 × 0.02 = $303.70
+      // $26,264 - $41,452 @ 4% = $15,188 × 0.04 = $607.52
+      // $41,452 - $57,542 @ 6% = $16,090 × 0.06 = $965.40
+      // $57,542 - $72,724 @ 8% = $15,182 × 0.08 = $1,214.56
+      // $72,724 - $94,460 @ 9.3% = $21,736 × 0.093 = $2,021.45
+      // Total: $5,223.42
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits
+      );
+
+      expect(result.taxableOrdinaryIncome).toBe(94460);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(5223.42, 0);
+    });
+
+    it('single filer $200k matches CA FTB tax table - exact calculation', () => {
+      // Gross: $200,000
+      // Standard deduction: $5,540
+      // Taxable: $194,460
+      //
+      // CA 2025 brackets (single):
+      // $0 - $11,079 @ 1% = $110.79
+      // $11,079 - $26,264 @ 2% = $303.70
+      // $26,264 - $41,452 @ 4% = $607.52
+      // $41,452 - $57,542 @ 6% = $965.40
+      // $57,542 - $72,724 @ 8% = $1,214.56
+      // $72,724 - $194,460 @ 9.3% = $121,736 × 0.093 = $11,321.45
+      // Total: $14,523.42
+      const inputs = createDefaultInputs({
+        federalIncome: 200000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits
+      );
+
+      expect(result.taxableOrdinaryIncome).toBe(194460);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(14523.42, 0);
+    });
+
+    it('MFJ filer $200k matches CA FTB tax table - exact calculation', () => {
+      // Gross: $200,000
+      // Standard deduction (MFJ): $11,080
+      // Taxable: $188,920
+      //
+      // CA 2025 brackets (MFJ):
+      // $0 - $22,158 @ 1% = $221.58
+      // $22,158 - $52,528 @ 2% = $30,370 × 0.02 = $607.40
+      // $52,528 - $82,904 @ 4% = $30,376 × 0.04 = $1,215.04
+      // $82,904 - $115,084 @ 6% = $32,180 × 0.06 = $1,930.80
+      // $115,084 - $145,448 @ 8% = $30,364 × 0.08 = $2,429.12
+      // $145,448 - $188,920 @ 9.3% = $43,472 × 0.093 = $4,042.90
+      // Total: $10,446.84
+      const inputs = createDefaultInputs({
+        federalIncome: 200000,
+        filingStatus: 'marriedFilingJointly',
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits
+      );
+
+      expect(result.taxableOrdinaryIncome).toBe(188920);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(10446.84, 0);
+    });
+
+    it('high income with mental health tax - exact calculation', () => {
+      // Gross: $1,200,000
+      // Standard deduction: $5,540
+      // Taxable: $1,194,460
+      //
+      // Base tax through all brackets up to 12.3%:
+      // $0 - $11,079 @ 1% = $110.79
+      // $11,079 - $26,264 @ 2% = $303.70
+      // $26,264 - $41,452 @ 4% = $607.52
+      // $41,452 - $57,542 @ 6% = $965.40
+      // $57,542 - $72,724 @ 8% = $1,214.56
+      // $72,724 - $371,479 @ 9.3% = $298,755 × 0.093 = $27,784.22
+      // $371,479 - $445,771 @ 10.3% = $74,292 × 0.103 = $7,652.08
+      // $445,771 - $742,953 @ 11.3% = $297,182 × 0.113 = $33,581.57
+      // $742,953 - $1,194,460 @ 12.3% = $451,507 × 0.123 = $55,535.36
+      // Subtotal: $127,755.20
+      //
+      // Mental health tax: ($1,194,460 - $1,000,000) × 1% = $1,944.60
+      // Total: $129,699.80
+      const inputs = createDefaultInputs({
+        federalIncome: 1200000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits
+      );
+
+      expect(result.taxableOrdinaryIncome).toBe(1194460);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(127755.20, 0);
+      expect(result.caMentalHealthTax).toBeCloseTo(1944.60, 2);
+      expect(result.totalTax).toBeCloseTo(129699.80, 0);
+    });
+  });
+
   describe('edge cases', () => {
     it('applies mental health tax at exactly $1,000,000.01 over threshold', () => {
       // Taxable income just barely over $1M threshold

@@ -205,9 +205,10 @@ Cross-cutting limits that apply to all jurisdictions.
 
 1. Add a new year key to each JSON file (e.g., `"2027": { ... }`)
 2. Copy the structure from the previous year
-3. Update values based on IRS/FTB/DOR announcements
-4. Update `TAX_YEAR` in `lib/config.ts` when ready to switch
-5. Run tests to verify: `npm test`
+3. Update values based on IRS/FTB/DOR announcements (see Data Sources below)
+4. Verify all values against official sources and update `VERIFICATION.md`
+5. Update `TAX_YEAR` in `lib/config.ts` when ready to switch
+6. Run tests to verify: `npm test`
 
 ## Adding a New State
 
@@ -220,9 +221,13 @@ Cross-cutting limits that apply to all jurisdictions.
 
 ## Data Sources
 
-- California brackets: [FTB Tax Rates](https://www.ftb.ca.gov/file/personal/tax-calculator-tables.html)
-- Federal brackets: [IRS Revenue Procedures](https://www.irs.gov/newsroom/irs-provides-tax-inflation-adjustments)
-- FICA limits: [SSA Wage Base](https://www.ssa.gov/oact/cola/cbb.html)
-- New York brackets: [NY Tax Tables](https://www.tax.ny.gov/pit/file/tax-tables.htm)
-- NYC brackets: [NYC Tax Rates](https://www.tax.ny.gov/pit/file/tax-tables.htm)
-- Washington capital gains: [WA DOR](https://dor.wa.gov/taxes-rates/other-taxes/capital-gains-tax)
+Official sources for tax data:
+
+- **Federal**: [IRS Rev. Proc. 2024-40](https://www.irs.gov/pub/irs-drop/rp-24-40.pdf) (brackets, deductions, LTCG thresholds)
+- **FICA**: [SSA Fact Sheet](https://www.ssa.gov/news/press/factsheets/colafacts2025.pdf) (wage base, rates)
+- **California**: [FTB Tax Rate Schedules](https://www.ftb.ca.gov/forms/2025/2025-540-tax-rate-schedules.pdf)
+- **New York**: [NY DTF Tax Tables](https://www.tax.ny.gov/pit/file/tax-tables.htm)
+- **Washington**: [WA DOR Capital Gains](https://dor.wa.gov/taxes-rates/other-taxes/capital-gains-tax)
+- **Illinois**: [IL IDOR Tax Rates](https://tax.illinois.gov/research/taxrates/income.html)
+
+See [`VERIFICATION.md`](VERIFICATION.md) for detailed verification of each value against official sources.

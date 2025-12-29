@@ -121,6 +121,8 @@ Create `lib/__tests__/{state}TaxCalculator.test.ts` with tests covering:
 - Safe harbor rules
 - Edge cases
 
+See `lib/__tests__/README.md` for more context on (non-UI) tests.
+
 ## Tech Stack
 
 - [Next.js](https://nextjs.org/) - React framework

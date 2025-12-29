@@ -80,7 +80,7 @@ describe('calculateFederalDeductions', () => {
 
       expect(result.itemizedDeduction).toBe(5000);
       expect(result.deductionUsed).toBe('standard');
-      expect(result.deductionAmount).toBe(15700);
+      expect(result.deductionAmount).toBe(15750);
     });
   });
 
@@ -215,9 +215,9 @@ describe('calculateFederalDeductions boundary cases', () => {
   });
 
   it('itemized equals standard uses standard', () => {
-    // Single std deduction is $15,700
+    // Single std deduction is $15,750
     const inputs = createDefaultDeductionInputs({
-      charitableContributions: 15700,
+      charitableContributions: 15750,
     });
 
     const result = calculateFederalDeductions(
@@ -229,13 +229,13 @@ describe('calculateFederalDeductions boundary cases', () => {
     );
 
     // When equal, should use standard (itemized > standard is the condition)
-    expect(result.itemizedDeduction).toBe(15700);
+    expect(result.itemizedDeduction).toBe(15750);
     expect(result.deductionUsed).toBe('standard');
   });
 
   it('itemized $1 more than standard uses itemized', () => {
     const inputs = createDefaultDeductionInputs({
-      charitableContributions: 15701,
+      charitableContributions: 15751,
     });
 
     const result = calculateFederalDeductions(
@@ -247,7 +247,7 @@ describe('calculateFederalDeductions boundary cases', () => {
     );
 
     expect(result.deductionUsed).toBe('itemized');
-    expect(result.deductionAmount).toBe(15701);
+    expect(result.deductionAmount).toBe(15751);
   });
 
   it('mortgage balance exactly at limit uses full interest', () => {
@@ -281,7 +281,7 @@ describe('calculateFederalDeductions boundary cases', () => {
 
     expect(result.itemizedDeduction).toBe(0);
     expect(result.deductionUsed).toBe('standard');
-    expect(result.deductionAmount).toBe(15700);
+    expect(result.deductionAmount).toBe(15750);
   });
 });
 

@@ -55,6 +55,13 @@ Follow the guide in `README.md` under "Adding a New State". The pattern is well-
 2. Update or add tests in `lib/__tests__/`
 3. Run `npm test` to verify
 
+### Updating Tax Data
+When updating tax brackets, deductions, or limits in `data/`:
+1. Always verify values against official government sources (IRS, FTB, DOR, etc.)
+2. Update `data/VERIFICATION.md` with the source URL and verification date
+3. Update affected tests with correct expected values
+4. Run `npm test` and `npm run build` to verify all tests pass
+
 ## Testing & Building
 
 Always run `npm test` and `npm run build` before committing. All tests must pass and the build must succeed.
