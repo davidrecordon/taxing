@@ -12,19 +12,5 @@
       "highIncomeThresholdMFS": 500000,
       "priorYearPercent": 1.00
     }
-  },
-  "2026": {
-    "mentalHealthTax": {
-      "rate": 0.01,
-      "threshold": 1000000,
-      "thresholdMFS": 500000
-    },
-    "mortgageBalanceLimit": 1000000,
-    "safeHarbor": {
-      "currentYearPercent": 0.90,
-      "highIncomeThreshold": 1000000,
-      "highIncomeThresholdMFS": 500000,
-      "priorYearPercent": 1.00
-    }
   }
 }

@@ -68,6 +68,47 @@ This document verifies that all tax data in the JSON files matches official gove
 
 ---
 
+## Federal (2026)
+
+### Ordinary Income Tax Brackets
+**Source:** [IRS Rev. Proc. 2025-32](https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill), [Tax Foundation 2026 Brackets](https://taxfoundation.org/data/all/federal/2026-tax-brackets/)
+
+| Bracket | Single | MFJ | MFS | Match |
+|---------|--------|-----|-----|-------|
+| 10% | $0-$12,400 | $0-$24,800 | $0-$12,400 | Yes |
+| 12% | $12,400-$50,400 | $24,800-$100,800 | $12,400-$50,400 | Yes |
+| 22% | $50,400-$105,700 | $100,800-$211,400 | $50,400-$105,700 | Yes |
+| 24% | $105,700-$201,775 | $211,400-$403,550 | $105,700-$201,775 | Yes |
+| 32% | $201,775-$256,225 | $403,550-$512,450 | $201,775-$256,225 | Yes |
+| 35% | $256,225-$640,600 | $512,450-$768,700 | $256,225-$384,350 | Yes |
+| 37% | $640,600+ | $768,700+ | $384,350+ | Yes |
+
+**Note:** The One Big Beautiful Bill Act provided 4% inflation adjustment for the bottom two brackets and 2.3% for higher brackets.
+
+### Standard Deductions
+**Source:** [IRS Rev. Proc. 2025-32](https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill)
+
+| Filing Status | Our Data | Official | Match |
+|---------------|----------|----------|-------|
+| Single | $16,100 | $16,100 | Yes |
+| MFJ | $32,200 | $32,200 | Yes |
+| MFS | $16,100 | $16,100 | Yes |
+
+### Other Federal Limits (2026)
+**Source:** IRC sections (statutory, not inflation-adjusted)
+
+| Item | Our Data | Official | Match |
+|------|----------|----------|-------|
+| NIIT Rate | 3.8% | 3.8% | Yes |
+| NIIT Threshold (Single) | $200,000 | $200,000 | Yes |
+| NIIT Threshold (MFJ) | $250,000 | $250,000 | Yes |
+| SALT Cap | $10,000 | $10,000 | Yes |
+| QBI Deduction Rate | 20% | 20% | Yes |
+
+**Note:** NIIT thresholds, SALT cap, and QBI rate are statutory and do not adjust for inflation.
+
+---
+
 ## California (2025)
 
 ### Tax Brackets
