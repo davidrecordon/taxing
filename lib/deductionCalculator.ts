@@ -1,4 +1,4 @@
-import { FilingStatus, DeductionBreakdown, FederalLimitsData, CaliforniaLimitsData, DeductionsData, NewYorkLimitsData } from './types';
+import { FilingStatus, DeductionBreakdown, FederalLimitsData, CaliforniaLimitsData, DeductionsData } from './types';
 
 interface DeductionInputs {
   propertyTaxesPaid: number;
@@ -150,6 +150,46 @@ export function calculateNewYorkDeductions(
     deductionUsed: useItemized ? 'itemized' : 'standard',
     deductionAmount: useItemized ? itemizedDeduction : standardDeduction,
     saltDeduction: 0, // NY doesn't allow SALT
+    saltCapped: false,
+    mortgageInterest: useItemized ? deductibleMortgageInterest : 0,
+    charitableContributions: useItemized ? inputs.charitableContributions : 0,
+  };
+}
+
+// DC does NOT allow SALT deduction (can't deduct DC tax from DC tax)
+// DC follows federal mortgage interest limits
+export function calculateDCDeductions(
+  inputs: DeductionInputs,
+  filingStatus: FilingStatus,
+  dcDeductions: DeductionsData,
+  federalLimits: FederalLimitsData
+): DeductionBreakdown {
+  const standardDeduction = dcDeductions.standardDeduction[filingStatus];
+
+  // DC follows federal mortgage balance limits
+  const mortgageBalanceLimit =
+    filingStatus === 'marriedFilingSeparately'
+      ? federalLimits.mortgageBalanceLimit.marriedFilingSeparately
+      : federalLimits.mortgageBalanceLimit.default;
+
+  const deductibleMortgageInterest = calculateDeductibleMortgageInterest(
+    inputs.mortgageInterestPaid,
+    inputs.mortgageBalance,
+    mortgageBalanceLimit
+  );
+
+  // DC itemized deductions (no SALT)
+  const itemizedDeduction =
+    deductibleMortgageInterest + inputs.charitableContributions;
+
+  const useItemized = itemizedDeduction > standardDeduction;
+
+  return {
+    standardDeduction,
+    itemizedDeduction,
+    deductionUsed: useItemized ? 'itemized' : 'standard',
+    deductionAmount: useItemized ? itemizedDeduction : standardDeduction,
+    saltDeduction: 0, // DC doesn't allow SALT
     saltCapped: false,
     mortgageInterest: useItemized ? deductibleMortgageInterest : 0,
     charitableContributions: useItemized ? inputs.charitableContributions : 0,

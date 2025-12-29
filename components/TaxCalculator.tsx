@@ -5,6 +5,7 @@ import { TaxInputs, FilingStatus, TaxState, CalculationResults, STATE_LABELS } f
 import { calculateFederalTax } from '@/lib/federalTaxCalculator';
 import { calculateCaliforniaTax } from '@/lib/states/californiaTaxCalculator';
 import { calculateColoradoTax } from '@/lib/states/coloradoTaxCalculator';
+import { calculateDCTax } from '@/lib/states/dcTaxCalculator';
 import { calculateFloridaTax } from '@/lib/states/floridaTaxCalculator';
 import { calculateIllinoisTax } from '@/lib/states/illinoisTaxCalculator';
 import { calculateNewYorkTax } from '@/lib/states/newYorkTaxCalculator';
@@ -28,6 +29,9 @@ import allCaliforniaDeductions from '@/data/california-deductions.json';
 import allCaliforniaLimits from '@/data/california-limits.json';
 import allColoradoBrackets from '@/data/colorado-brackets.json';
 import allColoradoLimits from '@/data/colorado-limits.json';
+import allDCBrackets from '@/data/dc-brackets.json';
+import allDCDeductions from '@/data/dc-deductions.json';
+import allDCLimits from '@/data/dc-limits.json';
 import allFederalBrackets from '@/data/federal-brackets.json';
 import allFederalDeductions from '@/data/federal-deductions.json';
 import allFederalLimits from '@/data/federal-limits.json';
@@ -52,6 +56,9 @@ const californiaDeductions = allCaliforniaDeductions[TAX_YEAR];
 const californiaLimits = allCaliforniaLimits[TAX_YEAR];
 const coloradoBrackets = allColoradoBrackets[TAX_YEAR];
 const coloradoLimits = allColoradoLimits[TAX_YEAR];
+const dcBrackets = allDCBrackets[TAX_YEAR];
+const dcDeductions = allDCDeductions[TAX_YEAR];
+const dcLimits = allDCLimits[TAX_YEAR];
 const federalBrackets = allFederalBrackets[TAX_YEAR];
 const federalDeductions = allFederalDeductions[TAX_YEAR];
 const federalLimits = allFederalLimits[TAX_YEAR];
@@ -117,6 +124,9 @@ export default function TaxCalculator() {
       case 'colorado':
         state = calculateColoradoTax(inputs, coloradoBrackets, sharedLimits, coloradoLimits, federal.taxableOrdinaryIncome + federal.taxableLTCG, ficaData);
         break;
+      case 'dc':
+        state = calculateDCTax(inputs, dcBrackets, dcDeductions, sharedLimits, federalLimits, dcLimits, ficaData);
+        break;
       case 'florida':
         state = calculateFloridaTax(inputs);
         break;
@@ -181,6 +191,8 @@ export default function TaxCalculator() {
         const federalResult = calculateFederalTax(stateInputs, federalBrackets, ltcgBrackets, federalDeductions, sharedLimits, federalLimits, ficaData);
         return calculateColoradoTax(stateInputs, coloradoBrackets, sharedLimits, coloradoLimits, federalResult.taxableOrdinaryIncome + federalResult.taxableLTCG, ficaData);
       }
+      case 'dc':
+        return calculateDCTax(stateInputs, dcBrackets, dcDeductions, sharedLimits, federalLimits, dcLimits, ficaData);
       case 'florida':
         return calculateFloridaTax(stateInputs);
       case 'illinois':

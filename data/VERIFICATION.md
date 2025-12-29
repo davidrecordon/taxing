@@ -198,6 +198,42 @@ This document verifies that all tax data in the JSON files matches official gove
 
 ---
 
+## District of Columbia (2025)
+
+### Tax Brackets
+**Source:** [DC OTR Income Tax Rates](https://otr.cfo.dc.gov/page/dc-individual-and-fiduciary-income-tax-rates)
+
+| Rate | Bracket | Match |
+|------|---------|-------|
+| 4% | $0-$10,000 | Yes |
+| 6% | $10,000-$40,000 | Yes |
+| 6.5% | $40,000-$60,000 | Yes |
+| 8.5% | $60,000-$250,000 | Yes |
+| 9.25% | $250,000-$500,000 | Yes |
+| 9.75% | $500,000-$1,000,000 | Yes |
+| 10.75% | $1,000,000+ | Yes |
+
+**Note:** DC uses the same tax brackets for all filing statuses (Single, MFJ, MFS).
+
+### Standard Deductions
+**Source:** [DC OTR D-40 Instructions](https://otr.cfo.dc.gov/page/individual-income-tax-forms-and-instructions)
+
+| Filing Status | Our Data | Official | Match |
+|---------------|----------|----------|-------|
+| Single | $15,000 | $15,000 | Yes |
+| MFJ | $30,000 | $30,000 | Yes |
+| MFS | $15,000 | $15,000 | Yes |
+
+### Safe Harbor
+**Source:** [DC OTR Underpayment of Estimated Tax](https://otr.cfo.dc.gov/page/underpayment-estimated-tax-interest)
+
+| Item | Our Data | Official | Match |
+|------|----------|----------|-------|
+| Current Year | 90% | 90% | Yes |
+| Prior Year | 110% | 110% | Yes |
+
+---
+
 ## Discrepancies Fixed (2025-12-28)
 
 ### 1. Federal Standard Deduction

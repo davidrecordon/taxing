@@ -1,0 +1,9 @@
+{
+  "2025": {
+    "standardDeduction": {
+      "single": 15000,
+      "marriedFilingJointly": 30000,
+      "marriedFilingSeparately": 15000
+    }
+  }
+}

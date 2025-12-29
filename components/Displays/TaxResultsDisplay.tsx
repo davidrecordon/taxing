@@ -2,6 +2,7 @@ import { CalculationResults, STATE_LABELS } from '@/lib/types';
 import FederalBreakdown from './FederalBreakdown';
 import CaliforniaBreakdown from '../States/CaliforniaBreakdown';
 import ColoradoBreakdown from '../States/ColoradoBreakdown';
+import DCBreakdown from '../States/DCBreakdown';
 import FloridaBreakdown from '../States/FloridaBreakdown';
 import IllinoisBreakdown from '../States/IllinoisBreakdown';
 import NewYorkBreakdown from '../States/NewYorkBreakdown';
@@ -66,6 +67,9 @@ export default function TaxResultsDisplay({ results }: Props) {
       )}
       {results.selectedState === 'colorado' && (
         <ColoradoBreakdown result={results.state} />
+      )}
+      {results.selectedState === 'dc' && (
+        <DCBreakdown result={results.state} />
       )}
       {results.selectedState === 'florida' && (
         <FloridaBreakdown result={results.state} />

@@ -220,6 +220,30 @@ Florida-specific limits.
 }
 ```
 
+### District of Columbia
+
+#### `dc-brackets.json`
+District of Columbia income tax brackets (7 progressive brackets, same for all filing statuses).
+
+Same structure as `federal-brackets.json`. Note: DC taxes all capital gains as ordinary income.
+
+#### `dc-deductions.json`
+District of Columbia standard deduction amounts.
+
+Same structure as `federal-deductions.json`.
+
+#### `dc-limits.json`
+District of Columbia-specific limits and thresholds.
+
+```typescript
+{
+  safeHarbor: {
+    currentYearPercent: number,  // 90% of current year tax
+    priorYearPercent: number     // 110% of prior year tax
+  }
+}
+```
+
 ### Shared
 
 #### `limits.json`
@@ -268,5 +292,6 @@ Official sources for tax data:
 - **Illinois**: [IL IDOR Tax Rates](https://tax.illinois.gov/research/taxrates/income.html)
 - **New York**: [NY DTF Tax Tables](https://www.tax.ny.gov/pit/file/tax-tables.htm)
 - **Washington**: [WA DOR Capital Gains](https://dor.wa.gov/taxes-rates/other-taxes/capital-gains-tax)
+- **District of Columbia**: [DC OTR Income Tax Rates](https://otr.cfo.dc.gov/page/dc-individual-and-fiduciary-income-tax-rates)
 
 See [`VERIFICATION.md`](VERIFICATION.md) for detailed verification of each value against official sources.

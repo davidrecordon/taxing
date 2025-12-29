@@ -10,6 +10,7 @@ import {
   FederalLimitsData,
   CaliforniaLimitsData,
   ColoradoLimitsData,
+  DCLimitsData,
   FloridaLimitsData,
   WashingtonLimitsData,
   NewYorkLimitsData,
@@ -28,6 +29,9 @@ import allCaliforniaBrackets from '../../data/california-brackets.json';
 import allCaliforniaDeductions from '../../data/california-deductions.json';
 import allColoradoBrackets from '../../data/colorado-brackets.json';
 import allColoradoLimits from '../../data/colorado-limits.json';
+import allDCBrackets from '../../data/dc-brackets.json';
+import allDCDeductions from '../../data/dc-deductions.json';
+import allDCLimits from '../../data/dc-limits.json';
 import allFloridaBrackets from '../../data/florida-brackets.json';
 import allFloridaLimits from '../../data/florida-limits.json';
 import allWashingtonBrackets from '../../data/washington-brackets.json';
@@ -52,6 +56,9 @@ export const californiaBrackets = allCaliforniaBrackets[TAX_YEAR] as TaxBrackets
 export const californiaDeductions = allCaliforniaDeductions[TAX_YEAR] as DeductionsData;
 export const coloradoBrackets = allColoradoBrackets[TAX_YEAR] as TaxBracketsData;
 export const coloradoLimits = allColoradoLimits[TAX_YEAR] as ColoradoLimitsData;
+export const dcBrackets = allDCBrackets[TAX_YEAR] as TaxBracketsData;
+export const dcDeductions = allDCDeductions[TAX_YEAR] as DeductionsData;
+export const dcLimits = allDCLimits[TAX_YEAR] as DCLimitsData;
 export const floridaBrackets = allFloridaBrackets[TAX_YEAR] as TaxBracketsData;
 export const floridaLimits = allFloridaLimits[TAX_YEAR] as FloridaLimitsData;
 export const washingtonBrackets = allWashingtonBrackets[TAX_YEAR] as TaxBracketsData;

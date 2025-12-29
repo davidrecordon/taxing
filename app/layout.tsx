@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Estimated Taxes Calculator",
   description:
-    "Calculate your 2025 estimated taxes for both Federal and California, Colorado, Florida, Illinois, New York or Washington returns. Supports all filing statuses, capital gains, and common deductions.",
+    "Calculate your 2025 estimated taxes for both Federal and California, Colorado, District of Columbia, Florida, Illinois, New York, or Washington returns. Supports all filing statuses, capital gains, and common deductions.",
   icons: {
     icon: '/favicon-32x32.png',
     apple: '/apple-touch-icon.png',
