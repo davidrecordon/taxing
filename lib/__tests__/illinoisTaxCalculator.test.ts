@@ -5,6 +5,7 @@ import {
   illinoisDeductions,
   sharedLimits,
   illinoisLimits,
+  ficaData,
   createDefaultInputs,
 } from './testData';
 
@@ -287,6 +288,92 @@ describe('calculateIllinoisTax', () => {
       // Tax = ~$2,334, paid $5,000
       expect(result.refundDue).toBeGreaterThan(0);
       expect(result.remainingOwed).toBe(0);
+    });
+  });
+
+  describe('self-employment income', () => {
+    it('includes SE income in gross income', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selfEmploymentIncome: 50000,
+        selectedState: 'illinois',
+        filingStatus: 'single',
+      });
+
+      const result = calculateIllinoisTax(
+        inputs,
+        illinoisBrackets,
+        illinoisDeductions,
+        sharedLimits,
+        illinoisLimits,
+        ficaData
+      );
+
+      expect(result.grossIncome).toBe(150000);
+      expect(result.selfEmploymentIncome).toBe(50000);
+    });
+
+    it('calculates deductible half of SE tax', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selfEmploymentIncome: 50000,
+        selectedState: 'illinois',
+        filingStatus: 'single',
+      });
+
+      const result = calculateIllinoisTax(
+        inputs,
+        illinoisBrackets,
+        illinoisDeductions,
+        sharedLimits,
+        illinoisLimits,
+        ficaData
+      );
+
+      // Deductible SE tax = 50% of SE tax
+      expect(result.deductibleSETax).toBeCloseTo(3532, 0);
+    });
+
+    it('reduces taxable income by deductible SE tax', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selfEmploymentIncome: 50000,
+        selectedState: 'illinois',
+        filingStatus: 'single',
+      });
+
+      const result = calculateIllinoisTax(
+        inputs,
+        illinoisBrackets,
+        illinoisDeductions,
+        sharedLimits,
+        illinoisLimits,
+        ficaData
+      );
+
+      // Gross = $150k, less deductible SE tax (~$3,532), less exemption ($2,850)
+      // Taxable = $150k - $3,532 - $2,850 = $143,618
+      expect(result.taxableOrdinaryIncome).toBeCloseTo(143618, 0);
+    });
+
+    it('does not include SE fields when no SE income', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selectedState: 'illinois',
+        filingStatus: 'single',
+      });
+
+      const result = calculateIllinoisTax(
+        inputs,
+        illinoisBrackets,
+        illinoisDeductions,
+        sharedLimits,
+        illinoisLimits,
+        ficaData
+      );
+
+      expect(result.selfEmploymentIncome).toBeUndefined();
+      expect(result.deductibleSETax).toBeUndefined();
     });
   });
 

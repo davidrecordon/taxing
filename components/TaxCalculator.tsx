@@ -76,6 +76,7 @@ const defaultInputs: TaxInputs = {
   priorYearStateTaxPaid: 0,
   priorYearShortTermLossCarryover: 0,
   priorYearLongTermLossCarryover: 0,
+  selfEmploymentIncome: 0,
 };
 
 export default function TaxCalculator() {
@@ -95,13 +96,13 @@ export default function TaxCalculator() {
     let state;
     switch (inputs.selectedState) {
       case 'california':
-        state = calculateCaliforniaTax(inputs, californiaBrackets, californiaDeductions, sharedLimits, californiaLimits);
+        state = calculateCaliforniaTax(inputs, californiaBrackets, californiaDeductions, sharedLimits, californiaLimits, ficaData);
         break;
       case 'illinois':
-        state = calculateIllinoisTax(inputs, illinoisBrackets, illinoisDeductions, sharedLimits, illinoisLimits);
+        state = calculateIllinoisTax(inputs, illinoisBrackets, illinoisDeductions, sharedLimits, illinoisLimits, ficaData);
         break;
       case 'newyork':
-        state = calculateNewYorkTax(inputs, newYorkBrackets, nycBrackets, newYorkDeductions, sharedLimits, federalLimits, newYorkLimits);
+        state = calculateNewYorkTax(inputs, newYorkBrackets, nycBrackets, newYorkDeductions, sharedLimits, federalLimits, newYorkLimits, ficaData);
         break;
       case 'washington':
       default:

@@ -30,6 +30,13 @@ export default function IncomeInputs({ inputs, onUpdate }: Props) {
         />
       </div>
 
+      <CurrencyInput
+        label="Self-Employment Income"
+        value={inputs.selfEmploymentIncome}
+        onChange={(v) => onUpdate('selfEmploymentIncome', v)}
+        hint="Freelance, contractor or gig economy income"
+      />
+
       <h3 className="text-md font-medium text-gray-900 pt-2">Capital Gains</h3>
       <div className="grid grid-cols-2 gap-4">
         <CurrencyInput

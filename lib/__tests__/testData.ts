@@ -84,6 +84,7 @@ export function createDefaultInputs(overrides: Partial<TaxInputs> = {}): TaxInpu
     priorYearStateTaxPaid: 0,
     priorYearShortTermLossCarryover: 0,
     priorYearLongTermLossCarryover: 0,
+    selfEmploymentIncome: 0,
     ...overrides,
   };
 }

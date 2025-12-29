@@ -6,9 +6,10 @@ import {
   IllinoisLimitsData,
   IllinoisDeductionsData,
   DeductionBreakdown,
+  FicaData,
 } from '../types';
 import { calculateTaxByBrackets } from '../taxUtils';
-import { calculatePaymentSummary, calculateSafeHarbor } from './stateCalcUtils';
+import { calculateDeductibleSETax, calculatePaymentSummary, calculateSafeHarbor } from './stateCalcUtils';
 
 /**
  * Illinois State Tax Calculator
@@ -28,7 +29,8 @@ export function calculateIllinoisTax(
   illinoisBrackets: TaxBracketsData,
   illinoisDeductions: IllinoisDeductionsData,
   sharedLimits: SharedLimitsData,
-  illinoisLimits: IllinoisLimitsData
+  illinoisLimits: IllinoisLimitsData,
+  ficaData?: FicaData
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
 
@@ -41,11 +43,13 @@ export function calculateIllinoisTax(
   const currentYearSTLoss = Math.max(0, -inputs.shortTermCapitalGains);
 
   // Step 1: Calculate Gross Income
-  // Illinois taxes ALL capital gains as ordinary income
+  // Illinois taxes ALL capital gains and self-employment income as ordinary income
+  const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
   const grossIncome =
     stateIncome +
     effectiveSTCG +
-    effectiveLTCG;
+    effectiveLTCG +
+    selfEmploymentIncome;
 
   // Step 1b: Apply short-term loss carryover (includes current year losses)
   // First offset short-term gains, then ordinary income up to limit
@@ -67,8 +71,12 @@ export function calculateIllinoisTax(
   const ltCarryover = inputs.priorYearLongTermLossCarryover;
   const longTermLossCarryoverOffset = Math.min(ltCarryover, effectiveLTCG);
 
-  // Step 2: Apply pre-tax deductions (401k and medical)
-  const preTaxDeductions = inputs.contributions401k + inputs.preTaxMedical;
+  // Step 2: Apply pre-tax deductions (401k, medical, and deductible SE tax)
+  // IL conforms to federal above-the-line deductions
+  const deductibleSETax = ficaData
+    ? calculateDeductibleSETax(selfEmploymentIncome, inputs.federalIncome, ficaData)
+    : 0;
+  const preTaxDeductions = inputs.contributions401k + inputs.preTaxMedical + deductibleSETax;
 
   // Step 3: Apply Illinois personal exemption (instead of standard deduction)
   const personalExemption = illinoisDeductions.personalExemption[filingStatus];
@@ -132,6 +140,8 @@ export function calculateIllinoisTax(
     longTermLossCarryoverOffset,
     contributions401k: inputs.contributions401k,
     preTaxMedical: inputs.preTaxMedical,
+    selfEmploymentIncome: selfEmploymentIncome > 0 ? selfEmploymentIncome : undefined,
+    deductibleSETax: deductibleSETax > 0 ? deductibleSETax : undefined,
     adjustedGrossIncome,
     deductionBreakdown: emptyDeductionBreakdown,
     taxableOrdinaryIncome,

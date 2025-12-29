@@ -1244,4 +1244,273 @@ describe('calculateFederalTax', () => {
       expect(result.totalTax).toBeCloseTo(taxWithoutNiit + expectedNiit, 2);
     });
   });
+
+  describe('Self-Employment Tax', () => {
+    it('calculates SE tax on self-employment income', () => {
+      // $100,000 SE income
+      // Net earnings = $100,000 * 0.9235 = $92,350
+      // SS: $92,350 * 0.124 = $11,451.40
+      // Medicare: $92,350 * 0.029 = $2,678.15
+      // Total SE tax = $14,129.55
+      // Deductible half = $7,064.78
+      const inputs = createDefaultInputs({
+        selfEmploymentIncome: 100000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.selfEmploymentTaxBreakdown).toBeDefined();
+      expect(result.selfEmploymentTaxBreakdown!.netEarnings).toBeCloseTo(92350, 0);
+      expect(result.selfEmploymentTaxBreakdown!.socialSecurityTax).toBeCloseTo(11451.40, 2);
+      expect(result.selfEmploymentTaxBreakdown!.medicareTax).toBeCloseTo(2678.15, 2);
+      expect(result.selfEmploymentTaxBreakdown!.totalSETax).toBeCloseTo(14129.55, 2);
+      expect(result.selfEmploymentTaxBreakdown!.deductibleHalf).toBeCloseTo(7064.78, 1);
+    });
+
+    it('respects SS wage base cap when combined with W-2 wages', () => {
+      // $100,000 W-2 wages + $100,000 SE income
+      // W-2 uses $100,000 of $176,100 SS cap, leaving $76,100 room
+      // SE net earnings = $92,350
+      // Only $76,100 subject to SS (capped)
+      // SS: $76,100 * 0.124 = $9,436.40
+      // Medicare: $92,350 * 0.029 = $2,678.15 (all earnings)
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selfEmploymentIncome: 100000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.selfEmploymentTaxBreakdown).toBeDefined();
+      expect(result.selfEmploymentTaxBreakdown!.socialSecurityTax).toBeCloseTo(9436.40, 2);
+      expect(result.selfEmploymentTaxBreakdown!.medicareTax).toBeCloseTo(2678.15, 2);
+    });
+
+    it('deductible half reduces taxable income', () => {
+      // $100,000 SE income with deductible half of ~$7,065
+      // Taxable = $100,000 - $7,065 - $15,700 std = $77,235 (before QBI)
+      const inputs = createDefaultInputs({
+        selfEmploymentIncome: 100000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      // After SE deduction and standard deduction, but before QBI
+      const expectedTaxableBeforeQbi = 100000 - result.selfEmploymentTaxBreakdown!.deductibleHalf - 15700;
+      // After QBI (20% of SE income, limited to 20% of taxable)
+      const expectedQbi = Math.min(100000 * 0.2, expectedTaxableBeforeQbi * 0.2);
+      const expectedTaxable = expectedTaxableBeforeQbi - expectedQbi;
+
+      expect(result.taxableOrdinaryIncome).toBeCloseTo(expectedTaxable, 0);
+    });
+
+    it('SE income is included in gross income', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 50000,
+        selfEmploymentIncome: 30000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.grossIncome).toBe(80000);
+    });
+
+    it('SE tax is included in total tax', () => {
+      const inputs = createDefaultInputs({
+        selfEmploymentIncome: 50000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      const expectedTotal = result.ordinaryIncomeTax + result.selfEmploymentTaxBreakdown!.totalSETax;
+      expect(result.totalTax).toBeCloseTo(expectedTotal, 2);
+    });
+  });
+
+  describe('QBI Deduction', () => {
+    it('calculates 20% QBI deduction for self-employment income', () => {
+      // $100,000 SE income, under phaseout threshold
+      // QBI = 20% of $100,000 = $20,000
+      const inputs = createDefaultInputs({
+        selfEmploymentIncome: 100000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.qbiDeduction).toBeDefined();
+      expect(result.qbiDeduction!.qualifiedBusinessIncome).toBe(100000);
+      expect(result.qbiDeduction!.tentativeDeduction).toBe(20000);
+      expect(result.qbiDeduction!.phaseoutApplied).toBe(false);
+    });
+
+    it('limits QBI to 20% of taxable income', () => {
+      // $50,000 SE income, high deductions limit taxable income
+      // If taxable income before QBI is $20,000, QBI limited to $4,000
+      const inputs = createDefaultInputs({
+        selfEmploymentIncome: 50000,
+        contributions401k: 23500, // high deductions
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.qbiDeduction).toBeDefined();
+      // QBI should be limited by 20% of taxable income
+      const taxableBeforeQbi = 50000 - result.selfEmploymentTaxBreakdown!.deductibleHalf - 23500 - 15700;
+      const expectedQbi = Math.min(50000 * 0.2, taxableBeforeQbi * 0.2);
+      expect(result.qbiDeduction!.finalDeduction).toBeCloseTo(expectedQbi, 0);
+    });
+
+    it('phases out QBI for high income single filer', () => {
+      // $400,000 SE income, taxable well above $191,950 threshold
+      // Phaseout range is $50,000 for single
+      // At $241,950+, QBI is fully phased out
+      const inputs = createDefaultInputs({
+        selfEmploymentIncome: 400000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.qbiDeduction).toBeDefined();
+      expect(result.qbiDeduction!.phaseoutApplied).toBe(true);
+      // Should be significantly reduced or zero
+      expect(result.qbiDeduction!.finalDeduction).toBeLessThan(result.qbiDeduction!.tentativeDeduction);
+    });
+
+    it('uses higher phaseout threshold for MFJ', () => {
+      // $300,000 SE income for MFJ - under $383,900 threshold
+      // Should get full QBI without phaseout
+      const inputs = createDefaultInputs({
+        selfEmploymentIncome: 300000,
+        filingStatus: 'marriedFilingJointly',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.qbiDeduction).toBeDefined();
+      expect(result.qbiDeduction!.phaseoutApplied).toBe(false);
+    });
+
+    it('QBI reduces taxable income and tax', () => {
+      const inputsWithSE = createDefaultInputs({
+        selfEmploymentIncome: 100000,
+        filingStatus: 'single',
+      });
+
+      const resultWithSE = calculateFederalTax(
+        inputsWithSE,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      // Compare taxable income with and without QBI effect
+      // AGI should reflect QBI deduction
+      expect(resultWithSE.qbiDeduction!.finalDeduction).toBeGreaterThan(0);
+      expect(resultWithSE.adjustedGrossIncome).toBeLessThan(
+        100000 - resultWithSE.selfEmploymentTaxBreakdown!.deductibleHalf - 15700
+      );
+    });
+
+    it('no QBI when no self-employment income', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData
+      );
+
+      expect(result.qbiDeduction).toBeUndefined();
+    });
+  });
 });

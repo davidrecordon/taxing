@@ -67,6 +67,19 @@ export interface FederalLimitsData {
       single: number;
     };
   };
+  qbiDeduction: {
+    phaseoutRange: {
+      marriedFilingJointly: number;
+      marriedFilingSeparately: number;
+      single: number;
+    };
+    rate: number;
+    taxableIncomeThreshold: {
+      marriedFilingJointly: number;
+      marriedFilingSeparately: number;
+      single: number;
+    };
+  };
   safeHarbor: {
     currentYearPercent: number;
     priorYearPercent: number;
@@ -161,6 +174,12 @@ export interface FicaData {
   medicareBase: {
     rate: number;
   };
+  selfEmployment: {
+    deductiblePortion: number;
+    medicareRate: number;
+    netEarningsRate: number;
+    socialSecurityRate: number;
+  };
   socialSecurity: {
     rate: number;
     wageBaseCap: number;
@@ -202,6 +221,7 @@ export interface TaxInputs {
   priorYearStateTaxPaid: number;
   priorYearShortTermLossCarryover: number;
   priorYearLongTermLossCarryover: number;
+  selfEmploymentIncome: number;
 }
 
 // Calculation Result Types
@@ -239,6 +259,22 @@ export interface NIITBreakdown {
   tax: number;
 }
 
+export interface QbiDeduction {
+  finalDeduction: number;
+  phaseoutApplied: boolean;
+  qualifiedBusinessIncome: number;
+  taxableIncomeLimit: number;
+  tentativeDeduction: number;
+}
+
+export interface SelfEmploymentTaxBreakdown {
+  deductibleHalf: number;
+  medicareTax: number;
+  netEarnings: number;
+  socialSecurityTax: number;
+  totalSETax: number;
+}
+
 export interface SafeHarbor {
   currentYear90Percent: number;
   priorYearSafeHarbor: number;
@@ -261,6 +297,8 @@ export interface TaxCalculationResult {
   longTermLossCarryoverUnused?: number;  // Preserved for future years (0% bracket optimization)
   contributions401k: number;
   preTaxMedical: number;
+  selfEmploymentIncome?: number;  // For state displays
+  deductibleSETax?: number;  // For state displays
   adjustedGrossIncome: number;
 
   // Deduction details
@@ -282,6 +320,8 @@ export interface TaxCalculationResult {
   nycBracketBreakdown?: BracketBreakdown[];  // NYC tax bracket breakdown
   ficaBreakdown?: FicaBreakdown;
   niitBreakdown?: NIITBreakdown;
+  qbiDeduction?: QbiDeduction;
+  selfEmploymentTaxBreakdown?: SelfEmploymentTaxBreakdown;
   totalTax: number;
 
   // Payments already made

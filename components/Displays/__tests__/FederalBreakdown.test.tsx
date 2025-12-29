@@ -51,11 +51,11 @@ const createMockResult = (overrides: Partial<TaxCalculationResult> = {}): TaxCal
 
 describe('FederalBreakdown', () => {
   describe('income section', () => {
-    it('displays federal income', () => {
+    it('displays wage income', () => {
       const result = createMockResult({ wageIncome: 150000 });
       render(<FederalBreakdown result={result} />);
 
-      expect(screen.getByText('Federal Income')).toBeInTheDocument();
+      expect(screen.getByText('Wages & Other Income')).toBeInTheDocument();
       expect(screen.getByText('$150,000')).toBeInTheDocument();
     });
 

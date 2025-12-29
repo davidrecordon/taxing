@@ -31,6 +31,12 @@ export default function IllinoisBreakdown({ result }: Props) {
           <span>Illinois Income</span>
           <span className="font-mono">{formatCurrency(result.wageIncome)}</span>
         </div>
+        {result.selfEmploymentIncome && (
+          <div className="flex justify-between">
+            <span>Self-Employment Income</span>
+            <span className="font-mono">{formatCurrency(result.selfEmploymentIncome)}</span>
+          </div>
+        )}
         {result.shortTermCapitalGains > 0 && (
           <div className="flex justify-between">
             <span>Short-Term Capital Gains</span>
@@ -76,6 +82,14 @@ export default function IllinoisBreakdown({ result }: Props) {
             <span>Less: Pre-Tax Medical</span>
             <span className="font-mono">
               -{formatCurrency(result.preTaxMedical)}
+            </span>
+          </div>
+        )}
+        {result.deductibleSETax && (
+          <div className="flex justify-between text-green-700">
+            <span>Less: Deductible SE Tax (50%)</span>
+            <span className="font-mono">
+              -{formatCurrency(result.deductibleSETax)}
             </span>
           </div>
         )}

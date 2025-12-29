@@ -1,4 +1,30 @@
-import { SafeHarbor } from '../types';
+import { FicaData, SafeHarbor } from '../types';
+
+/**
+ * Calculate deductible portion of self-employment tax for state calculations.
+ * This is an above-the-line deduction that most states conform to.
+ */
+export function calculateDeductibleSETax(
+  selfEmploymentIncome: number,
+  wageIncome: number,
+  ficaData: FicaData
+): number {
+  if (selfEmploymentIncome <= 0) return 0;
+
+  const seData = ficaData.selfEmployment;
+  const netEarnings = selfEmploymentIncome * seData.netEarningsRate;
+
+  // Social Security: 12.4% up to remaining wage base after W-2 wages
+  const remainingSsRoom = Math.max(0, ficaData.socialSecurity.wageBaseCap - wageIncome);
+  const ssEarnings = Math.min(netEarnings, remainingSsRoom);
+  const socialSecurityTax = ssEarnings * seData.socialSecurityRate;
+
+  // Medicare: 2.9% on all net earnings
+  const medicareTax = netEarnings * seData.medicareRate;
+
+  // Deductible half of SE tax
+  return (socialSecurityTax + medicareTax) * seData.deductiblePortion;
+}
 
 /**
  * Calculate payment summary - identical logic used by all calculators

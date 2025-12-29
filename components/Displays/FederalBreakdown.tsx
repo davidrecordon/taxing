@@ -24,9 +24,15 @@ export default function FederalBreakdown({ result }: Props) {
       {/* Income to Taxable Income Flow */}
       <div className="bg-gray-50 p-3 rounded mb-4 space-y-2">
         <div className="flex justify-between">
-          <span>Federal Income</span>
+          <span>Wages & Other Income</span>
           <span className="font-mono">{formatCurrency(result.wageIncome)}</span>
         </div>
+        {result.selfEmploymentTaxBreakdown && (
+          <div className="flex justify-between">
+            <span>Self-Employment Income</span>
+            <span className="font-mono">{formatCurrency(Math.round(result.selfEmploymentTaxBreakdown.netEarnings / 0.9235))}</span>
+          </div>
+        )}
         {result.shortTermCapitalGains > 0 && (
           <div className="flex justify-between">
             <span>Short-Term Capital Gains</span>
@@ -89,6 +95,14 @@ export default function FederalBreakdown({ result }: Props) {
             </span>
           </div>
         )}
+        {result.selfEmploymentTaxBreakdown && (
+          <div className="flex justify-between text-green-700">
+            <span>Less: Deductible SE Tax (50%)</span>
+            <span className="font-mono">
+              -{formatCurrency(result.selfEmploymentTaxBreakdown.deductibleHalf)}
+            </span>
+          </div>
+        )}
         <div className="flex justify-between text-green-700">
           <span>
             Less: {result.deductionBreakdown.deductionUsed === 'standard' ? 'Standard' : 'Itemized'} Deduction
@@ -97,6 +111,14 @@ export default function FederalBreakdown({ result }: Props) {
             -{formatCurrency(result.deductionBreakdown.deductionAmount)}
           </span>
         </div>
+        {result.qbiDeduction && result.qbiDeduction.finalDeduction > 0 && (
+          <div className="flex justify-between text-green-700">
+            <span>Less: QBI Deduction ({formatPercent(federalLimits.qbiDeduction.rate)})</span>
+            <span className="font-mono">
+              -{formatCurrency(result.qbiDeduction.finalDeduction)}
+            </span>
+          </div>
+        )}
         <div className="flex justify-between font-medium border-t pt-1">
           <span>Adjusted Gross Income (AGI)</span>
           <span className="font-mono">
@@ -155,7 +177,7 @@ export default function FederalBreakdown({ result }: Props) {
       />
 
       {/* FICA Taxes */}
-      {result.ficaBreakdown && (
+      {result.ficaBreakdown && result.ficaBreakdown.totalFica > 0 && (
         <div className="bg-purple-50 p-3 rounded mb-4">
           <h3 className="font-medium mb-2">FICA Taxes (Social Security & Medicare)</h3>
           <div className="text-sm space-y-1">
@@ -201,6 +223,27 @@ export default function FederalBreakdown({ result }: Props) {
             <div className="flex justify-between font-medium pt-1 border-t border-indigo-200">
               <span>NIIT ({formatPercent(federalLimits.niit.rate)})</span>
               <span className="font-mono">{formatCurrency(result.niitBreakdown.tax)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Self-Employment Tax */}
+      {result.selfEmploymentTaxBreakdown && (
+        <div className="bg-orange-50 p-3 rounded mb-4">
+          <h3 className="font-medium mb-2">Self-Employment Tax</h3>
+          <div className="text-sm space-y-1">
+            <div className="flex justify-between">
+              <span>Social Security ({formatPercent(ficaData.selfEmployment.socialSecurityRate)})</span>
+              <span className="font-mono">{formatCurrency(result.selfEmploymentTaxBreakdown.socialSecurityTax)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Medicare ({formatPercent(ficaData.selfEmployment.medicareRate)})</span>
+              <span className="font-mono">{formatCurrency(result.selfEmploymentTaxBreakdown.medicareTax)}</span>
+            </div>
+            <div className="flex justify-between font-medium pt-1 border-t border-orange-200">
+              <span>Total SE Tax</span>
+              <span className="font-mono">{formatCurrency(result.selfEmploymentTaxBreakdown.totalSETax)}</span>
             </div>
           </div>
         </div>

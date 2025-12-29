@@ -7,6 +7,7 @@ import {
   newYorkLimits,
   sharedLimits,
   federalLimits,
+  ficaData,
   createDefaultInputs,
 } from './testData';
 
@@ -602,6 +603,121 @@ describe('calculateNewYorkTax', () => {
       // AGI = $158k - deductions, threshold check is on nyAgi which doesn't include deductions
       // nyAgi = grossIncome - carryovers - 401k = $158k
       expect(result.safeHarbor!.isHighIncome).toBe(true);
+    });
+  });
+
+  describe('self-employment income', () => {
+    it('includes SE income in gross income', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selfEmploymentIncome: 50000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateNewYorkTax(
+        inputs,
+        newYorkBrackets,
+        nycBrackets,
+        newYorkDeductions,
+        sharedLimits,
+        federalLimits,
+        newYorkLimits,
+        ficaData
+      );
+
+      expect(result.grossIncome).toBe(150000);
+      expect(result.selfEmploymentIncome).toBe(50000);
+    });
+
+    it('calculates deductible half of SE tax', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selfEmploymentIncome: 50000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateNewYorkTax(
+        inputs,
+        newYorkBrackets,
+        nycBrackets,
+        newYorkDeductions,
+        sharedLimits,
+        federalLimits,
+        newYorkLimits,
+        ficaData
+      );
+
+      // Deductible SE tax = 50% of SE tax
+      expect(result.deductibleSETax).toBeCloseTo(3532, 0);
+    });
+
+    it('reduces taxable income by deductible SE tax', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selfEmploymentIncome: 50000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateNewYorkTax(
+        inputs,
+        newYorkBrackets,
+        nycBrackets,
+        newYorkDeductions,
+        sharedLimits,
+        federalLimits,
+        newYorkLimits,
+        ficaData
+      );
+
+      // Gross = $150k, less deductible SE tax (~$3,532), less std ded ($8,000)
+      // Taxable = $150k - $3,532 - $8,000 = $138,468
+      expect(result.taxableOrdinaryIncome).toBeCloseTo(138468, 0);
+    });
+
+    it('does not include SE fields when no SE income', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateNewYorkTax(
+        inputs,
+        newYorkBrackets,
+        nycBrackets,
+        newYorkDeductions,
+        sharedLimits,
+        federalLimits,
+        newYorkLimits,
+        ficaData
+      );
+
+      expect(result.selfEmploymentIncome).toBeUndefined();
+      expect(result.deductibleSETax).toBeUndefined();
+    });
+
+    it('SE income counts toward NYC local tax', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selfEmploymentIncome: 50000,
+        filingStatus: 'single',
+        isNYCResident: true,
+      });
+
+      const result = calculateNewYorkTax(
+        inputs,
+        newYorkBrackets,
+        nycBrackets,
+        newYorkDeductions,
+        sharedLimits,
+        federalLimits,
+        newYorkLimits,
+        ficaData
+      );
+
+      expect(result.nycTax).toBeDefined();
+      expect(result.nycTax).toBeGreaterThan(0);
+      // NYC tax should be based on the full taxable income including SE
+      expect(result.grossIncome).toBe(150000);
     });
   });
 

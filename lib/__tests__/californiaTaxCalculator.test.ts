@@ -5,6 +5,7 @@ import {
   californiaDeductions,
   sharedLimits,
   californiaLimits,
+  ficaData,
   createDefaultInputs,
 } from './testData';
 
@@ -507,6 +508,127 @@ describe('calculateCaliforniaTax', () => {
       expect(result.totalPaid).toBe(5000);
       expect(result.remainingOwed).toBeGreaterThan(0);
       expect(result.refundDue).toBe(0);
+    });
+  });
+
+  describe('self-employment income', () => {
+    it('includes SE income in gross income when ficaData is provided', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selfEmploymentIncome: 50000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits,
+        ficaData
+      );
+
+      // Gross = $100k + $50k SE = $150k
+      expect(result.grossIncome).toBe(150000);
+      expect(result.selfEmploymentIncome).toBe(50000);
+    });
+
+    it('calculates deductible half of SE tax', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selfEmploymentIncome: 50000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits,
+        ficaData
+      );
+
+      // Deductible SE tax = 50% of SE tax
+      // Net earnings = $50k * 0.9235 = $46,175
+      // SS tax = $46,175 * 12.4% = $5,725.70
+      // Medicare = $46,175 * 2.9% = $1,339.08
+      // Deductible = ($5,725.70 + $1,339.08) * 50% = $3,532.39
+      expect(result.deductibleSETax).toBeCloseTo(3532.39, 0);
+    });
+
+    it('reduces taxable income by deductible SE tax', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selfEmploymentIncome: 50000,
+        filingStatus: 'single',
+      });
+
+      const resultWithSE = calculateCaliforniaTax(
+        inputs,
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits,
+        ficaData
+      );
+
+      const inputsNoSE = createDefaultInputs({
+        federalIncome: 150000, // Same gross
+        filingStatus: 'single',
+      });
+
+      const resultNoSE = calculateCaliforniaTax(
+        inputsNoSE,
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits
+      );
+
+      // With SE, taxable income should be lower due to deductible SE tax
+      expect(resultWithSE.taxableOrdinaryIncome).toBeLessThan(resultNoSE.taxableOrdinaryIncome);
+    });
+
+    it('does not include SE fields when no SE income', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits,
+        ficaData
+      );
+
+      expect(result.selfEmploymentIncome).toBeUndefined();
+      expect(result.deductibleSETax).toBeUndefined();
+    });
+
+    it('works without ficaData (backwards compatibility)', () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selfEmploymentIncome: 50000,
+        filingStatus: 'single',
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits
+        // No ficaData
+      );
+
+      // SE income still included in gross
+      expect(result.grossIncome).toBe(150000);
+      // But no deductible SE tax calculated
+      expect(result.deductibleSETax).toBeUndefined();
     });
   });
 

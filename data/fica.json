@@ -11,6 +11,12 @@
     "medicareBase": {
       "rate": 0.0145
     },
+    "selfEmployment": {
+      "deductiblePortion": 0.5,
+      "medicareRate": 0.029,
+      "netEarningsRate": 0.9235,
+      "socialSecurityRate": 0.124
+    },
     "socialSecurity": {
       "rate": 0.062,
       "wageBaseCap": 176100
@@ -27,6 +33,12 @@
     },
     "medicareBase": {
       "rate": 0.0145
+    },
+    "selfEmployment": {
+      "deductiblePortion": 0.5,
+      "medicareRate": 0.029,
+      "netEarningsRate": 0.9235,
+      "socialSecurityRate": 0.124
     },
     "socialSecurity": {
       "rate": 0.062,

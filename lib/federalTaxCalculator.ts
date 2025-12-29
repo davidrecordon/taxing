@@ -9,6 +9,8 @@ import {
   FicaBreakdown,
   FilingStatus,
   NIITBreakdown,
+  QbiDeduction,
+  SelfEmploymentTaxBreakdown,
 } from './types';
 import { calculateFederalDeductions } from './deductionCalculator';
 import { calculateTaxByBrackets, calculateLTCGTaxWithStacking } from './taxUtils';
@@ -40,6 +42,60 @@ function calculateFicaTaxes(
   };
 }
 
+function calculateSelfEmploymentTax(
+  netProfit: number,
+  wageIncome: number,
+  ficaData: FicaData
+): SelfEmploymentTaxBreakdown {
+  const seData = ficaData.selfEmployment;
+
+  // Net earnings = 92.35% of net profit (equivalent to employer half of FICA)
+  const netEarnings = netProfit * seData.netEarningsRate;
+
+  // Social Security: 12.4% up to remaining wage base after W-2 wages
+  const remainingSsRoom = Math.max(0, ficaData.socialSecurity.wageBaseCap - wageIncome);
+  const ssEarnings = Math.min(netEarnings, remainingSsRoom);
+  const socialSecurityTax = ssEarnings * seData.socialSecurityRate;
+
+  // Medicare: 2.9% on all net earnings
+  const medicareTax = netEarnings * seData.medicareRate;
+
+  const totalSETax = socialSecurityTax + medicareTax;
+  const deductibleHalf = totalSETax * seData.deductiblePortion;
+
+  return { deductibleHalf, medicareTax, netEarnings, socialSecurityTax, totalSETax };
+}
+
+function calculateQbiDeduction(
+  selfEmploymentIncome: number,
+  taxableIncomeBeforeQbi: number,
+  filingStatus: FilingStatus,
+  limits: FederalLimitsData
+): QbiDeduction {
+  const tentativeDeduction = selfEmploymentIncome * limits.qbiDeduction.rate;
+  const taxableIncomeLimit = taxableIncomeBeforeQbi * limits.qbiDeduction.rate;
+
+  let finalDeduction = Math.min(tentativeDeduction, taxableIncomeLimit);
+  let phaseoutApplied = false;
+
+  const threshold = limits.qbiDeduction.taxableIncomeThreshold[filingStatus];
+  if (taxableIncomeBeforeQbi > threshold) {
+    const range = limits.qbiDeduction.phaseoutRange[filingStatus];
+    const excess = taxableIncomeBeforeQbi - threshold;
+    const phaseoutRatio = Math.min(1, excess / range);
+    finalDeduction = finalDeduction * (1 - phaseoutRatio);
+    phaseoutApplied = true;
+  }
+
+  return {
+    finalDeduction: Math.max(0, finalDeduction),
+    phaseoutApplied,
+    qualifiedBusinessIncome: selfEmploymentIncome,
+    taxableIncomeLimit,
+    tentativeDeduction,
+  };
+}
+
 export function calculateFederalTax(
   inputs: TaxInputs,
   federalBrackets: TaxBracketsData,
@@ -57,9 +113,17 @@ export function calculateFederalTax(
   const currentYearSTLoss = Math.max(0, -inputs.shortTermCapitalGains);
 
   // Step 1: Calculate Gross Income
-  // Short-term capital gains are taxed as ordinary income
-  const grossOrdinaryIncome = inputs.federalIncome + effectiveSTCG;
+  // Short-term capital gains and self-employment income are taxed as ordinary income
+  const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
+  const grossOrdinaryIncome = inputs.federalIncome + effectiveSTCG + selfEmploymentIncome;
   const grossIncome = grossOrdinaryIncome + effectiveLTCG;
+
+  // Step 1.5: Calculate Self-Employment Tax (if applicable)
+  // SE tax must be calculated early because half is deductible above-the-line
+  const selfEmploymentTaxBreakdown = selfEmploymentIncome > 0 && ficaData
+    ? calculateSelfEmploymentTax(selfEmploymentIncome, inputs.federalIncome, ficaData)
+    : undefined;
+  const deductibleSETax = selfEmploymentTaxBreakdown?.deductibleHalf ?? 0;
 
   // Step 1b: Apply short-term loss carryover (includes current year losses)
   // First offset short-term gains, then ordinary income up to limit
@@ -82,8 +146,8 @@ export function calculateFederalTax(
   const ltCarryover = inputs.priorYearLongTermLossCarryover;
 
   // Step 2: Calculate ordinary AGI (for tax bracket calculation)
-  // 401k and pre-tax medical reduce ordinary income, not capital gains
-  const preTaxDeductions = inputs.contributions401k + inputs.preTaxMedical;
+  // 401k, pre-tax medical, and deductible SE tax reduce ordinary income, not capital gains
+  const preTaxDeductions = inputs.contributions401k + inputs.preTaxMedical + deductibleSETax;
   const agiOrdinary = Math.max(0, grossOrdinaryIncome - shortTermLossCarryoverOffset - preTaxDeductions);
 
   // Pre-deduction AGI for SALT cap threshold
@@ -106,12 +170,23 @@ export function calculateFederalTax(
     preDeductionAgi
   );
 
-  // Step 4: Calculate taxable ordinary income
+  // Step 4: Calculate taxable ordinary income (before QBI)
   // Deductions apply to ordinary income first
-  const taxableOrdinaryIncome = Math.max(
+  const taxableOrdinaryIncomeBeforeQbi = Math.max(
     0,
     agiOrdinary - deductionBreakdown.deductionAmount
   );
+
+  // Step 4a: Calculate QBI deduction (if applicable)
+  // QBI is 20% of qualified business income, limited to 20% of taxable income
+  // Phase out starts at $191,950 single / $383,900 MFJ
+  const qbiDeduction = selfEmploymentIncome > 0 && taxableOrdinaryIncomeBeforeQbi > 0
+    ? calculateQbiDeduction(selfEmploymentIncome, taxableOrdinaryIncomeBeforeQbi, filingStatus, federalLimits)
+    : undefined;
+  const qbiAmount = qbiDeduction?.finalDeduction ?? 0;
+
+  // Taxable ordinary income after QBI deduction
+  const taxableOrdinaryIncome = Math.max(0, taxableOrdinaryIncomeBeforeQbi - qbiAmount);
 
   // Step 4b: Apply long-term loss carryover SMARTLY
   // Only use carryover to offset LTCG that would be taxed (not 0% bracket)
@@ -133,7 +208,8 @@ export function calculateFederalTax(
     - shortTermLossCarryoverOffset
     - longTermLossCarryoverOffset
     - preTaxDeductions
-    - deductionBreakdown.deductionAmount;
+    - deductionBreakdown.deductionAmount
+    - qbiAmount;
 
   // Step 5: Calculate ordinary income tax
   const ordinaryTax = calculateTaxByBrackets(
@@ -174,7 +250,8 @@ export function calculateFederalTax(
   } : undefined;
 
   // Step 8: Sum up taxes
-  const totalTax = ordinaryTax.total + ltcgTax.total + (ficaBreakdown?.totalFica ?? 0) + niitTax;
+  const seTax = selfEmploymentTaxBreakdown?.totalSETax ?? 0;
+  const totalTax = ordinaryTax.total + ltcgTax.total + (ficaBreakdown?.totalFica ?? 0) + seTax + niitTax;
 
   // Step 9: Calculate remaining owed using shared utility
   const { totalPaid, remainingOwed, refundDue } = calculatePaymentSummary(
@@ -215,6 +292,8 @@ export function calculateFederalTax(
     ltcgTax: ltcgTax.total,
     ficaBreakdown,
     niitBreakdown,
+    qbiDeduction,
+    selfEmploymentTaxBreakdown,
     totalTax,
     withheld: inputs.federalTaxWithheld,
     estimatedPaid: inputs.federalEstimatedPaid,

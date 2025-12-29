@@ -5,17 +5,19 @@ import {
   DeductionsData,
   SharedLimitsData,
   CaliforniaLimitsData,
+  FicaData,
 } from '../types';
 import { calculateCaliforniaDeductions } from '../deductionCalculator';
 import { calculateTaxByBrackets } from '../taxUtils';
-import { calculatePaymentSummary, calculateSafeHarbor } from './stateCalcUtils';
+import { calculateDeductibleSETax, calculatePaymentSummary, calculateSafeHarbor } from './stateCalcUtils';
 
 export function calculateCaliforniaTax(
   inputs: TaxInputs,
   californiaBrackets: TaxBracketsData,
   californiaDeductions: DeductionsData,
   sharedLimits: SharedLimitsData,
-  californiaLimits: CaliforniaLimitsData
+  californiaLimits: CaliforniaLimitsData,
+  ficaData?: FicaData
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
 
@@ -28,11 +30,13 @@ export function calculateCaliforniaTax(
   const currentYearSTLoss = Math.max(0, -inputs.shortTermCapitalGains);
 
   // Step 1: Calculate Gross Income
-  // California taxes ALL capital gains as ordinary income
+  // California taxes ALL capital gains and self-employment income as ordinary income
+  const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
   const grossIncome =
     stateIncome +
     effectiveSTCG +
-    effectiveLTCG;
+    effectiveLTCG +
+    selfEmploymentIncome;
 
   // Step 1b: Apply short-term loss carryover (includes current year losses, CA follows federal rules)
   // First offset short-term gains, then ordinary income up to limit
@@ -70,7 +74,11 @@ export function calculateCaliforniaTax(
   );
 
   // Step 3b: Calculate AGI (includes all deductions for display)
-  const preTaxDeductions = inputs.contributions401k + inputs.preTaxMedical;
+  // CA conforms to federal above-the-line deductions including deductible SE tax
+  const deductibleSETax = ficaData
+    ? calculateDeductibleSETax(selfEmploymentIncome, inputs.federalIncome, ficaData)
+    : 0;
+  const preTaxDeductions = inputs.contributions401k + inputs.preTaxMedical + deductibleSETax;
   const adjustedGrossIncome = grossIncome
     - shortTermLossCarryoverOffset
     - longTermLossCarryoverOffset
@@ -131,6 +139,8 @@ export function calculateCaliforniaTax(
     longTermLossCarryoverOffset,
     contributions401k: inputs.contributions401k,
     preTaxMedical: inputs.preTaxMedical,
+    selfEmploymentIncome: selfEmploymentIncome > 0 ? selfEmploymentIncome : undefined,
+    deductibleSETax: deductibleSETax > 0 ? deductibleSETax : undefined,
     adjustedGrossIncome,
     deductionBreakdown,
     taxableOrdinaryIncome,

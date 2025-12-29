@@ -7,10 +7,11 @@ import {
   FederalLimitsData,
   NewYorkLimitsData,
   BracketBreakdown,
+  FicaData,
 } from '../types';
 import { calculateNewYorkDeductions } from '../deductionCalculator';
 import { calculateTaxByBrackets } from '../taxUtils';
-import { calculatePaymentSummary, calculateSafeHarbor } from './stateCalcUtils';
+import { calculateDeductibleSETax, calculatePaymentSummary, calculateSafeHarbor } from './stateCalcUtils';
 
 /**
  * New York State Tax Calculator
@@ -29,7 +30,8 @@ export function calculateNewYorkTax(
   newYorkDeductions: DeductionsData,
   sharedLimits: SharedLimitsData,
   federalLimits: FederalLimitsData,
-  newYorkLimits: NewYorkLimitsData
+  newYorkLimits: NewYorkLimitsData,
+  ficaData?: FicaData
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
   const isNYCResident = inputs.isNYCResident ?? false;
@@ -43,11 +45,13 @@ export function calculateNewYorkTax(
   const currentYearSTLoss = Math.max(0, -inputs.shortTermCapitalGains);
 
   // Step 1: Calculate Gross Income
-  // New York taxes ALL capital gains as ordinary income
+  // New York taxes ALL capital gains and self-employment income as ordinary income
+  const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
   const grossIncome =
     stateIncome +
     effectiveSTCG +
-    effectiveLTCG;
+    effectiveLTCG +
+    selfEmploymentIncome;
 
   // Step 1b: Apply short-term loss carryover (includes current year losses, NY follows federal rules)
   const stCarryover = inputs.priorYearShortTermLossCarryover + currentYearSTLoss;
@@ -84,7 +88,11 @@ export function calculateNewYorkTax(
   );
 
   // Step 3: Calculate AGI
-  const preTaxDeductions = inputs.contributions401k + inputs.preTaxMedical;
+  // NY conforms to federal above-the-line deductions including deductible SE tax
+  const deductibleSETax = ficaData
+    ? calculateDeductibleSETax(selfEmploymentIncome, inputs.federalIncome, ficaData)
+    : 0;
+  const preTaxDeductions = inputs.contributions401k + inputs.preTaxMedical + deductibleSETax;
   const adjustedGrossIncome = grossIncome
     - shortTermLossCarryoverOffset
     - longTermLossCarryoverOffset
@@ -152,6 +160,8 @@ export function calculateNewYorkTax(
     longTermLossCarryoverOffset,
     contributions401k: inputs.contributions401k,
     preTaxMedical: inputs.preTaxMedical,
+    selfEmploymentIncome: selfEmploymentIncome > 0 ? selfEmploymentIncome : undefined,
+    deductibleSETax: deductibleSETax > 0 ? deductibleSETax : undefined,
     adjustedGrossIncome,
     deductionBreakdown,
     taxableOrdinaryIncome,

@@ -12,6 +12,19 @@
         "single": 200000
       }
     },
+    "qbiDeduction": {
+      "phaseoutRange": {
+        "marriedFilingJointly": 100000,
+        "marriedFilingSeparately": 50000,
+        "single": 50000
+      },
+      "rate": 0.20,
+      "taxableIncomeThreshold": {
+        "marriedFilingJointly": 383900,
+        "marriedFilingSeparately": 191950,
+        "single": 191950
+      }
+    },
     "safeHarbor": {
       "currentYearPercent": 0.90,
       "priorYearPercent": 1.10
@@ -38,6 +51,19 @@
         "marriedFilingJointly": 250000,
         "marriedFilingSeparately": 125000,
         "single": 200000
+      }
+    },
+    "qbiDeduction": {
+      "phaseoutRange": {
+        "marriedFilingJointly": 100000,
+        "marriedFilingSeparately": 50000,
+        "single": 50000
+      },
+      "rate": 0.20,
+      "taxableIncomeThreshold": {
+        "marriedFilingJointly": 383900,
+        "marriedFilingSeparately": 191950,
+        "single": 191950
       }
     },
     "safeHarbor": {
