@@ -83,12 +83,13 @@ describe('FilingStatusComparisonModal', () => {
     it('renders sliders for non-zero income categories', () => {
       render(<FilingStatusComparisonModal {...defaultProps} />);
 
-      expect(screen.getByText(/Wages/)).toBeInTheDocument();
-      expect(screen.getByText(/STCG/)).toBeInTheDocument();
-      expect(screen.getByText(/LTCG/)).toBeInTheDocument();
-      expect(screen.getByText(/401\(k\)/)).toBeInTheDocument();
-      expect(screen.getByText(/Pre-Tax Medical/)).toBeInTheDocument();
-      expect(screen.getByText(/Deductions/)).toBeInTheDocument();
+      // Using getAllByText since responsive design renders both mobile and desktop layouts
+      expect(screen.getAllByText(/Wages/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/STCG/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/LTCG/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/401\(k\)/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/Pre-Tax Medical/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/Deductions/).length).toBeGreaterThan(0);
     });
 
     it('hides sliders for zero-value categories', () => {
@@ -103,7 +104,8 @@ describe('FilingStatusComparisonModal', () => {
       // STCG slider should not be visible when value is 0
       const sliders = screen.getAllByRole('slider');
       // Should have fewer sliders when STCG is 0
-      expect(sliders.length).toBe(5); // wages, ltcg, 401k, medical, deductions
+      // 5 categories × 2 layouts (mobile + desktop) = 10 sliders
+      expect(sliders.length).toBe(10);
     });
 
     it('updates calculation when slider changes', () => {
