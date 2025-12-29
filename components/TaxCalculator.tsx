@@ -17,6 +17,7 @@ import PriorYearInputs from './Forms/PriorYearInputs';
 import TaxResultsDisplay from './Displays/TaxResultsDisplay';
 import WithholdingInputs from './Forms/WithholdingInputs';
 import ErrorBoundary from './UI/ErrorBoundary';
+import { formatCurrency } from '@/lib/formatters';
 import FilingStatusComparisonModal, {
   SplitConfig,
   ScenarioResult,
@@ -310,9 +311,9 @@ export default function TaxCalculator() {
         <p className="text-[#0f2439] mt-2">Federal & {stateLabel} Tax Estimation</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left Column: Inputs */}
-        <div className="space-y-6">
+      <div className="space-y-6">
+        {/* Row 1: Config + Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <ConfigurationSection
             filingStatus={inputs.filingStatus}
             selectedState={inputs.selectedState}
@@ -323,25 +324,68 @@ export default function TaxCalculator() {
             onCompareFilingStatus={() => setIsFilingCompareOpen(true)}
           />
 
-          <IncomeInputs inputs={inputs} onUpdate={updateInput} />
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div
+              className={`p-4 rounded-lg ${
+                results.federal.remainingOwed > 0
+                  ? 'bg-red-50 border border-red-200'
+                  : 'bg-green-50 border border-green-200'
+              }`}
+            >
+              <h3 className="text-sm font-medium text-gray-900">Federal</h3>
+              {results.federal.remainingOwed > 0 ? (
+                <p className="text-2xl font-bold text-red-600">
+                  {formatCurrency(results.federal.remainingOwed)} owed
+                </p>
+              ) : (
+                <p className="text-2xl font-bold text-green-600">
+                  {formatCurrency(results.federal.refundDue)} refund
+                </p>
+              )}
+            </div>
 
-          <WithholdingInputs inputs={inputs} onUpdate={updateInput} />
-
-          <DeductionInputs
-            inputs={inputs}
-            onUpdate={updateInput}
-            sharedLimits={sharedLimits}
-            federalLimits={federalLimits}
-            federalAgi={results.federal.adjustedGrossIncome}
-            federalResults={federalResultsForModal}
-            calculateCharitableScenario={calculateCharitableScenario}
-          />
-
-          <PriorYearInputs inputs={inputs} onUpdate={updateInput} />
+            <div
+              className={`p-4 rounded-lg ${
+                results.state.remainingOwed > 0
+                  ? 'bg-red-50 border border-red-200'
+                  : 'bg-green-50 border border-green-200'
+              }`}
+            >
+              <h3 className="text-sm font-medium text-gray-900">{stateLabel}</h3>
+              {results.state.remainingOwed > 0 ? (
+                <p className="text-2xl font-bold text-red-600">
+                  {formatCurrency(results.state.remainingOwed)} owed
+                </p>
+              ) : (
+                <p className="text-2xl font-bold text-green-600">
+                  {formatCurrency(results.state.refundDue)} refund
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Right Column: Results */}
-        <div className="space-y-6">
+        {/* Row 2: Inputs + Breakdowns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            <IncomeInputs inputs={inputs} onUpdate={updateInput} />
+
+            <WithholdingInputs inputs={inputs} onUpdate={updateInput} />
+
+            <DeductionInputs
+              inputs={inputs}
+              onUpdate={updateInput}
+              sharedLimits={sharedLimits}
+              federalLimits={federalLimits}
+              federalAgi={results.federal.adjustedGrossIncome}
+              federalResults={federalResultsForModal}
+              calculateCharitableScenario={calculateCharitableScenario}
+            />
+
+            <PriorYearInputs inputs={inputs} onUpdate={updateInput} />
+          </div>
+
           <ErrorBoundary>
             <TaxResultsDisplay results={results} />
           </ErrorBoundary>

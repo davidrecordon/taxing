@@ -7,9 +7,10 @@ UI components for the tax calculator application.
 ```
 components/
   TaxCalculator.tsx      # Main orchestrator - connects inputs to calculators to display
+                         # Also renders summary cards (Federal/State refund/owed)
   Displays/              # Result display components
     FederalBreakdown.tsx   # Federal tax breakdown with brackets, FICA, safe harbor
-    TaxResultsDisplay.tsx  # Routes to appropriate federal/state displays
+    TaxResultsDisplay.tsx  # Routes to appropriate federal/state breakdown displays
   Forms/                 # Input form components
     ConfigurationSection.tsx  # Filing status and state selection
     DeductionInputs.tsx       # Deductions (property tax, mortgage, charitable, 401k)
