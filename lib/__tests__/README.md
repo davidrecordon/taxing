@@ -16,14 +16,17 @@ npm run test:coverage   # With coverage report
 |------|-------|-------------|
 | `federalTaxCalculator.test.ts` | 65 | Federal income tax, FICA, LTCG, NIIT, self-employment, QBI |
 | `californiaTaxCalculator.test.ts` | 35 | CA state tax, mental health surtax, safe harbor |
+| `coloradoTaxCalculator.test.ts` | 8 | CO flat tax, federal taxable income basis |
+| `dcTaxCalculator.test.ts` | 15 | DC progressive tax, same brackets all statuses |
+| `floridaTaxCalculator.test.ts` | 9 | FL no income tax, zero calculations |
+| `illinoisTaxCalculator.test.ts` | 19 | IL flat tax, personal exemptions |
 | `newYorkTaxCalculator.test.ts` | 39 | NY state tax, NYC local tax, high-income safe harbor |
 | `washingtonTaxCalculator.test.ts` | 22 | WA capital gains tax, exemption, surtax |
-| `illinoisTaxCalculator.test.ts` | 19 | IL flat tax, personal exemptions |
 | `deductionCalculator.test.ts` | 31 | Standard vs itemized, SALT cap, mortgage proration |
 | `taxUtils.test.ts` | 19 | Effective rate calculations, LTCG stacking |
 | `formatters.test.ts` | 10 | Currency and percentage formatting |
 
-**Total: 300 tests**
+**Total: 343 tests**
 
 ## Shared Test Utilities
 

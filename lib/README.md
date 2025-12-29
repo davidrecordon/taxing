@@ -15,6 +15,9 @@ lib/
   states/
     stateCalcUtils.ts         # Shared state calculator utilities
     californiaTaxCalculator.ts
+    coloradoTaxCalculator.ts
+    dcTaxCalculator.ts
+    floridaTaxCalculator.ts
     illinoisTaxCalculator.ts
     newYorkTaxCalculator.ts
     washingtonTaxCalculator.ts

@@ -220,6 +220,38 @@ Florida-specific limits.
 }
 ```
 
+### Illinois
+
+#### `illinois-brackets.json`
+Illinois state income tax brackets (flat 4.95% rate).
+
+Same structure as `federal-brackets.json`.
+
+#### `illinois-deductions.json`
+Illinois uses personal exemptions instead of standard deductions.
+
+```typescript
+{
+  personalExemption: {
+    single: number,
+    marriedFilingJointly: number,
+    marriedFilingSeparately: number
+  }
+}
+```
+
+#### `illinois-limits.json`
+Illinois-specific limits and thresholds.
+
+```typescript
+{
+  safeHarbor: {
+    currentYearPercent: number,
+    priorYearPercent: number
+  }
+}
+```
+
 ### District of Columbia
 
 #### `dc-brackets.json`

@@ -14,7 +14,10 @@
       "WebFetch(domain:www.ftb.ca.gov)",
       "WebFetch(domain:dor.wa.gov)",
       "WebFetch(domain:www.tax.ny.gov)",
-      "WebFetch(domain:tax.illinois.gov)"
+      "WebFetch(domain:tax.illinois.gov)",
+      "WebFetch(domain:tax.colorado.gov)",
+      "WebFetch(domain:floridarevenue.com)",
+      "WebFetch(domain:otr.cfo.dc.gov)"
     ]
   }
 }

@@ -9,11 +9,11 @@ A web-based tax estimation tool for calculating Federal and state income taxes. 
 - **Multi-State Support**:
   - **California**: Full income tax with mental health services tax for high earners
   - **Colorado**: Flat 4.4% income tax using federal taxable income
+  - **District of Columbia**: Progressive income tax (4%-10.75%)
   - **Florida**: No state income tax
   - **Illinois**: Flat-rate income tax with personal exemptions
   - **New York**: State income tax with optional NYC local tax for city residents
   - **Washington**: Capital gains tax only (no wage income tax)
-  - **District of Columbia**: Progressive income tax (4%-10.75%)
 - **Filing Statuses**: Single, Married Filing Jointly, Married Filing Separately
 - **Income Types**: W-2 wages, short-term and long-term capital gains
 - **Deductions**: Automatic standard vs. itemized comparison
@@ -109,9 +109,9 @@ Create `components/States/{State}Breakdown.tsx`:
 
 Update the following files:
 
-- `components/ConfigurationSection.tsx` - Add state to dropdown
+- `components/Forms/ConfigurationSection.tsx` - Add state to dropdown
 - `components/TaxCalculator.tsx` - Import data and add calculator case
-- `components/TaxResultsDisplay.tsx` - Add breakdown component case
+- `components/Displays/TaxResultsDisplay.tsx` - Add breakdown component case
 - `lib/__tests__/testData.ts` - Export test data for the new state
 
 ### 6. Add Tests
