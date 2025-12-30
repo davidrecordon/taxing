@@ -122,7 +122,7 @@ export default function FederalBreakdown({ result }: Props) {
         <div className="flex justify-between font-medium border-t pt-1">
           <span>Adjusted Gross Income (AGI)</span>
           <span className="font-mono">
-            {formatCurrency(result.adjustedGrossIncome)}
+            {formatCurrency(Math.max(0, result.adjustedGrossIncome))}
           </span>
         </div>
       </div>
