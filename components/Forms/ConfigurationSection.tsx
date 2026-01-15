@@ -8,6 +8,7 @@ interface Props {
   onStateChange: (state: TaxState) => void;
   onNYCResidentChange?: (isNYC: boolean) => void;
   onCompareFilingStatus?: () => void;
+  onStateHover?: (state: TaxState) => void;
 }
 
 const filingStatusOptions: { value: FilingStatus; label: string }[] = [
@@ -34,7 +35,14 @@ export default function ConfigurationSection({
   onStateChange,
   onNYCResidentChange,
   onCompareFilingStatus,
+  onStateHover,
 }: Props) {
+  // Preload all state data when user focuses on state dropdown
+  const handleStateFocus = () => {
+    if (onStateHover) {
+      stateOptions.forEach((option) => onStateHover(option.value));
+    }
+  };
   const showCompareButton =
     (filingStatus === 'marriedFilingJointly' || filingStatus === 'marriedFilingSeparately') &&
     onCompareFilingStatus;
@@ -72,6 +80,7 @@ export default function ConfigurationSection({
           <select
             value={selectedState}
             onChange={(e) => onStateChange(e.target.value as TaxState)}
+            onFocus={handleStateFocus}
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             {stateOptions.map((option) => (

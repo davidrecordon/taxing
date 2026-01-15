@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { TaxInputs, FilingStatus, TaxState, CalculationResults, STATE_LABELS } from '@/lib/types';
 import { calculateFederalTax } from '@/lib/federalTaxCalculator';
 import { calculateCaliforniaTax } from '@/lib/states/californiaTaxCalculator';
@@ -10,6 +10,7 @@ import { calculateFloridaTax } from '@/lib/states/floridaTaxCalculator';
 import { calculateIllinoisTax } from '@/lib/states/illinoisTaxCalculator';
 import { calculateNewYorkTax } from '@/lib/states/newYorkTaxCalculator';
 import { calculateWashingtonTax } from '@/lib/states/washingtonTaxCalculator';
+import { loadStateData, StateData, preloadStateData } from '@/lib/stateData';
 import ConfigurationSection from './Forms/ConfigurationSection';
 import DeductionInputs from './Forms/DeductionInputs';
 import IncomeInputs from './Forms/IncomeInputs';
@@ -24,59 +25,21 @@ import FilingStatusComparisonModal, {
   MFSScenarioResult,
 } from './Modals/FilingStatusComparisonModal';
 
-// Import static data (multi-year files)
-import allCaliforniaBrackets from '@/data/california-brackets.json';
-import allCaliforniaDeductions from '@/data/california-deductions.json';
-import allCaliforniaLimits from '@/data/california-limits.json';
-import allColoradoBrackets from '@/data/colorado-brackets.json';
-import allColoradoLimits from '@/data/colorado-limits.json';
-import allDCBrackets from '@/data/dc-brackets.json';
-import allDCDeductions from '@/data/dc-deductions.json';
-import allDCLimits from '@/data/dc-limits.json';
+// Import federal data only (always needed) - these are small and required for all calculations
 import allFederalBrackets from '@/data/federal-brackets.json';
 import allFederalDeductions from '@/data/federal-deductions.json';
 import allFederalLimits from '@/data/federal-limits.json';
 import allFicaData from '@/data/fica.json';
-import allFloridaBrackets from '@/data/florida-brackets.json';
-import allFloridaLimits from '@/data/florida-limits.json';
-import allIllinoisBrackets from '@/data/illinois-brackets.json';
-import allIllinoisDeductions from '@/data/illinois-deductions.json';
-import allIllinoisLimits from '@/data/illinois-limits.json';
 import allSharedLimits from '@/data/limits.json';
 import allLtcgBrackets from '@/data/federal-ltcg-brackets.json';
-import allNewYorkBrackets from '@/data/newyork-brackets.json';
-import allNewYorkDeductions from '@/data/newyork-deductions.json';
-import allNewYorkLimits from '@/data/newyork-limits.json';
-import allNYCBrackets from '@/data/nyc-brackets.json';
-import allWashingtonBrackets from '@/data/washington-brackets.json';
-import allWashingtonLimits from '@/data/washington-limits.json';
 
 import { TAX_YEAR } from '@/lib/config';
-const californiaBrackets = allCaliforniaBrackets[TAX_YEAR];
-const californiaDeductions = allCaliforniaDeductions[TAX_YEAR];
-const californiaLimits = allCaliforniaLimits[TAX_YEAR];
-const coloradoBrackets = allColoradoBrackets[TAX_YEAR];
-const coloradoLimits = allColoradoLimits[TAX_YEAR];
-const dcBrackets = allDCBrackets[TAX_YEAR];
-const dcDeductions = allDCDeductions[TAX_YEAR];
-const dcLimits = allDCLimits[TAX_YEAR];
 const federalBrackets = allFederalBrackets[TAX_YEAR];
 const federalDeductions = allFederalDeductions[TAX_YEAR];
 const federalLimits = allFederalLimits[TAX_YEAR];
 const ficaData = allFicaData[TAX_YEAR];
-const floridaBrackets = allFloridaBrackets[TAX_YEAR];
-const floridaLimits = allFloridaLimits[TAX_YEAR];
-const illinoisBrackets = allIllinoisBrackets[TAX_YEAR];
-const illinoisDeductions = allIllinoisDeductions[TAX_YEAR];
-const illinoisLimits = allIllinoisLimits[TAX_YEAR];
-const ltcgBrackets = allLtcgBrackets[TAX_YEAR];
-const newYorkBrackets = allNewYorkBrackets[TAX_YEAR];
-const newYorkDeductions = allNewYorkDeductions[TAX_YEAR];
-const newYorkLimits = allNewYorkLimits[TAX_YEAR];
-const nycBrackets = allNYCBrackets[TAX_YEAR];
 const sharedLimits = allSharedLimits[TAX_YEAR];
-const washingtonBrackets = allWashingtonBrackets[TAX_YEAR];
-const washingtonLimits = allWashingtonLimits[TAX_YEAR];
+const ltcgBrackets = allLtcgBrackets[TAX_YEAR];
 
 const defaultInputs: TaxInputs = {
   federalIncome: 0,
@@ -102,9 +65,69 @@ const defaultInputs: TaxInputs = {
   selfEmploymentIncome: 0,
 };
 
+// Helper to calculate state tax with loaded data
+function calculateStateTaxWithData(
+  inputs: TaxInputs,
+  stateData: StateData,
+  federalTaxableIncome?: number
+) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const brackets = stateData.brackets as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const deductions = stateData.deductions as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const limits = stateData.limits as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const nycBrackets = (stateData as any).nycBrackets;
+
+  switch (inputs.selectedState) {
+    case 'california':
+      return calculateCaliforniaTax(inputs, brackets, deductions, sharedLimits, limits, ficaData);
+    case 'colorado':
+      return calculateColoradoTax(inputs, brackets, sharedLimits, limits, federalTaxableIncome ?? 0, ficaData);
+    case 'dc':
+      return calculateDCTax(inputs, brackets, deductions, sharedLimits, federalLimits, limits, ficaData);
+    case 'florida':
+      return calculateFloridaTax(inputs);
+    case 'illinois':
+      return calculateIllinoisTax(inputs, brackets, deductions, sharedLimits, limits, ficaData);
+    case 'newyork':
+      return calculateNewYorkTax(inputs, brackets, nycBrackets, deductions, sharedLimits, federalLimits, limits, ficaData);
+    case 'washington':
+    default:
+      return calculateWashingtonTax(inputs, brackets, limits);
+  }
+}
+
 export default function TaxCalculator() {
   const [inputs, setInputs] = useState<TaxInputs>(defaultInputs);
   const [isFilingCompareOpen, setIsFilingCompareOpen] = useState(false);
+  const [loadedStateData, setLoadedStateData] = useState<Map<TaxState, StateData>>(new Map());
+  const [isLoadingState, setIsLoadingState] = useState(true);
+
+  // Load state data when selectedState changes
+  useEffect(() => {
+    const selectedState = inputs.selectedState;
+
+    // If already loaded, no need to fetch
+    if (loadedStateData.has(selectedState)) {
+      setIsLoadingState(false);
+      return;
+    }
+
+    setIsLoadingState(true);
+    loadStateData(selectedState).then((data) => {
+      setLoadedStateData((prev) => {
+        const next = new Map(prev);
+        next.set(selectedState, data);
+        return next;
+      });
+      setIsLoadingState(false);
+    });
+  }, [inputs.selectedState, loadedStateData]);
+
+  // Get the current state's data (may be undefined while loading)
+  const currentStateData = loadedStateData.get(inputs.selectedState);
 
   const results: CalculationResults = useMemo(() => {
     const federal = calculateFederalTax(
@@ -117,37 +140,61 @@ export default function TaxCalculator() {
       ficaData
     );
 
-    let state;
-    switch (inputs.selectedState) {
-      case 'california':
-        state = calculateCaliforniaTax(inputs, californiaBrackets, californiaDeductions, sharedLimits, californiaLimits, ficaData);
-        break;
-      case 'colorado':
-        state = calculateColoradoTax(inputs, coloradoBrackets, sharedLimits, coloradoLimits, federal.taxableOrdinaryIncome + federal.taxableLTCG, ficaData);
-        break;
-      case 'dc':
-        state = calculateDCTax(inputs, dcBrackets, dcDeductions, sharedLimits, federalLimits, dcLimits, ficaData);
-        break;
-      case 'florida':
-        state = calculateFloridaTax(inputs);
-        break;
-      case 'illinois':
-        state = calculateIllinoisTax(inputs, illinoisBrackets, illinoisDeductions, sharedLimits, illinoisLimits, ficaData);
-        break;
-      case 'newyork':
-        state = calculateNewYorkTax(inputs, newYorkBrackets, nycBrackets, newYorkDeductions, sharedLimits, federalLimits, newYorkLimits, ficaData);
-        break;
-      case 'washington':
-      default:
-        state = calculateWashingtonTax(inputs, washingtonBrackets, washingtonLimits);
+    // If state data isn't loaded yet, return a placeholder state result
+    if (!currentStateData) {
+      return {
+        federal,
+        state: {
+          wageIncome: 0,
+          shortTermCapitalGains: 0,
+          longTermCapitalGains: 0,
+          grossIncome: 0,
+          adjustedGrossIncome: 0,
+          taxableOrdinaryIncome: 0,
+          taxableLTCG: 0,
+          ordinaryIncomeTax: 0,
+          ltcgTax: 0,
+          ordinaryIncomeBracketBreakdown: [],
+          ltcgBracketBreakdown: [],
+          deductionBreakdown: {
+            standardDeduction: 0,
+            itemizedDeduction: 0,
+            deductionAmount: 0,
+            deductionUsed: 'standard' as const,
+            saltDeduction: 0,
+            saltCapped: false,
+            mortgageInterest: 0,
+            charitableContributions: 0,
+          },
+          totalTax: 0,
+          withheld: 0,
+          estimatedPaid: 0,
+          totalPaid: 0,
+          remainingOwed: 0,
+          refundDue: 0,
+          contributions401k: 0,
+          preTaxMedical: 0,
+          shortTermLossCarryoverOffset: 0,
+          longTermLossCarryoverOffset: 0,
+        },
+        selectedState: inputs.selectedState,
+      };
     }
 
+    const federalTaxableIncome = federal.taxableOrdinaryIncome + federal.taxableLTCG;
+    const state = calculateStateTaxWithData(inputs, currentStateData, federalTaxableIncome);
+
     return { federal, state, selectedState: inputs.selectedState };
-  }, [inputs]);
+  }, [inputs, currentStateData]);
 
   const updateInput = <K extends keyof TaxInputs>(field: K, value: TaxInputs[K]) => {
     setInputs((prev) => ({ ...prev, [field]: value }));
   };
+
+  // Preload state data on hover for better UX
+  const handleStateHover = useCallback((state: TaxState) => {
+    preloadStateData(state);
+  }, []);
 
   // Calculate federal tax scenario with different charitable contributions
   const calculateCharitableScenario = useCallback(
@@ -182,29 +229,25 @@ export default function TaxCalculator() {
       : 0,
   }), [results.federal]);
 
-  // Helper to calculate state tax for a given set of inputs
+  // Helper to calculate state tax for a given set of inputs (used by MFJ/MFS scenarios)
   const calculateStateForInputs = useCallback((stateInputs: TaxInputs) => {
-    switch (stateInputs.selectedState) {
-      case 'california':
-        return calculateCaliforniaTax(stateInputs, californiaBrackets, californiaDeductions, sharedLimits, californiaLimits, ficaData);
-      case 'colorado': {
-        // Colorado needs federal taxable income, so calculate federal first
-        const federalResult = calculateFederalTax(stateInputs, federalBrackets, ltcgBrackets, federalDeductions, sharedLimits, federalLimits, ficaData);
-        return calculateColoradoTax(stateInputs, coloradoBrackets, sharedLimits, coloradoLimits, federalResult.taxableOrdinaryIncome + federalResult.taxableLTCG, ficaData);
-      }
-      case 'dc':
-        return calculateDCTax(stateInputs, dcBrackets, dcDeductions, sharedLimits, federalLimits, dcLimits, ficaData);
-      case 'florida':
-        return calculateFloridaTax(stateInputs);
-      case 'illinois':
-        return calculateIllinoisTax(stateInputs, illinoisBrackets, illinoisDeductions, sharedLimits, illinoisLimits, ficaData);
-      case 'newyork':
-        return calculateNewYorkTax(stateInputs, newYorkBrackets, nycBrackets, newYorkDeductions, sharedLimits, federalLimits, newYorkLimits, ficaData);
-      case 'washington':
-      default:
-        return calculateWashingtonTax(stateInputs, washingtonBrackets, washingtonLimits);
+    const stateData = loadedStateData.get(stateInputs.selectedState);
+    if (!stateData) {
+      // Return zero result if state data not loaded (shouldn't happen in practice)
+      return {
+        wageIncome: 0, shortTermCapitalGains: 0, longTermCapitalGains: 0, grossIncome: 0,
+        adjustedGrossIncome: 0, taxableOrdinaryIncome: 0, taxableLTCG: 0, ordinaryIncomeTax: 0,
+        ltcgTax: 0, ordinaryIncomeBracketBreakdown: [], ltcgBracketBreakdown: [],
+        deductionBreakdown: { standardDeduction: 0, itemizedDeduction: 0, deductionAmount: 0,
+          deductionUsed: 'standard' as const, saltDeduction: 0, saltCapped: false,
+          mortgageInterest: 0, charitableContributions: 0 },
+        totalTax: 0, withheld: 0, estimatedPaid: 0, totalPaid: 0, remainingOwed: 0, refundDue: 0,
+        contributions401k: 0, preTaxMedical: 0, shortTermLossCarryoverOffset: 0, longTermLossCarryoverOffset: 0,
+      };
     }
-  }, []);
+    const federalResult = calculateFederalTax(stateInputs, federalBrackets, ltcgBrackets, federalDeductions, sharedLimits, federalLimits, ficaData);
+    return calculateStateTaxWithData(stateInputs, stateData, federalResult.taxableOrdinaryIncome + federalResult.taxableLTCG);
+  }, [loadedStateData]);
 
   // Calculate MFJ scenario results for filing status comparison
   const mfjResults: ScenarioResult = useMemo(() => {
@@ -236,10 +279,8 @@ export default function TaxCalculator() {
         mortgageBalance: inputs.mortgageBalance * (splits.deductions / 100),
         propertyTaxesPaid: inputs.propertyTaxesPaid * (splits.deductions / 100),
         charitableContributions: inputs.charitableContributions * (splits.deductions / 100),
-        // Split loss carryovers proportionally to capital gains
         priorYearShortTermLossCarryover: inputs.priorYearShortTermLossCarryover * (splits.stcg / 100),
         priorYearLongTermLossCarryover: inputs.priorYearLongTermLossCarryover * (splits.ltcg / 100),
-        // Withholding/payments - assume proportional to wages
         federalTaxWithheld: inputs.federalTaxWithheld * (splits.wages / 100),
         stateTaxWithheld: inputs.stateTaxWithheld * (splits.wages / 100),
         federalEstimatedPaid: inputs.federalEstimatedPaid * (splits.wages / 100),
@@ -322,6 +363,7 @@ export default function TaxCalculator() {
             onStateChange={(state: TaxState) => updateInput('selectedState', state)}
             onNYCResidentChange={(isNYC: boolean) => updateInput('isNYCResident', isNYC)}
             onCompareFilingStatus={() => setIsFilingCompareOpen(true)}
+            onStateHover={handleStateHover}
           />
 
           {/* Summary Cards */}
@@ -353,7 +395,9 @@ export default function TaxCalculator() {
               }`}
             >
               <h3 className="text-sm font-medium text-gray-900">{stateLabel}</h3>
-              {results.state.remainingOwed > 0 ? (
+              {isLoadingState ? (
+                <p className="text-2xl font-bold text-gray-400">Loading...</p>
+              ) : results.state.remainingOwed > 0 ? (
                 <p className="text-2xl font-bold text-red-600">
                   {formatCurrency(results.state.remainingOwed)} owed
                 </p>

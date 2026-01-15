@@ -78,3 +78,24 @@ Tests are colocated with their components:
 - Keep components focused and single-purpose
 - Use TypeScript strictly - avoid `any` types
 - Alphabetize whenever possible
+
+## Performance Reviews
+
+Use the `vercel-react-best-practices` skill to review React/Next.js code for performance issues. Run this skill when:
+
+- Writing new React components or refactoring existing ones
+- Reviewing code for bundle size or rendering performance
+- Adding data fetching patterns
+- Working on components that render frequently
+
+The skill evaluates code against 45 rules across 8 categories (bundle size, re-renders, server-side performance, etc.) and provides prioritized recommendations.
+
+### Current Optimizations
+
+This codebase implements several React best practices:
+
+- **Dynamic imports**: State breakdown components use `next/dynamic` for code-splitting
+- **Lazy data loading**: State tax data loads on-demand via `lib/stateData.ts`
+- **React.memo**: Display components are memoized to prevent unnecessary re-renders
+- **useMemo/useCallback**: Expensive calculations and callbacks are memoized in `TaxCalculator.tsx`
+- **Stable keys**: List items use stable identifiers, not array indices
