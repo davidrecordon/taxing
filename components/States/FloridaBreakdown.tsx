@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { TaxCalculationResult } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
 import TaxSummarySection from '../shared/TaxSummarySection';
@@ -6,7 +7,7 @@ interface Props {
   result: TaxCalculationResult;
 }
 
-export default function FloridaBreakdown({ result }: Props) {
+export default memo(function FloridaBreakdown({ result }: Props) {
   const hasWithholding = result.withheld > 0 || result.estimatedPaid > 0;
 
   return (
@@ -43,4 +44,4 @@ export default function FloridaBreakdown({ result }: Props) {
       )}
     </div>
   );
-}
+})

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { TaxCalculationResult, WashingtonLimitsData } from '@/lib/types';
 import { formatCurrency, formatPercent } from '@/lib/formatters';
 import { calculateEffectiveRates } from '@/lib/taxUtils';
@@ -12,7 +13,7 @@ interface Props {
   result: TaxCalculationResult;
 }
 
-export default function WashingtonBreakdown({ result }: Props) {
+export default memo(function WashingtonBreakdown({ result }: Props) {
   const hasLTCG = result.longTermCapitalGains > 0;
 
   // Calculate net LTCG for display
@@ -113,4 +114,4 @@ export default function WashingtonBreakdown({ result }: Props) {
       )}
     </div>
   );
-}
+})

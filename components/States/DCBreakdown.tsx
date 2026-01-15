@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { TaxCalculationResult, DCLimitsData } from '@/lib/types';
 import { formatCurrency, formatPercent } from '@/lib/formatters';
 import { calculateEffectiveRates } from '@/lib/taxUtils';
@@ -12,7 +13,7 @@ interface Props {
   result: TaxCalculationResult;
 }
 
-export default function DCBreakdown({ result }: Props) {
+export default memo(function DCBreakdown({ result }: Props) {
   return (
     <div className="bg-white rounded-lg shadow p-4 text-gray-900">
       <h2 className="text-lg font-semibold border-b pb-2 mb-4">
@@ -170,4 +171,4 @@ export default function DCBreakdown({ result }: Props) {
       )}
     </div>
   );
-}
+})

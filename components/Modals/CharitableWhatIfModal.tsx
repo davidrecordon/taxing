@@ -127,9 +127,9 @@ export default function CharitableWhatIfModal({
                 </tr>
               </thead>
               <tbody>
-                {scenarioResults.map((scenario, index) => (
+                {scenarioResults.map((scenario) => (
                   <tr
-                    key={index}
+                    key={scenario.label}
                     className={`border-b border-gray-100 ${
                       scenario.isCurrent ? 'bg-blue-50' : 'hover:bg-gray-50'
                     }`}

@@ -35,11 +35,14 @@ export default function CurrencyInput({
 
   // Sync with external value changes (e.g., form reset)
   useEffect(() => {
-    const numericValue = parseNumericInput(inputValue, allowNegative);
-    if (value !== numericValue) {
-      setInputValue(formatDisplayValue(value));
-    }
-  }, [value, inputValue, allowNegative]);
+    setInputValue((current) => {
+      const numericValue = parseNumericInput(current, allowNegative);
+      if (value !== numericValue) {
+        return formatDisplayValue(value);
+      }
+      return current;
+    });
+  }, [value, allowNegative]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;

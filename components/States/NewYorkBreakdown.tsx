@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { TaxCalculationResult, NewYorkLimitsData } from '@/lib/types';
 import { formatCurrency, formatPercent } from '@/lib/formatters';
 import { calculateEffectiveRates } from '@/lib/taxUtils';
@@ -12,7 +13,7 @@ interface Props {
   result: TaxCalculationResult;
 }
 
-export default function NewYorkBreakdown({ result }: Props) {
+export default memo(function NewYorkBreakdown({ result }: Props) {
   const hasNYCTax = (result.nycTax ?? 0) > 0;
 
   return (
@@ -202,4 +203,4 @@ export default function NewYorkBreakdown({ result }: Props) {
       )}
     </div>
   );
-}
+})

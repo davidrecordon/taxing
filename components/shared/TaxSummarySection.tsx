@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { formatCurrency, formatPercent } from '@/lib/formatters';
 
 interface EffectiveRates {
@@ -28,7 +29,7 @@ interface TaxSummarySectionProps {
  * Reusable tax summary section showing total tax, payments, and amount owed/refund.
  * Used by Federal, California, Washington, and other breakdown components.
  */
-export default function TaxSummarySection({
+export default memo(function TaxSummarySection({
   totalTax,
   withheld,
   estimatedPaid,
@@ -92,4 +93,4 @@ export default function TaxSummarySection({
       )}
     </div>
   );
-}
+})

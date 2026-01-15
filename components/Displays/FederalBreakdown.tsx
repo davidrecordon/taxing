@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { TaxCalculationResult, FederalLimitsData, FicaData } from '@/lib/types';
 import { formatCurrency, formatPercent } from '@/lib/formatters';
 import { calculateEffectiveRates } from '@/lib/taxUtils';
@@ -14,7 +15,7 @@ interface Props {
   result: TaxCalculationResult;
 }
 
-export default function FederalBreakdown({ result }: Props) {
+export default memo(function FederalBreakdown({ result }: Props) {
   return (
     <div className="bg-white rounded-lg shadow p-4 text-gray-900">
       <h2 className="text-lg font-semibold border-b pb-2 mb-4">
@@ -301,4 +302,4 @@ export default function FederalBreakdown({ result }: Props) {
       )}
     </div>
   );
-}
+})

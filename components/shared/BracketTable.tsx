@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { BracketBreakdown } from '@/lib/types';
 import { formatCurrency, formatPercent } from '@/lib/formatters';
 
@@ -20,7 +21,7 @@ interface BracketTableProps {
  * Reusable bracket table component for displaying tax calculations by bracket.
  * Used by Federal, California, Washington, and other state breakdown components.
  */
-export default function BracketTable({
+export default memo(function BracketTable({
   breakdown,
   title,
   incomeLabel = 'Income',
@@ -79,4 +80,4 @@ export default function BracketTable({
       )}
     </div>
   );
-}
+})
