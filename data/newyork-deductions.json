@@ -5,5 +5,12 @@
       "marriedFilingJointly": 16050,
       "marriedFilingSeparately": 8000
     }
+  },
+  "2026": {
+    "standardDeduction": {
+      "single": 8000,
+      "marriedFilingJointly": 16050,
+      "marriedFilingSeparately": 8000
+    }
   }
 }

@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { calculateNewYorkTax } from '../states/newYorkTaxCalculator';
+import { describe, it, expect, beforeAll } from "vitest";
+import { calculateNewYorkTax } from "../states/newYorkTaxCalculator";
+import { SUPPORTED_YEARS, TaxYear } from "../config";
 import {
   newYorkBrackets,
   nycBrackets,
@@ -9,16 +10,18 @@ import {
   federalLimits,
   ficaData,
   createDefaultInputs,
-} from './testData';
+  loadTestDataForYear,
+  TestDataForYear,
+} from "./testData";
 
-describe('calculateNewYorkTax', () => {
-  describe('capital gains as ordinary income', () => {
-    it('taxes both short-term and long-term capital gains at ordinary rates', () => {
+describe("calculateNewYorkTax", () => {
+  describe("capital gains as ordinary income", () => {
+    it("taxes both short-term and long-term capital gains at ordinary rates", () => {
       const inputs = createDefaultInputs({
         federalIncome: 0,
         longTermCapitalGains: 50000,
         shortTermCapitalGains: 50000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -28,7 +31,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.grossIncome).toBe(100000);
@@ -37,11 +40,11 @@ describe('calculateNewYorkTax', () => {
     });
   });
 
-  describe('NYC local tax', () => {
-    it('applies NYC local tax when isNYCResident is true', () => {
+  describe("NYC local tax", () => {
+    it("applies NYC local tax when isNYCResident is true", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        filingStatus: 'single',
+        filingStatus: "single",
         isNYCResident: true,
       });
 
@@ -52,7 +55,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.nycTax).toBeDefined();
@@ -63,10 +66,10 @@ describe('calculateNewYorkTax', () => {
       expect(result.totalTax).toBe(result.ordinaryIncomeTax + result.nycTax!);
     });
 
-    it('does not apply NYC tax when isNYCResident is false', () => {
+    it("does not apply NYC tax when isNYCResident is false", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        filingStatus: 'single',
+        filingStatus: "single",
         isNYCResident: false,
       });
 
@@ -77,7 +80,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.nycTax).toBeUndefined();
@@ -85,10 +88,10 @@ describe('calculateNewYorkTax', () => {
       expect(result.totalTax).toBe(result.ordinaryIncomeTax);
     });
 
-    it('does not apply NYC tax when isNYCResident is not set', () => {
+    it("does not apply NYC tax when isNYCResident is not set", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -98,7 +101,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.nycTax).toBeUndefined();
@@ -106,12 +109,12 @@ describe('calculateNewYorkTax', () => {
     });
   });
 
-  describe('safe harbor with high income rule', () => {
-    it('uses 110% prior year for high income (AGI > $150k)', () => {
+  describe("safe harbor with high income rule", () => {
+    it("uses 110% prior year for high income (AGI > $150k)", () => {
       const inputs = createDefaultInputs({
         federalIncome: 200000,
         priorYearStateTaxPaid: 10000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -121,7 +124,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.safeHarbor).toBeDefined();
@@ -130,11 +133,11 @@ describe('calculateNewYorkTax', () => {
       expect(result.safeHarbor!.priorYearSafeHarbor).toBeCloseTo(11000, 2);
     });
 
-    it('uses 100% prior year for income under $150k', () => {
+    it("uses 100% prior year for income under $150k", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         priorYearStateTaxPaid: 5000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -144,7 +147,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.safeHarbor).toBeDefined();
@@ -153,11 +156,11 @@ describe('calculateNewYorkTax', () => {
       expect(result.safeHarbor!.priorYearSafeHarbor).toBeCloseTo(5000, 2);
     });
 
-    it('uses $75k threshold for MFS high income', () => {
+    it("uses $75k threshold for MFS high income", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000, // Over $75k for MFS
         priorYearStateTaxPaid: 5000,
-        filingStatus: 'marriedFilingSeparately',
+        filingStatus: "marriedFilingSeparately",
       });
 
       const result = calculateNewYorkTax(
@@ -167,7 +170,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.safeHarbor!.isHighIncome).toBe(true);
@@ -175,11 +178,11 @@ describe('calculateNewYorkTax', () => {
       expect(result.safeHarbor!.priorYearSafeHarbor).toBeCloseTo(5500, 2);
     });
 
-    it('MFJ uses $150k threshold', () => {
+    it("MFJ uses $150k threshold", () => {
       const inputs = createDefaultInputs({
         federalIncome: 140000, // Under $150k for MFJ
         priorYearStateTaxPaid: 5000,
-        filingStatus: 'marriedFilingJointly',
+        filingStatus: "marriedFilingJointly",
       });
 
       const result = calculateNewYorkTax(
@@ -189,20 +192,20 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.safeHarbor!.isHighIncome).toBe(false);
     });
   });
 
-  describe('loss carryovers', () => {
-    it('applies ST loss carryover with $3,000 ordinary income limit', () => {
+  describe("loss carryovers", () => {
+    it("applies ST loss carryover with $3,000 ordinary income limit", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         shortTermCapitalGains: 5000,
         priorYearShortTermLossCarryover: 10000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -212,19 +215,19 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       // $5k offsets ST gains, $3k offsets ordinary income
       expect(result.shortTermLossCarryoverOffset).toBe(8000);
     });
 
-    it('applies $1,500 limit for MFS loss carryover to ordinary income', () => {
+    it("applies $1,500 limit for MFS loss carryover to ordinary income", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         shortTermCapitalGains: 0,
         priorYearShortTermLossCarryover: 5000,
-        filingStatus: 'marriedFilingSeparately',
+        filingStatus: "marriedFilingSeparately",
       });
 
       const result = calculateNewYorkTax(
@@ -234,18 +237,18 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.shortTermLossCarryoverOffset).toBe(1500);
     });
 
-    it('LT loss carryover offsets long-term capital gains', () => {
+    it("LT loss carryover offsets long-term capital gains", () => {
       const inputs = createDefaultInputs({
         federalIncome: 50000,
         longTermCapitalGains: 30000,
         priorYearLongTermLossCarryover: 20000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -255,7 +258,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.longTermLossCarryoverOffset).toBe(20000);
@@ -263,12 +266,12 @@ describe('calculateNewYorkTax', () => {
     });
   });
 
-  describe('NY income vs federal income', () => {
-    it('uses stateIncome when specified instead of federalIncome', () => {
+  describe("NY income vs federal income", () => {
+    it("uses stateIncome when specified instead of federalIncome", () => {
       const inputs = createDefaultInputs({
         federalIncome: 150000,
         stateIncome: 120000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -278,18 +281,18 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.wageIncome).toBe(120000);
       expect(result.grossIncome).toBe(120000);
     });
 
-    it('falls back to federalIncome when stateIncome is 0', () => {
+    it("falls back to federalIncome when stateIncome is 0", () => {
       const inputs = createDefaultInputs({
         federalIncome: 150000,
         stateIncome: 0,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -299,19 +302,19 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.wageIncome).toBe(150000);
     });
   });
 
-  describe('401k deduction', () => {
-    it('reduces NY taxable income by 401k contributions', () => {
+  describe("401k deduction", () => {
+    it("reduces NY taxable income by 401k contributions", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         contributions401k: 23500,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -321,7 +324,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       // Gross = $100k, after 401k and std ded: $100k - $23.5k - $8,000 = $68,500
@@ -330,12 +333,12 @@ describe('calculateNewYorkTax', () => {
     });
   });
 
-  describe('pre-tax medical deduction', () => {
-    it('reduces NY taxable income by pre-tax medical contributions', () => {
+  describe("pre-tax medical deduction", () => {
+    it("reduces NY taxable income by pre-tax medical contributions", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         preTaxMedical: 10000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -345,7 +348,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       // Gross = $100k, after pre-tax medical and std ded: $100k - $10k - $8,000 = $82,000
@@ -353,12 +356,12 @@ describe('calculateNewYorkTax', () => {
       expect(result.taxableOrdinaryIncome).toBe(82000);
     });
 
-    it('combines with 401k to reduce NY taxable income', () => {
+    it("combines with 401k to reduce NY taxable income", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         contributions401k: 20000,
         preTaxMedical: 5000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -368,7 +371,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       // Gross = $100k, after both deductions: $100k - $20k - $5k - $8,000 = $67,000
@@ -378,12 +381,12 @@ describe('calculateNewYorkTax', () => {
     });
   });
 
-  describe('negative LTCG (current year losses)', () => {
-    it('treats negative LTCG as $0 for NY tax calculation', () => {
+  describe("negative LTCG (current year losses)", () => {
+    it("treats negative LTCG as $0 for NY tax calculation", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         longTermCapitalGains: -25000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -393,7 +396,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       // Gross income should only include federal income (LTCG clamped to 0)
@@ -403,15 +406,15 @@ describe('calculateNewYorkTax', () => {
     });
   });
 
-  describe('negative STCG (current year short-term losses)', () => {
-    it('combines negative STCG with prior year carryover', () => {
+  describe("negative STCG (current year short-term losses)", () => {
+    it("combines negative STCG with prior year carryover", () => {
       // $100,000 federal income, -$5,000 STCG, $2,000 prior carryover
       // Combined carryover = $7,000, offsets $3,000 ordinary income
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         shortTermCapitalGains: -5000,
         priorYearShortTermLossCarryover: 2000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -421,7 +424,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       // Gross income should not include negative STCG
@@ -432,11 +435,11 @@ describe('calculateNewYorkTax', () => {
     });
   });
 
-  describe('NY bracket calculations', () => {
-    it('calculates tax correctly through multiple brackets', () => {
+  describe("NY bracket calculations", () => {
+    it("calculates tax correctly through multiple brackets", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -446,7 +449,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       // Taxable = $100k - $8k = $92k
@@ -454,11 +457,11 @@ describe('calculateNewYorkTax', () => {
       expect(result.ordinaryIncomeBracketBreakdown.length).toBeGreaterThan(1);
     });
 
-    it('handles top NY bracket (10.9%)', () => {
+    it("handles top NY bracket (10.9%)", () => {
       // Very high income to hit 10.9% bracket (starts at $25M for single)
       const inputs = createDefaultInputs({
         federalIncome: 30000000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -468,21 +471,23 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
-      const topBracket = result.ordinaryIncomeBracketBreakdown.find(b => b.rate === 0.109);
+      const topBracket = result.ordinaryIncomeBracketBreakdown.find(
+        (b) => b.rate === 0.109,
+      );
       expect(topBracket).toBeDefined();
     });
   });
 
-  describe('refund and remaining owed', () => {
-    it('calculates NY refund correctly', () => {
+  describe("refund and remaining owed", () => {
+    it("calculates NY refund correctly", () => {
       const inputs = createDefaultInputs({
         federalIncome: 60000,
         stateTaxWithheld: 5000,
         stateEstimatedPaid: 2000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -492,7 +497,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.totalPaid).toBe(7000);
@@ -501,11 +506,11 @@ describe('calculateNewYorkTax', () => {
       expect(result.remainingOwed).toBe(0);
     });
 
-    it('calculates NY amount owed when underpaid', () => {
+    it("calculates NY amount owed when underpaid", () => {
       const inputs = createDefaultInputs({
         federalIncome: 300000,
         stateTaxWithheld: 5000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -515,7 +520,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.totalPaid).toBe(5000);
@@ -524,8 +529,8 @@ describe('calculateNewYorkTax', () => {
     });
   });
 
-  describe('edge cases', () => {
-    it('handles all inputs at zero', () => {
+  describe("edge cases", () => {
+    it("handles all inputs at zero", () => {
       const inputs = createDefaultInputs();
 
       const result = calculateNewYorkTax(
@@ -535,14 +540,14 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.grossIncome).toBe(0);
       expect(result.totalTax).toBe(0);
     });
 
-    it('handles NYC resident with zero income', () => {
+    it("handles NYC resident with zero income", () => {
       const inputs = createDefaultInputs({
         isNYCResident: true,
       });
@@ -554,18 +559,18 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.nycTax).toBe(0);
       expect(result.totalTax).toBe(0);
     });
 
-    it('correctly identifies high income at exactly $150,001', () => {
+    it("correctly identifies high income at exactly $150,001", () => {
       const inputs = createDefaultInputs({
         federalIncome: 150001,
         priorYearStateTaxPaid: 1000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -575,19 +580,19 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.safeHarbor!.isHighIncome).toBe(true);
     });
 
-    it('correctly identifies non-high income at exactly $150,000', () => {
+    it("correctly identifies non-high income at exactly $150,000", () => {
       // Need to account for 401k and deductions to get AGI exactly at threshold
       // With $8k std deduction, need $158k gross to get $150k AGI
       const inputs = createDefaultInputs({
         federalIncome: 158000,
         priorYearStateTaxPaid: 1000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -597,7 +602,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       // AGI = $158k - deductions, threshold check is on nyAgi which doesn't include deductions
@@ -606,12 +611,12 @@ describe('calculateNewYorkTax', () => {
     });
   });
 
-  describe('self-employment income', () => {
-    it('includes SE income in gross income', () => {
+  describe("self-employment income", () => {
+    it("includes SE income in gross income", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         selfEmploymentIncome: 50000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -622,18 +627,18 @@ describe('calculateNewYorkTax', () => {
         sharedLimits,
         federalLimits,
         newYorkLimits,
-        ficaData
+        ficaData,
       );
 
       expect(result.grossIncome).toBe(150000);
       expect(result.selfEmploymentIncome).toBe(50000);
     });
 
-    it('calculates deductible half of SE tax', () => {
+    it("calculates deductible half of SE tax", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         selfEmploymentIncome: 50000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -644,18 +649,18 @@ describe('calculateNewYorkTax', () => {
         sharedLimits,
         federalLimits,
         newYorkLimits,
-        ficaData
+        ficaData,
       );
 
       // Deductible SE tax = 50% of SE tax
       expect(result.deductibleSETax).toBeCloseTo(3532, 0);
     });
 
-    it('reduces taxable income by deductible SE tax', () => {
+    it("reduces taxable income by deductible SE tax", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         selfEmploymentIncome: 50000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -666,7 +671,7 @@ describe('calculateNewYorkTax', () => {
         sharedLimits,
         federalLimits,
         newYorkLimits,
-        ficaData
+        ficaData,
       );
 
       // Gross = $150k, less deductible SE tax (~$3,532), less std ded ($8,000)
@@ -674,10 +679,10 @@ describe('calculateNewYorkTax', () => {
       expect(result.taxableOrdinaryIncome).toBeCloseTo(138468, 0);
     });
 
-    it('does not include SE fields when no SE income', () => {
+    it("does not include SE fields when no SE income", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -688,18 +693,18 @@ describe('calculateNewYorkTax', () => {
         sharedLimits,
         federalLimits,
         newYorkLimits,
-        ficaData
+        ficaData,
       );
 
       expect(result.selfEmploymentIncome).toBeUndefined();
       expect(result.deductibleSETax).toBeUndefined();
     });
 
-    it('SE income counts toward NYC local tax', () => {
+    it("SE income counts toward NYC local tax", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         selfEmploymentIncome: 50000,
-        filingStatus: 'single',
+        filingStatus: "single",
         isNYCResident: true,
       });
 
@@ -711,7 +716,7 @@ describe('calculateNewYorkTax', () => {
         sharedLimits,
         federalLimits,
         newYorkLimits,
-        ficaData
+        ficaData,
       );
 
       expect(result.nycTax).toBeDefined();
@@ -721,8 +726,8 @@ describe('calculateNewYorkTax', () => {
     });
   });
 
-  describe('exact tax table verification', () => {
-    it('single filer $100k matches NY DTF tax table - exact calculation', () => {
+  describe("exact tax table verification", () => {
+    it("single filer $100k matches NY DTF tax table - exact calculation", () => {
       // Gross: $100,000
       // Standard deduction: $8,000
       // Taxable: $92,000
@@ -736,7 +741,7 @@ describe('calculateNewYorkTax', () => {
       // Total: $4,951.75
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -746,14 +751,14 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.taxableOrdinaryIncome).toBe(92000);
       expect(result.ordinaryIncomeTax).toBeCloseTo(4951.75, 0);
     });
 
-    it('single filer $200k matches NY DTF tax table - exact calculation', () => {
+    it("single filer $200k matches NY DTF tax table - exact calculation", () => {
       // Gross: $200,000
       // Standard deduction: $8,000
       // Taxable: $192,000
@@ -767,7 +772,7 @@ describe('calculateNewYorkTax', () => {
       // Total: $10,951.75
       const inputs = createDefaultInputs({
         federalIncome: 200000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -777,14 +782,14 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.taxableOrdinaryIncome).toBe(192000);
       expect(result.ordinaryIncomeTax).toBeCloseTo(10951.75, 0);
     });
 
-    it('NYC resident $100k matches combined NY + NYC tables - exact calculation', () => {
+    it("NYC resident $100k matches combined NY + NYC tables - exact calculation", () => {
       // Gross: $100,000
       // Standard deduction: $8,000
       // Taxable: $92,000
@@ -801,7 +806,7 @@ describe('calculateNewYorkTax', () => {
       // Combined: $4,951.75 + $3,441.09 = $8,392.84
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        filingStatus: 'single',
+        filingStatus: "single",
         isNYCResident: true,
       });
 
@@ -812,7 +817,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.taxableOrdinaryIncome).toBe(92000);
@@ -821,7 +826,7 @@ describe('calculateNewYorkTax', () => {
       expect(result.totalTax).toBeCloseTo(8392.84, 0);
     });
 
-    it('MFJ filer $200k matches NY DTF tax table - exact calculation', () => {
+    it("MFJ filer $200k matches NY DTF tax table - exact calculation", () => {
       // Gross: $200,000
       // Standard deduction (MFJ): $16,050
       // Taxable: $183,950
@@ -835,7 +840,7 @@ describe('calculateNewYorkTax', () => {
       // Total: $9,896.75
       const inputs = createDefaultInputs({
         federalIncome: 200000,
-        filingStatus: 'marriedFilingJointly',
+        filingStatus: "marriedFilingJointly",
       });
 
       const result = calculateNewYorkTax(
@@ -845,14 +850,14 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.taxableOrdinaryIncome).toBe(183950);
       expect(result.ordinaryIncomeTax).toBeCloseTo(9896.75, 0);
     });
 
-    it('high income single filer hits 6.85% bracket - exact calculation', () => {
+    it("high income single filer hits 6.85% bracket - exact calculation", () => {
       // Gross: $300,000
       // Standard deduction: $8,000
       // Taxable: $292,000
@@ -867,7 +872,7 @@ describe('calculateNewYorkTax', () => {
       // Total: $17,602.85
       const inputs = createDefaultInputs({
         federalIncome: 300000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateNewYorkTax(
@@ -877,7 +882,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       expect(result.taxableOrdinaryIncome).toBe(292000);
@@ -885,11 +890,11 @@ describe('calculateNewYorkTax', () => {
     });
   });
 
-  describe('deduction types', () => {
-    it('uses standard deduction when itemized is lower', () => {
+  describe("deduction types", () => {
+    it("uses standard deduction when itemized is lower", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        filingStatus: 'single',
+        filingStatus: "single",
         // No itemized deductions
       });
 
@@ -900,17 +905,17 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
-      expect(result.deductionBreakdown.deductionUsed).toBe('standard');
+      expect(result.deductionBreakdown.deductionUsed).toBe("standard");
       expect(result.deductionBreakdown.deductionAmount).toBe(8000); // NY single std deduction
     });
 
-    it('uses itemized deduction when higher than standard', () => {
+    it("uses itemized deduction when higher than standard", () => {
       const inputs = createDefaultInputs({
         federalIncome: 200000,
-        filingStatus: 'single',
+        filingStatus: "single",
         mortgageInterestPaid: 15000,
         charitableContributions: 5000,
       });
@@ -922,17 +927,17 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
-      expect(result.deductionBreakdown.deductionUsed).toBe('itemized');
+      expect(result.deductionBreakdown.deductionUsed).toBe("itemized");
       expect(result.deductionBreakdown.deductionAmount).toBe(20000); // mortgage + charitable
     });
 
-    it('NY does not allow SALT deduction', () => {
+    it("NY does not allow SALT deduction", () => {
       const inputs = createDefaultInputs({
         federalIncome: 200000,
-        filingStatus: 'single',
+        filingStatus: "single",
         propertyTaxesPaid: 20000,
         stateTaxWithheld: 10000,
       });
@@ -944,7 +949,7 @@ describe('calculateNewYorkTax', () => {
         newYorkDeductions,
         sharedLimits,
         federalLimits,
-        newYorkLimits
+        newYorkLimits,
       );
 
       // SALT should be 0 for NY (can't deduct state tax from state tax)
@@ -952,3 +957,95 @@ describe('calculateNewYorkTax', () => {
     });
   });
 });
+
+// Multi-year parameterized tests
+describe.each(SUPPORTED_YEARS)(
+  "calculateNewYorkTax - tax year %s",
+  (year: TaxYear) => {
+    let data: TestDataForYear;
+
+    beforeAll(() => {
+      data = loadTestDataForYear(year);
+    });
+
+    it("uses correct standard deduction for year", () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        filingStatus: "single",
+      });
+
+      const result = calculateNewYorkTax(
+        inputs,
+        data.newYorkBrackets,
+        data.nycBrackets,
+        data.newYorkDeductions,
+        data.sharedLimits,
+        data.federalLimits,
+        data.newYorkLimits,
+      );
+
+      // NY standard deduction varies by year
+      const expectedStdDeduction = {
+        "2025": 8000,
+        "2026": 8000,
+      };
+
+      expect(result.deductionBreakdown.standardDeduction).toBe(
+        expectedStdDeduction[year],
+      );
+    });
+
+    it("calculates tax correctly for single filer $100k", () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        filingStatus: "single",
+      });
+
+      const result = calculateNewYorkTax(
+        inputs,
+        data.newYorkBrackets,
+        data.nycBrackets,
+        data.newYorkDeductions,
+        data.sharedLimits,
+        data.federalLimits,
+        data.newYorkLimits,
+      );
+
+      // Tax amounts (brackets unchanged between 2025/2026)
+      const expectedTax = {
+        "2025": 4951.75,
+        "2026": 4951.75,
+      };
+
+      expect(result.taxableOrdinaryIncome).toBe(92000);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(expectedTax[year], 0);
+    });
+
+    it("uses correct MFJ standard deduction for year", () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 200000,
+        filingStatus: "marriedFilingJointly",
+      });
+
+      const result = calculateNewYorkTax(
+        inputs,
+        data.newYorkBrackets,
+        data.nycBrackets,
+        data.newYorkDeductions,
+        data.sharedLimits,
+        data.federalLimits,
+        data.newYorkLimits,
+      );
+
+      // NY MFJ standard deduction varies by year
+      const expectedStdDeduction = {
+        "2025": 16050,
+        "2026": 16050,
+      };
+
+      expect(result.deductionBreakdown.standardDeduction).toBe(
+        expectedStdDeduction[year],
+      );
+    });
+  },
+);

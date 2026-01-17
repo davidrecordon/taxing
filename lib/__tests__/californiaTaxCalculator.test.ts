@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { calculateCaliforniaTax } from '../states/californiaTaxCalculator';
+import { describe, it, expect, beforeAll } from "vitest";
+import { calculateCaliforniaTax } from "../states/californiaTaxCalculator";
+import { SUPPORTED_YEARS, TaxYear } from "../config";
 import {
   californiaBrackets,
   californiaDeductions,
@@ -7,11 +8,13 @@ import {
   californiaLimits,
   ficaData,
   createDefaultInputs,
-} from './testData';
+  loadTestDataForYear,
+  TestDataForYear,
+} from "./testData";
 
-describe('calculateCaliforniaTax', () => {
-  describe('capital gains as ordinary income', () => {
-    it('taxes both short-term and long-term capital gains at ordinary rates', () => {
+describe("calculateCaliforniaTax", () => {
+  describe("capital gains as ordinary income", () => {
+    it("taxes both short-term and long-term capital gains at ordinary rates", () => {
       // Single filer with $50,000 LTCG and $50,000 STCG
       // Gross = $0 + $50,000 + $50,000 = $100,000
       // All taxed as ordinary income (no preferential LTCG rates)
@@ -19,7 +22,7 @@ describe('calculateCaliforniaTax', () => {
         federalIncome: 0,
         longTermCapitalGains: 50000,
         shortTermCapitalGains: 50000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -27,7 +30,7 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       // Verify all gains are included in ordinary income
@@ -38,13 +41,13 @@ describe('calculateCaliforniaTax', () => {
     });
   });
 
-  describe('mental health tax', () => {
-    it('applies 1% mental health tax on income above $1M', () => {
+  describe("mental health tax", () => {
+    it("applies 1% mental health tax on income above $1M", () => {
       // Single filer with $1,100,000 income
       // Mental health tax = (taxable income - $1,000,000) * 1%
       const inputs = createDefaultInputs({
         federalIncome: 1100000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -52,20 +55,20 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       // Calculate expected: income - std deduction = $1,094,460
       // Mental health tax = ($1,094,460 - $1,000,000) * 0.01 = $944.60
-      expect(result.caMentalHealthTax).toBeCloseTo(944.60, 2);
+      expect(result.caMentalHealthTax).toBeCloseTo(944.6, 2);
     });
 
-    it('does not apply mental health tax at exactly $1M', () => {
+    it("does not apply mental health tax at exactly $1M", () => {
       // Taxable income needs to be exactly $1M or less
       // $1,005,540 - $5,540 std deduction = $1,000,000 taxable
       const inputs = createDefaultInputs({
         federalIncome: 1005540,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -73,22 +76,22 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       expect(result.caMentalHealthTax).toBe(0);
     });
   });
 
-  describe('safe harbor with high income exception', () => {
-    it('only uses 90% current year method for high income taxpayers (AGI > $1M)', () => {
+  describe("safe harbor with high income exception", () => {
+    it("only uses 90% current year method for high income taxpayers (AGI > $1M)", () => {
       // Single filer with $1,500,000 income
       // AGI > $1M, so high income exception applies
       // Cannot use 100% prior year method
       const inputs = createDefaultInputs({
         federalIncome: 1500000,
         priorYearStateTaxPaid: 50000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -96,7 +99,7 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       expect(result.safeHarbor).toBeDefined();
@@ -105,12 +108,12 @@ describe('calculateCaliforniaTax', () => {
       expect(result.safeHarbor!.minimum).toBeCloseTo(result.totalTax * 0.9, 2);
     });
 
-    it('can use 100% prior year method when AGI is under threshold', () => {
+    it("can use 100% prior year method when AGI is under threshold", () => {
       // Single filer with $500,000 income (under $1M threshold)
       const inputs = createDefaultInputs({
         federalIncome: 500000,
         priorYearStateTaxPaid: 100000, // High prior year to make 100% method more favorable
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -118,21 +121,23 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       expect(result.safeHarbor).toBeDefined();
       expect(result.safeHarbor!.highIncomeException).toBe(false);
       // Should be able to use 100% prior year if it's lower
-      expect(result.safeHarbor!.minimum).toBeLessThanOrEqual(result.totalTax * 0.9);
+      expect(result.safeHarbor!.minimum).toBeLessThanOrEqual(
+        result.totalTax * 0.9,
+      );
     });
 
-    it('uses $500k threshold for MFS high income exception', () => {
+    it("uses $500k threshold for MFS high income exception", () => {
       // MFS threshold is $500k vs $1M for single/MFJ
       const inputs = createDefaultInputs({
         federalIncome: 600000,
         priorYearStateTaxPaid: 20000,
-        filingStatus: 'marriedFilingSeparately',
+        filingStatus: "marriedFilingSeparately",
       });
 
       const result = calculateCaliforniaTax(
@@ -140,18 +145,18 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       expect(result.safeHarbor!.highIncomeException).toBe(true);
     });
 
-    it('MFJ uses $1M threshold for high income exception', () => {
+    it("MFJ uses $1M threshold for high income exception", () => {
       // $900k AGI is under $1M threshold for MFJ
       const inputs = createDefaultInputs({
         federalIncome: 900000,
         priorYearStateTaxPaid: 30000,
-        filingStatus: 'marriedFilingJointly',
+        filingStatus: "marriedFilingJointly",
       });
 
       const result = calculateCaliforniaTax(
@@ -159,20 +164,20 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       expect(result.safeHarbor!.highIncomeException).toBe(false);
     });
   });
 
-  describe('loss carryovers in California', () => {
-    it('applies ST loss carryover with $3,000 ordinary income limit', () => {
+  describe("loss carryovers in California", () => {
+    it("applies ST loss carryover with $3,000 ordinary income limit", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         shortTermCapitalGains: 5000,
         priorYearShortTermLossCarryover: 10000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -180,19 +185,19 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       // $5k offsets ST gains, $3k offsets ordinary income
       expect(result.shortTermLossCarryoverOffset).toBe(8000);
     });
 
-    it('applies $1,500 limit for MFS loss carryover to ordinary income', () => {
+    it("applies $1,500 limit for MFS loss carryover to ordinary income", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         shortTermCapitalGains: 0,
         priorYearShortTermLossCarryover: 5000,
-        filingStatus: 'marriedFilingSeparately',
+        filingStatus: "marriedFilingSeparately",
       });
 
       const result = calculateCaliforniaTax(
@@ -200,18 +205,18 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       expect(result.shortTermLossCarryoverOffset).toBe(1500);
     });
 
-    it('LT loss carryover offsets capital gains (treated as ordinary in CA)', () => {
+    it("LT loss carryover offsets capital gains (treated as ordinary in CA)", () => {
       const inputs = createDefaultInputs({
         federalIncome: 50000,
         longTermCapitalGains: 30000,
         priorYearLongTermLossCarryover: 20000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -219,7 +224,7 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       expect(result.longTermLossCarryoverOffset).toBe(20000);
@@ -228,12 +233,12 @@ describe('calculateCaliforniaTax', () => {
     });
   });
 
-  describe('California income vs federal income', () => {
-    it('uses stateIncome when specified instead of federalIncome', () => {
+  describe("California income vs federal income", () => {
+    it("uses stateIncome when specified instead of federalIncome", () => {
       const inputs = createDefaultInputs({
         federalIncome: 150000,
         stateIncome: 120000, // Different CA-source income
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -241,18 +246,18 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       expect(result.wageIncome).toBe(120000);
       expect(result.grossIncome).toBe(120000);
     });
 
-    it('falls back to federalIncome when stateIncome is 0', () => {
+    it("falls back to federalIncome when stateIncome is 0", () => {
       const inputs = createDefaultInputs({
         federalIncome: 150000,
         stateIncome: 0,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -260,19 +265,19 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       expect(result.wageIncome).toBe(150000);
     });
   });
 
-  describe('mental health tax edge cases', () => {
-    it('applies mental health tax to MFJ income over $1M', () => {
+  describe("mental health tax edge cases", () => {
+    it("applies mental health tax to MFJ income over $1M", () => {
       // MFJ with $2M income
       const inputs = createDefaultInputs({
         federalIncome: 2000000,
-        filingStatus: 'marriedFilingJointly',
+        filingStatus: "marriedFilingJointly",
       });
 
       const result = calculateCaliforniaTax(
@@ -280,20 +285,20 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       // Taxable = $2M - $11,080 std = $1,988,920
       // Mental health = ($1,988,920 - $1M) * 1% = $9,889.20
-      expect(result.caMentalHealthTax).toBeCloseTo(9889.20, 2);
+      expect(result.caMentalHealthTax).toBeCloseTo(9889.2, 2);
     });
 
-    it('mental health tax applies to capital gains income too', () => {
+    it("mental health tax applies to capital gains income too", () => {
       // $500k wages + $600k LTCG = $1.1M
       const inputs = createDefaultInputs({
         federalIncome: 500000,
         longTermCapitalGains: 600000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -301,7 +306,7 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       // Mental health tax should apply
@@ -309,12 +314,12 @@ describe('calculateCaliforniaTax', () => {
     });
   });
 
-  describe('California bracket calculations', () => {
-    it('calculates tax correctly through multiple brackets', () => {
+  describe("California bracket calculations", () => {
+    it("calculates tax correctly through multiple brackets", () => {
       // $100k income, single filer
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -322,7 +327,7 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       // Taxable = $100k - $5,540 = $94,460
@@ -331,11 +336,11 @@ describe('calculateCaliforniaTax', () => {
       expect(result.ordinaryIncomeBracketBreakdown.length).toBeGreaterThan(1);
     });
 
-    it('handles top CA bracket (12.3%)', () => {
+    it("handles top CA bracket (12.3%)", () => {
       // Very high income to hit 12.3% bracket (starts at $742,953 for single)
       const inputs = createDefaultInputs({
         federalIncome: 800000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -343,20 +348,22 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
-      const topBracket = result.ordinaryIncomeBracketBreakdown.find(b => b.rate === 0.123);
+      const topBracket = result.ordinaryIncomeBracketBreakdown.find(
+        (b) => b.rate === 0.123,
+      );
       expect(topBracket).toBeDefined();
     });
   });
 
-  describe('401k deduction in California', () => {
-    it('reduces CA taxable income by 401k contributions', () => {
+  describe("401k deduction in California", () => {
+    it("reduces CA taxable income by 401k contributions", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         contributions401k: 23500,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -364,7 +371,7 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       // Gross = $100k, after 401k and std ded: $100k - $23.5k - $5,540 = $70,960
@@ -373,12 +380,12 @@ describe('calculateCaliforniaTax', () => {
     });
   });
 
-  describe('pre-tax medical deduction in California', () => {
-    it('reduces CA taxable income by pre-tax medical contributions', () => {
+  describe("pre-tax medical deduction in California", () => {
+    it("reduces CA taxable income by pre-tax medical contributions", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         preTaxMedical: 10000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -386,7 +393,7 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       // Gross = $100k, after pre-tax medical and std ded: $100k - $10k - $5,540 = $84,460
@@ -394,12 +401,12 @@ describe('calculateCaliforniaTax', () => {
       expect(result.taxableOrdinaryIncome).toBe(84460);
     });
 
-    it('combines with 401k to reduce CA taxable income', () => {
+    it("combines with 401k to reduce CA taxable income", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         contributions401k: 20000,
         preTaxMedical: 5000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -407,7 +414,7 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       // Gross = $100k, after both deductions: $100k - $20k - $5k - $5,540 = $69,460
@@ -417,12 +424,12 @@ describe('calculateCaliforniaTax', () => {
     });
   });
 
-  describe('negative LTCG (current year losses)', () => {
-    it('treats negative LTCG as $0 for CA tax calculation', () => {
+  describe("negative LTCG (current year losses)", () => {
+    it("treats negative LTCG as $0 for CA tax calculation", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         longTermCapitalGains: -30000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -430,7 +437,7 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       // Gross income should only include federal income (LTCG clamped to 0)
@@ -440,15 +447,15 @@ describe('calculateCaliforniaTax', () => {
     });
   });
 
-  describe('negative STCG (current year short-term losses)', () => {
-    it('combines negative STCG with prior year carryover', () => {
+  describe("negative STCG (current year short-term losses)", () => {
+    it("combines negative STCG with prior year carryover", () => {
       // $100,000 federal income, -$5,000 STCG, $2,000 prior carryover
       // Combined carryover = $7,000, offsets $3,000 ordinary income
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         shortTermCapitalGains: -5000,
         priorYearShortTermLossCarryover: 2000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -456,7 +463,7 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       // Gross income should not include negative STCG
@@ -467,13 +474,13 @@ describe('calculateCaliforniaTax', () => {
     });
   });
 
-  describe('refund and remaining owed', () => {
-    it('calculates CA refund correctly', () => {
+  describe("refund and remaining owed", () => {
+    it("calculates CA refund correctly", () => {
       const inputs = createDefaultInputs({
         federalIncome: 60000,
         stateTaxWithheld: 5000,
         stateEstimatedPaid: 2000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -481,7 +488,7 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       expect(result.totalPaid).toBe(7000);
@@ -490,11 +497,11 @@ describe('calculateCaliforniaTax', () => {
       expect(result.remainingOwed).toBe(0);
     });
 
-    it('calculates CA amount owed when underpaid', () => {
+    it("calculates CA amount owed when underpaid", () => {
       const inputs = createDefaultInputs({
         federalIncome: 300000,
         stateTaxWithheld: 5000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -502,7 +509,7 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       expect(result.totalPaid).toBe(5000);
@@ -511,12 +518,12 @@ describe('calculateCaliforniaTax', () => {
     });
   });
 
-  describe('self-employment income', () => {
-    it('includes SE income in gross income when ficaData is provided', () => {
+  describe("self-employment income", () => {
+    it("includes SE income in gross income when ficaData is provided", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         selfEmploymentIncome: 50000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -525,7 +532,7 @@ describe('calculateCaliforniaTax', () => {
         californiaDeductions,
         sharedLimits,
         californiaLimits,
-        ficaData
+        ficaData,
       );
 
       // Gross = $100k + $50k SE = $150k
@@ -533,11 +540,11 @@ describe('calculateCaliforniaTax', () => {
       expect(result.selfEmploymentIncome).toBe(50000);
     });
 
-    it('calculates deductible half of SE tax', () => {
+    it("calculates deductible half of SE tax", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         selfEmploymentIncome: 50000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -546,7 +553,7 @@ describe('calculateCaliforniaTax', () => {
         californiaDeductions,
         sharedLimits,
         californiaLimits,
-        ficaData
+        ficaData,
       );
 
       // Deductible SE tax = 50% of SE tax
@@ -557,11 +564,11 @@ describe('calculateCaliforniaTax', () => {
       expect(result.deductibleSETax).toBeCloseTo(3532.39, 0);
     });
 
-    it('reduces taxable income by deductible SE tax', () => {
+    it("reduces taxable income by deductible SE tax", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         selfEmploymentIncome: 50000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const resultWithSE = calculateCaliforniaTax(
@@ -570,12 +577,12 @@ describe('calculateCaliforniaTax', () => {
         californiaDeductions,
         sharedLimits,
         californiaLimits,
-        ficaData
+        ficaData,
       );
 
       const inputsNoSE = createDefaultInputs({
         federalIncome: 150000, // Same gross
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const resultNoSE = calculateCaliforniaTax(
@@ -583,17 +590,19 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       // With SE, taxable income should be lower due to deductible SE tax
-      expect(resultWithSE.taxableOrdinaryIncome).toBeLessThan(resultNoSE.taxableOrdinaryIncome);
+      expect(resultWithSE.taxableOrdinaryIncome).toBeLessThan(
+        resultNoSE.taxableOrdinaryIncome,
+      );
     });
 
-    it('does not include SE fields when no SE income', () => {
+    it("does not include SE fields when no SE income", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -602,18 +611,18 @@ describe('calculateCaliforniaTax', () => {
         californiaDeductions,
         sharedLimits,
         californiaLimits,
-        ficaData
+        ficaData,
       );
 
       expect(result.selfEmploymentIncome).toBeUndefined();
       expect(result.deductibleSETax).toBeUndefined();
     });
 
-    it('works without ficaData (backwards compatibility)', () => {
+    it("works without ficaData (backwards compatibility)", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         selfEmploymentIncome: 50000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -621,7 +630,7 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
         // No ficaData
       );
 
@@ -632,8 +641,8 @@ describe('calculateCaliforniaTax', () => {
     });
   });
 
-  describe('exact tax table verification', () => {
-    it('single filer $100k matches CA FTB tax table - exact calculation', () => {
+  describe("exact tax table verification", () => {
+    it("single filer $100k matches CA FTB tax table - exact calculation", () => {
       // Gross: $100,000
       // Standard deduction: $5,540
       // Taxable: $94,460
@@ -648,7 +657,7 @@ describe('calculateCaliforniaTax', () => {
       // Total: $5,223.42
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -656,14 +665,14 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       expect(result.taxableOrdinaryIncome).toBe(94460);
       expect(result.ordinaryIncomeTax).toBeCloseTo(5223.42, 0);
     });
 
-    it('single filer $200k matches CA FTB tax table - exact calculation', () => {
+    it("single filer $200k matches CA FTB tax table - exact calculation", () => {
       // Gross: $200,000
       // Standard deduction: $5,540
       // Taxable: $194,460
@@ -678,7 +687,7 @@ describe('calculateCaliforniaTax', () => {
       // Total: $14,523.42
       const inputs = createDefaultInputs({
         federalIncome: 200000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -686,14 +695,14 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       expect(result.taxableOrdinaryIncome).toBe(194460);
       expect(result.ordinaryIncomeTax).toBeCloseTo(14523.42, 0);
     });
 
-    it('MFJ filer $200k matches CA FTB tax table - exact calculation', () => {
+    it("MFJ filer $200k matches CA FTB tax table - exact calculation", () => {
       // Gross: $200,000
       // Standard deduction (MFJ): $11,080
       // Taxable: $188,920
@@ -708,7 +717,7 @@ describe('calculateCaliforniaTax', () => {
       // Total: $10,446.84
       const inputs = createDefaultInputs({
         federalIncome: 200000,
-        filingStatus: 'marriedFilingJointly',
+        filingStatus: "marriedFilingJointly",
       });
 
       const result = calculateCaliforniaTax(
@@ -716,14 +725,14 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       expect(result.taxableOrdinaryIncome).toBe(188920);
       expect(result.ordinaryIncomeTax).toBeCloseTo(10446.84, 0);
     });
 
-    it('high income with mental health tax - exact calculation', () => {
+    it("high income with mental health tax - exact calculation", () => {
       // Gross: $1,200,000
       // Standard deduction: $5,540
       // Taxable: $1,194,460
@@ -744,7 +753,7 @@ describe('calculateCaliforniaTax', () => {
       // Total: $129,699.80
       const inputs = createDefaultInputs({
         federalIncome: 1200000,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -752,23 +761,23 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       expect(result.taxableOrdinaryIncome).toBe(1194460);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(127755.20, 0);
-      expect(result.caMentalHealthTax).toBeCloseTo(1944.60, 2);
-      expect(result.totalTax).toBeCloseTo(129699.80, 0);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(127755.2, 0);
+      expect(result.caMentalHealthTax).toBeCloseTo(1944.6, 2);
+      expect(result.totalTax).toBeCloseTo(129699.8, 0);
     });
   });
 
-  describe('edge cases', () => {
-    it('applies mental health tax at exactly $1,000,000.01 over threshold', () => {
+  describe("edge cases", () => {
+    it("applies mental health tax at exactly $1,000,000.01 over threshold", () => {
       // Taxable income just barely over $1M threshold
       // $1,005,540.01 - $5,540 std deduction = $1,000,000.01 taxable
       const inputs = createDefaultInputs({
         federalIncome: 1005540.01,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -776,18 +785,18 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       // Mental health tax = $0.01 * 1% = $0.0001 (rounds to ~0)
       expect(result.caMentalHealthTax).toBeCloseTo(0.0001, 4);
     });
 
-    it('handles zero CA income with federal income (uses federal as fallback)', () => {
+    it("handles zero CA income with federal income (uses federal as fallback)", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         stateIncome: 0,
-        filingStatus: 'single',
+        filingStatus: "single",
       });
 
       const result = calculateCaliforniaTax(
@@ -795,7 +804,7 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       // Should fall back to federal income
@@ -803,7 +812,7 @@ describe('calculateCaliforniaTax', () => {
       expect(result.grossIncome).toBe(100000);
     });
 
-    it('handles all inputs at zero', () => {
+    it("handles all inputs at zero", () => {
       const inputs = createDefaultInputs();
 
       const result = calculateCaliforniaTax(
@@ -811,7 +820,7 @@ describe('calculateCaliforniaTax', () => {
         californiaBrackets,
         californiaDeductions,
         sharedLimits,
-        californiaLimits
+        californiaLimits,
       );
 
       expect(result.grossIncome).toBe(0);
@@ -820,3 +829,118 @@ describe('calculateCaliforniaTax', () => {
     });
   });
 });
+
+// Multi-year parameterized tests
+describe.each(SUPPORTED_YEARS)(
+  "calculateCaliforniaTax - tax year %s",
+  (year: TaxYear) => {
+    let data: TestDataForYear;
+
+    beforeAll(() => {
+      data = loadTestDataForYear(year);
+    });
+
+    it("calculates tax correctly for single filer $100k", () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        filingStatus: "single",
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        data.californiaBrackets,
+        data.californiaDeductions,
+        data.sharedLimits,
+        data.californiaLimits,
+      );
+
+      // Standard deduction varies by year
+      const expectedStdDeduction = {
+        "2025": 5540,
+        "2026": 5540,
+      };
+      const expectedTaxableIncome = 100000 - expectedStdDeduction[year];
+      expect(result.taxableOrdinaryIncome).toBe(expectedTaxableIncome);
+
+      // Tax amounts vary by year due to bracket differences
+      const expectedTax = {
+        "2025": 5223.42, // Based on 2025 brackets
+        "2026": 5327.14, // 2026 has different bracket thresholds
+      };
+      expect(result.ordinaryIncomeTax).toBeCloseTo(expectedTax[year], 0);
+    });
+
+    it("applies mental health tax on income above $1M", () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 1100000,
+        filingStatus: "single",
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        data.californiaBrackets,
+        data.californiaDeductions,
+        data.sharedLimits,
+        data.californiaLimits,
+      );
+
+      // Mental health tax = (taxable - $1M) * 1%
+      const expectedStdDeduction = {
+        "2025": 5540,
+        "2026": 5540,
+      };
+      const taxableIncome = 1100000 - expectedStdDeduction[year];
+      const expectedMentalHealthTax = (taxableIncome - 1000000) * 0.01;
+
+      expect(result.caMentalHealthTax).toBeCloseTo(expectedMentalHealthTax, 2);
+    });
+
+    it("uses correct standard deduction for year", () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 50000,
+        filingStatus: "single",
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        data.californiaBrackets,
+        data.californiaDeductions,
+        data.sharedLimits,
+        data.californiaLimits,
+      );
+
+      const expectedStdDeduction = {
+        "2025": 5540,
+        "2026": 5540,
+      };
+
+      expect(result.deductionBreakdown.deductionAmount).toBe(
+        expectedStdDeduction[year],
+      );
+    });
+
+    it("uses correct MFJ standard deduction for year", () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        filingStatus: "marriedFilingJointly",
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        data.californiaBrackets,
+        data.californiaDeductions,
+        data.sharedLimits,
+        data.californiaLimits,
+      );
+
+      const expectedStdDeduction = {
+        "2025": 11080,
+        "2026": 11080,
+      };
+
+      expect(result.deductionBreakdown.deductionAmount).toBe(
+        expectedStdDeduction[year],
+      );
+    });
+  },
+);

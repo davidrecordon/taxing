@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { calculateDCTax } from '../states/dcTaxCalculator';
+import { describe, it, expect, beforeAll } from "vitest";
+import { calculateDCTax } from "../states/dcTaxCalculator";
+import { SUPPORTED_YEARS, TaxYear } from "../config";
 import {
   dcBrackets,
   dcDeductions,
@@ -8,15 +9,17 @@ import {
   federalLimits,
   ficaData,
   createDefaultInputs,
-} from './testData';
+  loadTestDataForYear,
+  TestDataForYear,
+} from "./testData";
 
-describe('calculateDCTax', () => {
-  describe('progressive bracket calculation', () => {
-    it('calculates tax correctly for income in first bracket', () => {
+describe("calculateDCTax", () => {
+  describe("progressive bracket calculation", () => {
+    it("calculates tax correctly for income in first bracket", () => {
       const inputs = createDefaultInputs({
         federalIncome: 8000,
-        selectedState: 'dc',
-        filingStatus: 'single',
+        selectedState: "dc",
+        filingStatus: "single",
       });
 
       const result = calculateDCTax(
@@ -26,7 +29,7 @@ describe('calculateDCTax', () => {
         sharedLimits,
         federalLimits,
         dcLimits,
-        ficaData
+        ficaData,
       );
 
       // $8k income, $15k standard deduction = $0 taxable
@@ -34,11 +37,11 @@ describe('calculateDCTax', () => {
       expect(result.totalTax).toBe(0);
     });
 
-    it('calculates tax for income in middle brackets', () => {
+    it("calculates tax for income in middle brackets", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        selectedState: 'dc',
-        filingStatus: 'single',
+        selectedState: "dc",
+        filingStatus: "single",
       });
 
       const result = calculateDCTax(
@@ -48,7 +51,7 @@ describe('calculateDCTax', () => {
         sharedLimits,
         federalLimits,
         dcLimits,
-        ficaData
+        ficaData,
       );
 
       // $100k - $15k standard deduction = $85k taxable
@@ -61,11 +64,11 @@ describe('calculateDCTax', () => {
       expect(result.ordinaryIncomeTax).toBeCloseTo(5625, 0);
     });
 
-    it('calculates tax for high income in top bracket', () => {
+    it("calculates tax for high income in top bracket", () => {
       const inputs = createDefaultInputs({
         federalIncome: 2000000,
-        selectedState: 'dc',
-        filingStatus: 'single',
+        selectedState: "dc",
+        filingStatus: "single",
       });
 
       const result = calculateDCTax(
@@ -75,7 +78,7 @@ describe('calculateDCTax', () => {
         sharedLimits,
         federalLimits,
         dcLimits,
-        ficaData
+        ficaData,
       );
 
       // $2M - $15k deduction = $1,985,000 taxable
@@ -92,18 +95,18 @@ describe('calculateDCTax', () => {
     });
   });
 
-  describe('filing status handling', () => {
-    it('uses same brackets for all filing statuses', () => {
+  describe("filing status handling", () => {
+    it("uses same brackets for all filing statuses", () => {
       const singleInputs = createDefaultInputs({
         federalIncome: 100000,
-        selectedState: 'dc',
-        filingStatus: 'single',
+        selectedState: "dc",
+        filingStatus: "single",
       });
 
       const mfjInputs = createDefaultInputs({
         federalIncome: 100000,
-        selectedState: 'dc',
-        filingStatus: 'marriedFilingJointly',
+        selectedState: "dc",
+        filingStatus: "marriedFilingJointly",
       });
 
       const singleResult = calculateDCTax(
@@ -113,7 +116,7 @@ describe('calculateDCTax', () => {
         sharedLimits,
         federalLimits,
         dcLimits,
-        ficaData
+        ficaData,
       );
 
       const mfjResult = calculateDCTax(
@@ -123,7 +126,7 @@ describe('calculateDCTax', () => {
         sharedLimits,
         federalLimits,
         dcLimits,
-        ficaData
+        ficaData,
       );
 
       // Same income but different standard deductions
@@ -136,11 +139,11 @@ describe('calculateDCTax', () => {
       expect(mfjResult.totalTax).toBeLessThan(singleResult.totalTax);
     });
 
-    it('applies MFS standard deduction correctly', () => {
+    it("applies MFS standard deduction correctly", () => {
       const inputs = createDefaultInputs({
         federalIncome: 50000,
-        selectedState: 'dc',
-        filingStatus: 'marriedFilingSeparately',
+        selectedState: "dc",
+        filingStatus: "marriedFilingSeparately",
       });
 
       const result = calculateDCTax(
@@ -150,7 +153,7 @@ describe('calculateDCTax', () => {
         sharedLimits,
         federalLimits,
         dcLimits,
-        ficaData
+        ficaData,
       );
 
       // $50k - $15k MFS standard deduction = $35k taxable
@@ -159,13 +162,13 @@ describe('calculateDCTax', () => {
     });
   });
 
-  describe('capital gains treatment', () => {
-    it('taxes capital gains as ordinary income', () => {
+  describe("capital gains treatment", () => {
+    it("taxes capital gains as ordinary income", () => {
       const inputs = createDefaultInputs({
         federalIncome: 50000,
         longTermCapitalGains: 50000,
-        selectedState: 'dc',
-        filingStatus: 'single',
+        selectedState: "dc",
+        filingStatus: "single",
       });
 
       const result = calculateDCTax(
@@ -175,7 +178,7 @@ describe('calculateDCTax', () => {
         sharedLimits,
         federalLimits,
         dcLimits,
-        ficaData
+        ficaData,
       );
 
       // $100k gross - $15k deduction = $85k taxable
@@ -184,13 +187,13 @@ describe('calculateDCTax', () => {
       expect(result.ltcgTax).toBe(0); // No separate LTCG treatment
     });
 
-    it('applies capital loss carryover correctly', () => {
+    it("applies capital loss carryover correctly", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         longTermCapitalGains: 20000,
         priorYearLongTermLossCarryover: 10000,
-        selectedState: 'dc',
-        filingStatus: 'single',
+        selectedState: "dc",
+        filingStatus: "single",
       });
 
       const result = calculateDCTax(
@@ -200,7 +203,7 @@ describe('calculateDCTax', () => {
         sharedLimits,
         federalLimits,
         dcLimits,
-        ficaData
+        ficaData,
       );
 
       // Gross = $120k, less $10k LTCG offset, less $15k deduction = $95k taxable
@@ -209,13 +212,13 @@ describe('calculateDCTax', () => {
     });
   });
 
-  describe('safe harbor', () => {
-    it('calculates safe harbor correctly (90%/110%)', () => {
+  describe("safe harbor", () => {
+    it("calculates safe harbor correctly (90%/110%)", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         priorYearStateTaxPaid: 5000,
-        selectedState: 'dc',
-        filingStatus: 'single',
+        selectedState: "dc",
+        filingStatus: "single",
       });
 
       const result = calculateDCTax(
@@ -225,23 +228,26 @@ describe('calculateDCTax', () => {
         sharedLimits,
         federalLimits,
         dcLimits,
-        ficaData
+        ficaData,
       );
 
       expect(result.safeHarbor).toBeDefined();
       // 90% of current year tax
-      expect(result.safeHarbor!.currentYear90Percent).toBeCloseTo(result.totalTax * 0.9, 0);
+      expect(result.safeHarbor!.currentYear90Percent).toBeCloseTo(
+        result.totalTax * 0.9,
+        0,
+      );
       // 110% of prior year tax
       expect(result.safeHarbor!.priorYearSafeHarbor).toBe(5500);
     });
 
-    it('safe harbor met when fully paid', () => {
+    it("safe harbor met when fully paid", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         stateTaxWithheld: 6000,
         priorYearStateTaxPaid: 5000,
-        selectedState: 'dc',
-        filingStatus: 'single',
+        selectedState: "dc",
+        filingStatus: "single",
       });
 
       const result = calculateDCTax(
@@ -251,7 +257,7 @@ describe('calculateDCTax', () => {
         sharedLimits,
         federalLimits,
         dcLimits,
-        ficaData
+        ficaData,
       );
 
       // Tax is ~$5,625, paid $6,000
@@ -259,14 +265,14 @@ describe('calculateDCTax', () => {
     });
   });
 
-  describe('payment summary', () => {
-    it('calculates remaining owed correctly', () => {
+  describe("payment summary", () => {
+    it("calculates remaining owed correctly", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         stateTaxWithheld: 3000,
         stateEstimatedPaid: 1000,
-        selectedState: 'dc',
-        filingStatus: 'single',
+        selectedState: "dc",
+        filingStatus: "single",
       });
 
       const result = calculateDCTax(
@@ -276,7 +282,7 @@ describe('calculateDCTax', () => {
         sharedLimits,
         federalLimits,
         dcLimits,
-        ficaData
+        ficaData,
       );
 
       expect(result.totalPaid).toBe(4000);
@@ -285,12 +291,12 @@ describe('calculateDCTax', () => {
       expect(result.refundDue).toBe(0);
     });
 
-    it('calculates refund correctly when overpaid', () => {
+    it("calculates refund correctly when overpaid", () => {
       const inputs = createDefaultInputs({
         federalIncome: 50000,
         stateTaxWithheld: 5000,
-        selectedState: 'dc',
-        filingStatus: 'single',
+        selectedState: "dc",
+        filingStatus: "single",
       });
 
       const result = calculateDCTax(
@@ -300,7 +306,7 @@ describe('calculateDCTax', () => {
         sharedLimits,
         federalLimits,
         dcLimits,
-        ficaData
+        ficaData,
       );
 
       // $50k - $15k = $35k taxable
@@ -310,14 +316,14 @@ describe('calculateDCTax', () => {
     });
   });
 
-  describe('deductions', () => {
-    it('uses itemized when greater than standard', () => {
+  describe("deductions", () => {
+    it("uses itemized when greater than standard", () => {
       const inputs = createDefaultInputs({
         federalIncome: 200000,
         mortgageInterestPaid: 20000,
         charitableContributions: 10000,
-        selectedState: 'dc',
-        filingStatus: 'single',
+        selectedState: "dc",
+        filingStatus: "single",
       });
 
       const result = calculateDCTax(
@@ -327,22 +333,22 @@ describe('calculateDCTax', () => {
         sharedLimits,
         federalLimits,
         dcLimits,
-        ficaData
+        ficaData,
       );
 
       // Itemized = $30k > $15k standard
-      expect(result.deductionBreakdown.deductionUsed).toBe('itemized');
+      expect(result.deductionBreakdown.deductionUsed).toBe("itemized");
       expect(result.deductionBreakdown.deductionAmount).toBe(30000);
       expect(result.taxableOrdinaryIncome).toBe(170000);
     });
 
-    it('does not include SALT in itemized deductions', () => {
+    it("does not include SALT in itemized deductions", () => {
       const inputs = createDefaultInputs({
         federalIncome: 200000,
         propertyTaxesPaid: 15000,
         stateTaxWithheld: 10000,
-        selectedState: 'dc',
-        filingStatus: 'single',
+        selectedState: "dc",
+        filingStatus: "single",
       });
 
       const result = calculateDCTax(
@@ -352,20 +358,20 @@ describe('calculateDCTax', () => {
         sharedLimits,
         federalLimits,
         dcLimits,
-        ficaData
+        ficaData,
       );
 
       // DC doesn't allow SALT deduction
       expect(result.deductionBreakdown.saltDeduction).toBe(0);
       // Should use standard deduction since no other itemized
-      expect(result.deductionBreakdown.deductionUsed).toBe('standard');
+      expect(result.deductionBreakdown.deductionUsed).toBe("standard");
     });
   });
 
-  describe('edge cases', () => {
-    it('handles zero income', () => {
+  describe("edge cases", () => {
+    it("handles zero income", () => {
       const inputs = createDefaultInputs({
-        selectedState: 'dc',
+        selectedState: "dc",
       });
 
       const result = calculateDCTax(
@@ -375,19 +381,19 @@ describe('calculateDCTax', () => {
         sharedLimits,
         federalLimits,
         dcLimits,
-        ficaData
+        ficaData,
       );
 
       expect(result.taxableOrdinaryIncome).toBe(0);
       expect(result.totalTax).toBe(0);
     });
 
-    it('handles self-employment income', () => {
+    it("handles self-employment income", () => {
       const inputs = createDefaultInputs({
         federalIncome: 50000,
         selfEmploymentIncome: 50000,
-        selectedState: 'dc',
-        filingStatus: 'single',
+        selectedState: "dc",
+        filingStatus: "single",
       });
 
       const result = calculateDCTax(
@@ -397,7 +403,7 @@ describe('calculateDCTax', () => {
         sharedLimits,
         federalLimits,
         dcLimits,
-        ficaData
+        ficaData,
       );
 
       // SE income included in gross, with deductible SE tax
@@ -407,3 +413,101 @@ describe('calculateDCTax', () => {
     });
   });
 });
+
+// Multi-year parameterized tests
+describe.each(SUPPORTED_YEARS)(
+  "calculateDCTax - tax year %s",
+  (year: TaxYear) => {
+    let data: TestDataForYear;
+
+    beforeAll(() => {
+      data = loadTestDataForYear(year);
+    });
+
+    it("uses correct standard deduction for year", () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selectedState: "dc",
+        filingStatus: "single",
+      });
+
+      const result = calculateDCTax(
+        inputs,
+        data.dcBrackets,
+        data.dcDeductions,
+        data.sharedLimits,
+        data.federalLimits,
+        data.dcLimits,
+        data.ficaData,
+      );
+
+      // DC standard deduction (unchanged for 2025/2026)
+      const expectedStdDeduction = {
+        "2025": 15000,
+        "2026": 15000,
+      };
+
+      expect(result.deductionBreakdown.standardDeduction).toBe(
+        expectedStdDeduction[year],
+      );
+    });
+
+    it("calculates tax correctly for middle bracket income", () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selectedState: "dc",
+        filingStatus: "single",
+      });
+
+      const result = calculateDCTax(
+        inputs,
+        data.dcBrackets,
+        data.dcDeductions,
+        data.sharedLimits,
+        data.federalLimits,
+        data.dcLimits,
+        data.ficaData,
+      );
+
+      // $100k - $15k standard deduction = $85k taxable
+      // Tax calculation same for both years (brackets unchanged)
+      const expectedTax = {
+        "2025": 5625,
+        "2026": 5625,
+      };
+
+      expect(result.taxableOrdinaryIncome).toBe(85000);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(expectedTax[year], 0);
+    });
+
+    it("applies correct MFJ standard deduction for year", () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selectedState: "dc",
+        filingStatus: "marriedFilingJointly",
+      });
+
+      const result = calculateDCTax(
+        inputs,
+        data.dcBrackets,
+        data.dcDeductions,
+        data.sharedLimits,
+        data.federalLimits,
+        data.dcLimits,
+        data.ficaData,
+      );
+
+      // DC MFJ standard deduction
+      const expectedStdDeduction = {
+        "2025": 30000,
+        "2026": 15000, // DC 2026 uses $15k for all statuses
+      };
+
+      expect(result.deductionBreakdown.standardDeduction).toBe(
+        expectedStdDeduction[year],
+      );
+      const expectedTaxable = 100000 - expectedStdDeduction[year];
+      expect(result.taxableOrdinaryIncome).toBe(expectedTaxable);
+    });
+  },
+);

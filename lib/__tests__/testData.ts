@@ -19,7 +19,7 @@ import {
   FicaData,
   TaxInputs,
 } from '../types';
-import { TAX_YEAR } from '../config';
+import { TAX_YEAR, TaxYear } from '../config';
 
 // Load multi-year JSON data
 import allFederalBrackets from '../../data/federal-brackets.json';
@@ -103,5 +103,70 @@ export function createDefaultInputs(overrides: Partial<TaxInputs> = {}): TaxInpu
     priorYearLongTermLossCarryover: 0,
     selfEmploymentIncome: 0,
     ...overrides,
+  };
+}
+
+/**
+ * Type for all test data for a specific tax year.
+ */
+export interface TestDataForYear {
+  californiaBrackets: TaxBracketsData;
+  californiaDeductions: DeductionsData;
+  californiaLimits: CaliforniaLimitsData;
+  coloradoBrackets: TaxBracketsData;
+  coloradoLimits: ColoradoLimitsData;
+  dcBrackets: TaxBracketsData;
+  dcDeductions: DeductionsData;
+  dcLimits: DCLimitsData;
+  federalBrackets: TaxBracketsData;
+  federalDeductions: DeductionsData;
+  federalLimits: FederalLimitsData;
+  ficaData: FicaData;
+  floridaBrackets: TaxBracketsData;
+  floridaLimits: FloridaLimitsData;
+  illinoisBrackets: TaxBracketsData;
+  illinoisDeductions: IllinoisDeductionsData;
+  illinoisLimits: IllinoisLimitsData;
+  ltcgBrackets: TaxBracketsData;
+  newYorkBrackets: TaxBracketsData;
+  newYorkDeductions: DeductionsData;
+  newYorkLimits: NewYorkLimitsData;
+  nycBrackets: TaxBracketsData;
+  sharedLimits: SharedLimitsData;
+  washingtonBrackets: TaxBracketsData;
+  washingtonLimits: WashingtonLimitsData;
+}
+
+/**
+ * Load all test data for a specific tax year.
+ * Use this in parameterized tests to get data for different years.
+ */
+export function loadTestDataForYear(year: TaxYear): TestDataForYear {
+  return {
+    californiaBrackets: allCaliforniaBrackets[year] as TaxBracketsData,
+    californiaDeductions: allCaliforniaDeductions[year] as DeductionsData,
+    californiaLimits: allCaliforniaLimits[year] as CaliforniaLimitsData,
+    coloradoBrackets: allColoradoBrackets[year] as TaxBracketsData,
+    coloradoLimits: allColoradoLimits[year] as ColoradoLimitsData,
+    dcBrackets: allDCBrackets[year] as TaxBracketsData,
+    dcDeductions: allDCDeductions[year] as DeductionsData,
+    dcLimits: allDCLimits[year] as DCLimitsData,
+    federalBrackets: allFederalBrackets[year] as TaxBracketsData,
+    federalDeductions: allFederalDeductions[year] as DeductionsData,
+    federalLimits: allFederalLimits[year] as FederalLimitsData,
+    ficaData: allFicaData[year] as FicaData,
+    floridaBrackets: allFloridaBrackets[year] as TaxBracketsData,
+    floridaLimits: allFloridaLimits[year] as FloridaLimitsData,
+    illinoisBrackets: allIllinoisBrackets[year] as TaxBracketsData,
+    illinoisDeductions: allIllinoisDeductions[year] as IllinoisDeductionsData,
+    illinoisLimits: allIllinoisLimits[year] as IllinoisLimitsData,
+    ltcgBrackets: allLtcgBrackets[year] as TaxBracketsData,
+    newYorkBrackets: allNewYorkBrackets[year] as TaxBracketsData,
+    newYorkDeductions: allNewYorkDeductions[year] as DeductionsData,
+    newYorkLimits: allNewYorkLimits[year] as NewYorkLimitsData,
+    nycBrackets: allNYCBrackets[year] as TaxBracketsData,
+    sharedLimits: allSharedLimits[year] as SharedLimitsData,
+    washingtonBrackets: allWashingtonBrackets[year] as TaxBracketsData,
+    washingtonLimits: allWashingtonLimits[year] as WashingtonLimitsData,
   };
 }

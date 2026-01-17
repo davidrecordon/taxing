@@ -4,5 +4,11 @@
       "currentYearPercent": 0.90,
       "priorYearPercent": 1.00
     }
+  },
+  "2026": {
+    "safeHarbor": {
+      "currentYearPercent": 0.90,
+      "priorYearPercent": 1.00
+    }
   }
 }

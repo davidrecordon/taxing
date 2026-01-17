@@ -5,5 +5,12 @@
       "marriedFilingJointly": [{ "min": 0, "max": null, "rate": 0 }],
       "marriedFilingSeparately": [{ "min": 0, "max": null, "rate": 0 }]
     }
+  },
+  "2026": {
+    "brackets": {
+      "single": [{ "min": 0, "max": null, "rate": 0 }],
+      "marriedFilingJointly": [{ "min": 0, "max": null, "rate": 0 }],
+      "marriedFilingSeparately": [{ "min": 0, "max": null, "rate": 0 }]
+    }
   }
 }

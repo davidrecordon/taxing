@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { calculateIllinoisTax } from '../states/illinoisTaxCalculator';
+import { describe, it, expect, beforeAll } from "vitest";
+import { calculateIllinoisTax } from "../states/illinoisTaxCalculator";
+import { SUPPORTED_YEARS, TaxYear } from "../config";
 import {
   illinoisBrackets,
   illinoisDeductions,
@@ -7,17 +8,19 @@ import {
   illinoisLimits,
   ficaData,
   createDefaultInputs,
-} from './testData';
+  loadTestDataForYear,
+  TestDataForYear,
+} from "./testData";
 
-describe('calculateIllinoisTax', () => {
-  describe('flat rate calculation', () => {
-    it('calculates tax at 4.95% flat rate', () => {
+describe("calculateIllinoisTax", () => {
+  describe("flat rate calculation", () => {
+    it("calculates tax at 4.95% flat rate", () => {
       // $100,000 income - $2,850 personal exemption = $97,150 taxable
       // Tax = $97,150 * 4.95% = $4,808.93 (rounded)
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        selectedState: 'illinois',
-        filingStatus: 'single',
+        selectedState: "illinois",
+        filingStatus: "single",
       });
 
       const result = calculateIllinoisTax(
@@ -25,7 +28,7 @@ describe('calculateIllinoisTax', () => {
         illinoisBrackets,
         illinoisDeductions,
         sharedLimits,
-        illinoisLimits
+        illinoisLimits,
       );
 
       expect(result.taxableOrdinaryIncome).toBe(97150);
@@ -33,12 +36,12 @@ describe('calculateIllinoisTax', () => {
       expect(result.totalTax).toBeCloseTo(4808.93, 0);
     });
 
-    it('applies correct personal exemption for MFJ', () => {
+    it("applies correct personal exemption for MFJ", () => {
       // $100,000 income - $5,700 personal exemption (MFJ) = $94,300 taxable
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        selectedState: 'illinois',
-        filingStatus: 'marriedFilingJointly',
+        selectedState: "illinois",
+        filingStatus: "marriedFilingJointly",
       });
 
       const result = calculateIllinoisTax(
@@ -46,19 +49,19 @@ describe('calculateIllinoisTax', () => {
         illinoisBrackets,
         illinoisDeductions,
         sharedLimits,
-        illinoisLimits
+        illinoisLimits,
       );
 
       expect(result.taxableOrdinaryIncome).toBe(94300);
       expect(result.deductionBreakdown.deductionAmount).toBe(5700);
     });
 
-    it('applies correct personal exemption for MFS', () => {
+    it("applies correct personal exemption for MFS", () => {
       // $100,000 income - $2,850 personal exemption (MFS) = $97,150 taxable
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        selectedState: 'illinois',
-        filingStatus: 'marriedFilingSeparately',
+        selectedState: "illinois",
+        filingStatus: "marriedFilingSeparately",
       });
 
       const result = calculateIllinoisTax(
@@ -66,7 +69,7 @@ describe('calculateIllinoisTax', () => {
         illinoisBrackets,
         illinoisDeductions,
         sharedLimits,
-        illinoisLimits
+        illinoisLimits,
       );
 
       expect(result.taxableOrdinaryIncome).toBe(97150);
@@ -74,16 +77,16 @@ describe('calculateIllinoisTax', () => {
     });
   });
 
-  describe('capital gains treatment', () => {
-    it('taxes all capital gains as ordinary income', () => {
+  describe("capital gains treatment", () => {
+    it("taxes all capital gains as ordinary income", () => {
       // $50,000 wages + $25,000 STCG + $25,000 LTCG = $100,000 gross
       // - $2,850 exemption = $97,150 taxable
       const inputs = createDefaultInputs({
         federalIncome: 50000,
         shortTermCapitalGains: 25000,
         longTermCapitalGains: 25000,
-        selectedState: 'illinois',
-        filingStatus: 'single',
+        selectedState: "illinois",
+        filingStatus: "single",
       });
 
       const result = calculateIllinoisTax(
@@ -91,7 +94,7 @@ describe('calculateIllinoisTax', () => {
         illinoisBrackets,
         illinoisDeductions,
         sharedLimits,
-        illinoisLimits
+        illinoisLimits,
       );
 
       expect(result.grossIncome).toBe(100000);
@@ -100,15 +103,15 @@ describe('calculateIllinoisTax', () => {
     });
   });
 
-  describe('capital loss carryover', () => {
-    it('applies short-term loss carryover correctly', () => {
+  describe("capital loss carryover", () => {
+    it("applies short-term loss carryover correctly", () => {
       // $100,000 wages, $10,000 ST carryover
       // Carryover offsets $3,000 ordinary income (no ST gains to offset)
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         priorYearShortTermLossCarryover: 10000,
-        selectedState: 'illinois',
-        filingStatus: 'single',
+        selectedState: "illinois",
+        filingStatus: "single",
       });
 
       const result = calculateIllinoisTax(
@@ -116,7 +119,7 @@ describe('calculateIllinoisTax', () => {
         illinoisBrackets,
         illinoisDeductions,
         sharedLimits,
-        illinoisLimits
+        illinoisLimits,
       );
 
       expect(result.shortTermLossCarryoverOffset).toBe(3000);
@@ -124,15 +127,15 @@ describe('calculateIllinoisTax', () => {
       expect(result.taxableOrdinaryIncome).toBe(94150);
     });
 
-    it('applies long-term loss carryover correctly', () => {
+    it("applies long-term loss carryover correctly", () => {
       // $50,000 wages + $20,000 LTCG, $30,000 LT carryover
       // LT carryover offsets the $20,000 LTCG
       const inputs = createDefaultInputs({
         federalIncome: 50000,
         longTermCapitalGains: 20000,
         priorYearLongTermLossCarryover: 30000,
-        selectedState: 'illinois',
-        filingStatus: 'single',
+        selectedState: "illinois",
+        filingStatus: "single",
       });
 
       const result = calculateIllinoisTax(
@@ -140,7 +143,7 @@ describe('calculateIllinoisTax', () => {
         illinoisBrackets,
         illinoisDeductions,
         sharedLimits,
-        illinoisLimits
+        illinoisLimits,
       );
 
       expect(result.longTermLossCarryoverOffset).toBe(20000);
@@ -149,16 +152,16 @@ describe('calculateIllinoisTax', () => {
     });
   });
 
-  describe('negative capital gains (current year losses)', () => {
-    it('combines negative STCG with prior year carryover', () => {
+  describe("negative capital gains (current year losses)", () => {
+    it("combines negative STCG with prior year carryover", () => {
       // $100,000 wages, -$5,000 STCG (current year loss), $2,000 prior carryover
       // Combined = $7,000 carryover, $3,000 offsets ordinary income
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         shortTermCapitalGains: -5000,
         priorYearShortTermLossCarryover: 2000,
-        selectedState: 'illinois',
-        filingStatus: 'single',
+        selectedState: "illinois",
+        filingStatus: "single",
       });
 
       const result = calculateIllinoisTax(
@@ -166,7 +169,7 @@ describe('calculateIllinoisTax', () => {
         illinoisBrackets,
         illinoisDeductions,
         sharedLimits,
-        illinoisLimits
+        illinoisLimits,
       );
 
       expect(result.grossIncome).toBe(100000); // Negative STCG not included
@@ -174,12 +177,12 @@ describe('calculateIllinoisTax', () => {
       expect(result.shortTermLossCarryoverUnused).toBe(4000);
     });
 
-    it('treats negative LTCG as $0 for tax calculation', () => {
+    it("treats negative LTCG as $0 for tax calculation", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         longTermCapitalGains: -20000,
-        selectedState: 'illinois',
-        filingStatus: 'single',
+        selectedState: "illinois",
+        filingStatus: "single",
       });
 
       const result = calculateIllinoisTax(
@@ -187,7 +190,7 @@ describe('calculateIllinoisTax', () => {
         illinoisBrackets,
         illinoisDeductions,
         sharedLimits,
-        illinoisLimits
+        illinoisLimits,
       );
 
       expect(result.grossIncome).toBe(100000); // Negative LTCG not subtracted
@@ -195,15 +198,15 @@ describe('calculateIllinoisTax', () => {
     });
   });
 
-  describe('pre-tax deductions', () => {
-    it('applies 401k and pre-tax medical deductions', () => {
+  describe("pre-tax deductions", () => {
+    it("applies 401k and pre-tax medical deductions", () => {
       // $100,000 wages - $10,000 401k - $5,000 medical - $2,850 exemption = $82,150
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         contributions401k: 10000,
         preTaxMedical: 5000,
-        selectedState: 'illinois',
-        filingStatus: 'single',
+        selectedState: "illinois",
+        filingStatus: "single",
       });
 
       const result = calculateIllinoisTax(
@@ -211,7 +214,7 @@ describe('calculateIllinoisTax', () => {
         illinoisBrackets,
         illinoisDeductions,
         sharedLimits,
-        illinoisLimits
+        illinoisLimits,
       );
 
       expect(result.contributions401k).toBe(10000);
@@ -220,13 +223,13 @@ describe('calculateIllinoisTax', () => {
     });
   });
 
-  describe('safe harbor', () => {
-    it('calculates safe harbor correctly', () => {
+  describe("safe harbor", () => {
+    it("calculates safe harbor correctly", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         priorYearStateTaxPaid: 5000,
-        selectedState: 'illinois',
-        filingStatus: 'single',
+        selectedState: "illinois",
+        filingStatus: "single",
       });
 
       const result = calculateIllinoisTax(
@@ -234,25 +237,28 @@ describe('calculateIllinoisTax', () => {
         illinoisBrackets,
         illinoisDeductions,
         sharedLimits,
-        illinoisLimits
+        illinoisLimits,
       );
 
       expect(result.safeHarbor).toBeDefined();
       // 90% of current year tax
-      expect(result.safeHarbor!.currentYear90Percent).toBeCloseTo(result.totalTax * 0.9, 0);
+      expect(result.safeHarbor!.currentYear90Percent).toBeCloseTo(
+        result.totalTax * 0.9,
+        0,
+      );
       // 100% of prior year tax
       expect(result.safeHarbor!.priorYearSafeHarbor).toBe(5000);
     });
   });
 
-  describe('payment summary', () => {
-    it('calculates remaining owed correctly', () => {
+  describe("payment summary", () => {
+    it("calculates remaining owed correctly", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         stateTaxWithheld: 3000,
         stateEstimatedPaid: 1000,
-        selectedState: 'illinois',
-        filingStatus: 'single',
+        selectedState: "illinois",
+        filingStatus: "single",
       });
 
       const result = calculateIllinoisTax(
@@ -260,7 +266,7 @@ describe('calculateIllinoisTax', () => {
         illinoisBrackets,
         illinoisDeductions,
         sharedLimits,
-        illinoisLimits
+        illinoisLimits,
       );
 
       expect(result.totalPaid).toBe(4000);
@@ -269,12 +275,12 @@ describe('calculateIllinoisTax', () => {
       expect(result.refundDue).toBe(0);
     });
 
-    it('calculates refund correctly when overpaid', () => {
+    it("calculates refund correctly when overpaid", () => {
       const inputs = createDefaultInputs({
         federalIncome: 50000,
         stateTaxWithheld: 5000,
-        selectedState: 'illinois',
-        filingStatus: 'single',
+        selectedState: "illinois",
+        filingStatus: "single",
       });
 
       const result = calculateIllinoisTax(
@@ -282,7 +288,7 @@ describe('calculateIllinoisTax', () => {
         illinoisBrackets,
         illinoisDeductions,
         sharedLimits,
-        illinoisLimits
+        illinoisLimits,
       );
 
       // Tax = ~$2,334, paid $5,000
@@ -291,13 +297,13 @@ describe('calculateIllinoisTax', () => {
     });
   });
 
-  describe('self-employment income', () => {
-    it('includes SE income in gross income', () => {
+  describe("self-employment income", () => {
+    it("includes SE income in gross income", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         selfEmploymentIncome: 50000,
-        selectedState: 'illinois',
-        filingStatus: 'single',
+        selectedState: "illinois",
+        filingStatus: "single",
       });
 
       const result = calculateIllinoisTax(
@@ -306,19 +312,19 @@ describe('calculateIllinoisTax', () => {
         illinoisDeductions,
         sharedLimits,
         illinoisLimits,
-        ficaData
+        ficaData,
       );
 
       expect(result.grossIncome).toBe(150000);
       expect(result.selfEmploymentIncome).toBe(50000);
     });
 
-    it('calculates deductible half of SE tax', () => {
+    it("calculates deductible half of SE tax", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         selfEmploymentIncome: 50000,
-        selectedState: 'illinois',
-        filingStatus: 'single',
+        selectedState: "illinois",
+        filingStatus: "single",
       });
 
       const result = calculateIllinoisTax(
@@ -327,19 +333,19 @@ describe('calculateIllinoisTax', () => {
         illinoisDeductions,
         sharedLimits,
         illinoisLimits,
-        ficaData
+        ficaData,
       );
 
       // Deductible SE tax = 50% of SE tax
       expect(result.deductibleSETax).toBeCloseTo(3532, 0);
     });
 
-    it('reduces taxable income by deductible SE tax', () => {
+    it("reduces taxable income by deductible SE tax", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         selfEmploymentIncome: 50000,
-        selectedState: 'illinois',
-        filingStatus: 'single',
+        selectedState: "illinois",
+        filingStatus: "single",
       });
 
       const result = calculateIllinoisTax(
@@ -348,7 +354,7 @@ describe('calculateIllinoisTax', () => {
         illinoisDeductions,
         sharedLimits,
         illinoisLimits,
-        ficaData
+        ficaData,
       );
 
       // Gross = $150k, less deductible SE tax (~$3,532), less exemption ($2,850)
@@ -356,11 +362,11 @@ describe('calculateIllinoisTax', () => {
       expect(result.taxableOrdinaryIncome).toBeCloseTo(143618, 0);
     });
 
-    it('does not include SE fields when no SE income', () => {
+    it("does not include SE fields when no SE income", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        selectedState: 'illinois',
-        filingStatus: 'single',
+        selectedState: "illinois",
+        filingStatus: "single",
       });
 
       const result = calculateIllinoisTax(
@@ -369,7 +375,7 @@ describe('calculateIllinoisTax', () => {
         illinoisDeductions,
         sharedLimits,
         illinoisLimits,
-        ficaData
+        ficaData,
       );
 
       expect(result.selfEmploymentIncome).toBeUndefined();
@@ -377,10 +383,10 @@ describe('calculateIllinoisTax', () => {
     });
   });
 
-  describe('edge cases', () => {
-    it('handles zero income', () => {
+  describe("edge cases", () => {
+    it("handles zero income", () => {
       const inputs = createDefaultInputs({
-        selectedState: 'illinois',
+        selectedState: "illinois",
       });
 
       const result = calculateIllinoisTax(
@@ -388,7 +394,7 @@ describe('calculateIllinoisTax', () => {
         illinoisBrackets,
         illinoisDeductions,
         sharedLimits,
-        illinoisLimits
+        illinoisLimits,
       );
 
       expect(result.grossIncome).toBe(0);
@@ -396,11 +402,11 @@ describe('calculateIllinoisTax', () => {
       expect(result.totalTax).toBe(0);
     });
 
-    it('handles income less than personal exemption', () => {
+    it("handles income less than personal exemption", () => {
       const inputs = createDefaultInputs({
         federalIncome: 2000, // Less than $2,850 exemption
-        selectedState: 'illinois',
-        filingStatus: 'single',
+        selectedState: "illinois",
+        filingStatus: "single",
       });
 
       const result = calculateIllinoisTax(
@@ -408,18 +414,18 @@ describe('calculateIllinoisTax', () => {
         illinoisBrackets,
         illinoisDeductions,
         sharedLimits,
-        illinoisLimits
+        illinoisLimits,
       );
 
       expect(result.taxableOrdinaryIncome).toBe(0);
       expect(result.totalTax).toBe(0);
     });
 
-    it('falls back to federal income when state income is not specified', () => {
+    it("falls back to federal income when state income is not specified", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         stateIncome: 0,
-        selectedState: 'illinois',
+        selectedState: "illinois",
       });
 
       const result = calculateIllinoisTax(
@@ -427,10 +433,101 @@ describe('calculateIllinoisTax', () => {
         illinoisBrackets,
         illinoisDeductions,
         sharedLimits,
-        illinoisLimits
+        illinoisLimits,
       );
 
       expect(result.wageIncome).toBe(100000);
     });
   });
 });
+
+// Multi-year parameterized tests
+describe.each(SUPPORTED_YEARS)(
+  "calculateIllinoisTax - tax year %s",
+  (year: TaxYear) => {
+    let data: TestDataForYear;
+
+    beforeAll(() => {
+      data = loadTestDataForYear(year);
+    });
+
+    it("uses correct personal exemption for year", () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selectedState: "illinois",
+        filingStatus: "single",
+      });
+
+      const result = calculateIllinoisTax(
+        inputs,
+        data.illinoisBrackets,
+        data.illinoisDeductions,
+        data.sharedLimits,
+        data.illinoisLimits,
+      );
+
+      // Personal exemption changes by year
+      const expectedExemption = {
+        "2025": 2850,
+        "2026": 2925,
+      };
+
+      expect(result.deductionBreakdown.deductionAmount).toBe(
+        expectedExemption[year],
+      );
+    });
+
+    it("calculates flat tax correctly with year-specific exemption", () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selectedState: "illinois",
+        filingStatus: "single",
+      });
+
+      const result = calculateIllinoisTax(
+        inputs,
+        data.illinoisBrackets,
+        data.illinoisDeductions,
+        data.sharedLimits,
+        data.illinoisLimits,
+      );
+
+      // Taxable = income - exemption
+      const expectedExemption = {
+        "2025": 2850,
+        "2026": 2925,
+      };
+      const expectedTaxable = 100000 - expectedExemption[year];
+      const expectedTax = expectedTaxable * 0.0495;
+
+      expect(result.taxableOrdinaryIncome).toBe(expectedTaxable);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(expectedTax, 0);
+    });
+
+    it("uses correct MFJ personal exemption for year", () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        selectedState: "illinois",
+        filingStatus: "marriedFilingJointly",
+      });
+
+      const result = calculateIllinoisTax(
+        inputs,
+        data.illinoisBrackets,
+        data.illinoisDeductions,
+        data.sharedLimits,
+        data.illinoisLimits,
+      );
+
+      // MFJ exemption is double single
+      const expectedExemption = {
+        "2025": 5700,
+        "2026": 5850,
+      };
+
+      expect(result.deductionBreakdown.deductionAmount).toBe(
+        expectedExemption[year],
+      );
+    });
+  },
+);
