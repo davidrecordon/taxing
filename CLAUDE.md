@@ -18,6 +18,15 @@ data/                  # Tax brackets, deductions, limits (JSON)
 lib/                   # Calculation logic (see lib/README.md)
 ```
 
+## Commands
+
+```bash
+npm run dev        # Start Next.js dev server (localhost:3000)
+npm run build      # Production build
+npm test           # Run tests
+npm run lint       # Run ESLint
+```
+
 ## Key Patterns
 
 ### State Support Pattern
@@ -62,9 +71,19 @@ When updating tax brackets, deductions, or limits in `data/`:
 3. Update affected tests with correct expected values
 4. Run `npm test` and `npm run build` to verify all tests pass
 
-## Testing & Building
+## Before Committing
 
-Always run `npm test` and `npm run build` before committing. All tests must pass and the build must succeed.
+Always run linters and tests before committing changes:
+
+```bash
+npm run lint       # ESLint
+npm test           # Vitest
+npm run build      # Production build
+```
+
+All tests must pass and the build must succeed.
+
+For significant code changes, use the code-simplifier skill to refine code for clarity.
 
 Tests are colocated with their components:
 - `lib/__tests__/` for calculation logic
@@ -78,6 +97,30 @@ Tests are colocated with their components:
 - Keep components focused and single-purpose
 - Use TypeScript strictly - avoid `any` types
 - Alphabetize whenever possible
+
+## Claude Code Skills
+
+This project uses Claude Code plugins for significant work:
+
+**`/frontend-design`** - Use when building or modifying UI components
+- Designs distinctive, production-grade interfaces
+- Ensures brand consistency
+
+**`/feature-dev`** - Use when implementing new features
+- Guided feature development with codebase understanding
+- Explores existing patterns before writing code
+- Includes code review phase
+
+**`code-simplifier`** - Use after completing significant work
+- Reviews recently modified code for duplication and complexity
+- Extracts shared utilities, consolidates patterns
+- Removes dead code, simplifies conditionals
+
+**`vercel-react-best-practices`** - Use when reviewing or optimizing React/Next.js code
+- Performance optimization guidelines from Vercel Engineering
+- Covers bundle size, re-renders, server-side, client-side patterns
+
+**Workflow:** implement -> tests pass -> simplify -> tests still pass -> commit
 
 ## Performance Reviews
 

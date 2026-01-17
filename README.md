@@ -37,6 +37,9 @@ npm run dev
 # Run tests
 npm test
 
+# Run linter
+npm run lint
+
 # Build for production
 npm run build
 ```

@@ -9,17 +9,28 @@
       "Bash(eslint:*)",
       "Bash(prettier:*)",
       "Bash(tsc:*)",
-      "WebSearch",
-      "WebFetch(domain:www.irs.gov)",
-      "WebFetch(domain:www.ftb.ca.gov)",
-      "WebFetch(domain:dor.wa.gov)",
-      "WebFetch(domain:www.tax.ny.gov)",
-      "WebFetch(domain:tax.illinois.gov)",
-      "WebFetch(domain:tax.colorado.gov)",
+      "Skill(code-simplifier:*)",
+      "Skill(commit-commands:*)",
+      "Skill(feature-dev:*)",
+      "Skill(frontend-design:*)",
+      "Skill(vercel-react-best-practices)",
       "WebFetch(domain:floridarevenue.com)",
       "WebFetch(domain:otr.cfo.dc.gov)",
+      "WebFetch(domain:www.ftb.ca.gov)",
+      "WebFetch(domain:www.irs.gov)",
       "WebFetch(domain:www.marylandcomptroller.gov)",
-      "WebFetch(domain:www.tax.virginia.gov)"
+      "WebFetch(domain:www.tax.ny.gov)",
+      "WebFetch(domain:www.tax.virginia.gov)",
+      "WebFetch(domain:dor.wa.gov)",
+      "WebFetch(domain:tax.colorado.gov)",
+      "WebFetch(domain:tax.illinois.gov)",
+      "WebSearch"
     ]
+  },
+  "enabledPlugins": {
+    "code-simplifier@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true
   }
 }
