@@ -1,84 +1,78 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import CurrencyInput from '../CurrencyInput';
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import CurrencyInput from "../CurrencyInput";
 
-describe('CurrencyInput', () => {
-  describe('rendering', () => {
-    it('renders with label', () => {
+describe("CurrencyInput", () => {
+  describe("rendering", () => {
+    it("renders with label", () => {
       render(
-        <CurrencyInput label="Test Label" value={0} onChange={() => {}} />
+        <CurrencyInput label="Test Label" value={0} onChange={() => {}} />,
       );
-      expect(screen.getByLabelText('Test Label')).toBeInTheDocument();
+      expect(screen.getByLabelText("Test Label")).toBeInTheDocument();
     });
 
-    it('displays dollar sign prefix', () => {
-      render(
-        <CurrencyInput label="Amount" value={0} onChange={() => {}} />
-      );
-      expect(screen.getByText('$')).toBeInTheDocument();
+    it("displays dollar sign prefix", () => {
+      render(<CurrencyInput label="Amount" value={0} onChange={() => {}} />);
+      expect(screen.getByText("$")).toBeInTheDocument();
     });
 
-    it('shows current value in input with comma formatting', () => {
-      render(
-        <CurrencyInput label="Amount" value={1000} onChange={() => {}} />
-      );
-      expect(screen.getByRole('textbox')).toHaveValue('1,000');
+    it("shows current value in input with comma formatting", () => {
+      render(<CurrencyInput label="Amount" value={1000} onChange={() => {}} />);
+      expect(screen.getByRole("textbox")).toHaveValue("1,000");
     });
 
-    it('formats large numbers with commas', () => {
+    it("formats large numbers with commas", () => {
       render(
-        <CurrencyInput label="Amount" value={1234567} onChange={() => {}} />
+        <CurrencyInput label="Amount" value={1234567} onChange={() => {}} />,
       );
-      expect(screen.getByRole('textbox')).toHaveValue('1,234,567');
+      expect(screen.getByRole("textbox")).toHaveValue("1,234,567");
     });
 
-    it('shows empty input when value is 0', () => {
-      render(
-        <CurrencyInput label="Amount" value={0} onChange={() => {}} />
-      );
-      expect(screen.getByRole('textbox')).toHaveValue('');
+    it("shows empty input when value is 0", () => {
+      render(<CurrencyInput label="Amount" value={0} onChange={() => {}} />);
+      expect(screen.getByRole("textbox")).toHaveValue("");
     });
   });
 
-  describe('hint/warning/error messages', () => {
-    it('displays hint text', () => {
+  describe("hint/warning/error messages", () => {
+    it("displays hint text", () => {
       render(
         <CurrencyInput
           label="Amount"
           value={0}
           onChange={() => {}}
           hint="This is a hint"
-        />
+        />,
       );
-      expect(screen.getByText('This is a hint')).toBeInTheDocument();
+      expect(screen.getByText("This is a hint")).toBeInTheDocument();
     });
 
-    it('displays warning text', () => {
+    it("displays warning text", () => {
       render(
         <CurrencyInput
           label="Amount"
           value={0}
           onChange={() => {}}
           warning="This is a warning"
-        />
+        />,
       );
-      expect(screen.getByText('This is a warning')).toBeInTheDocument();
+      expect(screen.getByText("This is a warning")).toBeInTheDocument();
     });
 
-    it('displays error text', () => {
+    it("displays error text", () => {
       render(
         <CurrencyInput
           label="Amount"
           value={0}
           onChange={() => {}}
           error="This is an error"
-        />
+        />,
       );
-      expect(screen.getByText('This is an error')).toBeInTheDocument();
+      expect(screen.getByText("This is an error")).toBeInTheDocument();
     });
 
-    it('shows error over warning when both present', () => {
+    it("shows error over warning when both present", () => {
       render(
         <CurrencyInput
           label="Amount"
@@ -86,13 +80,13 @@ describe('CurrencyInput', () => {
           onChange={() => {}}
           warning="Warning"
           error="Error"
-        />
+        />,
       );
-      expect(screen.getByText('Error')).toBeInTheDocument();
-      expect(screen.queryByText('Warning')).not.toBeInTheDocument();
+      expect(screen.getByText("Error")).toBeInTheDocument();
+      expect(screen.queryByText("Warning")).not.toBeInTheDocument();
     });
 
-    it('shows warning over hint when both present', () => {
+    it("shows warning over hint when both present", () => {
       render(
         <CurrencyInput
           label="Amount"
@@ -100,24 +94,24 @@ describe('CurrencyInput', () => {
           onChange={() => {}}
           hint="Hint"
           warning="Warning"
-        />
+        />,
       );
-      expect(screen.getByText('Warning')).toBeInTheDocument();
-      expect(screen.queryByText('Hint')).not.toBeInTheDocument();
+      expect(screen.getByText("Warning")).toBeInTheDocument();
+      expect(screen.queryByText("Hint")).not.toBeInTheDocument();
     });
   });
 
-  describe('user input', () => {
-    it('calls onChange when user types', async () => {
+  describe("user input", () => {
+    it("calls onChange when user types", async () => {
       const user = userEvent.setup();
       const handleChange = vi.fn();
 
       render(
-        <CurrencyInput label="Amount" value={0} onChange={handleChange} />
+        <CurrencyInput label="Amount" value={0} onChange={handleChange} />,
       );
 
-      const input = screen.getByRole('textbox');
-      await user.type(input, '1234');
+      const input = screen.getByRole("textbox");
+      await user.type(input, "1234");
 
       // onChange is called on each keystroke
       expect(handleChange).toHaveBeenCalled();
@@ -125,16 +119,16 @@ describe('CurrencyInput', () => {
       expect(handleChange).toHaveBeenCalledTimes(4);
     });
 
-    it('filters out non-numeric characters from onChange calls', async () => {
+    it("filters out non-numeric characters from onChange calls", async () => {
       const user = userEvent.setup();
       const handleChange = vi.fn();
 
       render(
-        <CurrencyInput label="Amount" value={0} onChange={handleChange} />
+        <CurrencyInput label="Amount" value={0} onChange={handleChange} />,
       );
 
-      const input = screen.getByRole('textbox');
-      await user.type(input, 'abc');
+      const input = screen.getByRole("textbox");
+      await user.type(input, "abc");
 
       // Letters are filtered out, so onChange is called with 0 (empty input parses to 0)
       expect(handleChange).toHaveBeenCalled();
@@ -143,93 +137,92 @@ describe('CurrencyInput', () => {
       });
     });
 
-    it('parses numeric input correctly', async () => {
+    it("parses numeric input correctly", async () => {
       const user = userEvent.setup();
       const handleChange = vi.fn();
 
       render(
-        <CurrencyInput label="Amount" value={0} onChange={handleChange} />
+        <CurrencyInput label="Amount" value={0} onChange={handleChange} />,
       );
 
-      const input = screen.getByRole('textbox');
-      await user.type(input, '5');
+      const input = screen.getByRole("textbox");
+      await user.type(input, "5");
 
       // Single digit should parse correctly
       expect(handleChange).toHaveBeenLastCalledWith(5);
     });
   });
 
-  describe('negative values', () => {
-    it('displays negative values with red text styling', () => {
+  describe("negative values", () => {
+    it("displays negative values with red text styling", () => {
       render(
         <CurrencyInput
           label="Amount"
           value={-500}
           onChange={() => {}}
           allowNegative={true}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      expect(input).toHaveClass('text-red-600');
-      expect(input).toHaveValue('-500');
+      const input = screen.getByRole("textbox");
+      expect(input).toHaveClass("text-red-600");
+      expect(input).toHaveValue("-500");
     });
 
-    it('displays dollar sign in red when value is negative', () => {
+    it("displays dollar sign in red when value is negative", () => {
       render(
         <CurrencyInput
           label="Amount"
           value={-500}
           onChange={() => {}}
           allowNegative={true}
-        />
+        />,
       );
 
-      const dollarSign = screen.getByText('$');
-      expect(dollarSign).toHaveClass('text-red-600');
+      const dollarSign = screen.getByText("$");
+      expect(dollarSign).toHaveClass("text-red-600");
     });
 
-    it('displays positive values with normal text styling', () => {
+    it("displays positive values with normal text styling", () => {
       render(
         <CurrencyInput
           label="Amount"
           value={500}
           onChange={() => {}}
           allowNegative={true}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      expect(input).toHaveClass('text-gray-900');
-      expect(input).not.toHaveClass('text-red-600');
+      const input = screen.getByRole("textbox");
+      expect(input).toHaveClass("text-gray-900");
+      expect(input).not.toHaveClass("text-red-600");
     });
 
-    it('formats negative values with comma separators', () => {
+    it("formats negative values with comma separators", () => {
       render(
         <CurrencyInput
           label="Amount"
           value={-1234567}
           onChange={() => {}}
           allowNegative={true}
-        />
+        />,
       );
 
-      expect(screen.getByRole('textbox')).toHaveValue('-1,234,567');
+      expect(screen.getByRole("textbox")).toHaveValue("-1,234,567");
     });
 
-    it('does not show red styling for zero values', () => {
+    it("does not show red styling for zero values", () => {
       render(
         <CurrencyInput
           label="Amount"
           value={0}
           onChange={() => {}}
           allowNegative={true}
-        />
+        />,
       );
 
-      const input = screen.getByRole('textbox');
-      expect(input).not.toHaveClass('text-red-600');
+      const input = screen.getByRole("textbox");
+      expect(input).not.toHaveClass("text-red-600");
     });
   });
-
 });

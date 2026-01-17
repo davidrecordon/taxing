@@ -7,9 +7,13 @@ import {
   IllinoisDeductionsData,
   DeductionBreakdown,
   FicaData,
-} from '../types';
-import { calculateTaxByBrackets } from '../taxUtils';
-import { calculateDeductibleSETax, calculatePaymentSummary, calculateSafeHarbor } from './stateCalcUtils';
+} from "../types";
+import { calculateTaxByBrackets } from "../taxUtils";
+import {
+  calculateDeductibleSETax,
+  calculatePaymentSummary,
+  calculateSafeHarbor,
+} from "./stateCalcUtils";
 
 /**
  * Illinois State Tax Calculator
@@ -30,7 +34,7 @@ export function calculateIllinoisTax(
   illinoisDeductions: IllinoisDeductionsData,
   sharedLimits: SharedLimitsData,
   illinoisLimits: IllinoisLimitsData,
-  ficaData?: FicaData
+  ficaData?: FicaData,
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
 
@@ -46,26 +50,27 @@ export function calculateIllinoisTax(
   // Illinois taxes ALL capital gains and self-employment income as ordinary income
   const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
   const grossIncome =
-    stateIncome +
-    effectiveSTCG +
-    effectiveLTCG +
-    selfEmploymentIncome;
+    stateIncome + effectiveSTCG + effectiveLTCG + selfEmploymentIncome;
 
   // Step 1b: Apply short-term loss carryover (includes current year losses)
   // First offset short-term gains, then ordinary income up to limit
-  const stCarryover = inputs.priorYearShortTermLossCarryover + currentYearSTLoss;
+  const stCarryover =
+    inputs.priorYearShortTermLossCarryover + currentYearSTLoss;
   const stGainsOffset = Math.min(stCarryover, effectiveSTCG);
   const remainingCarryover = stCarryover - stGainsOffset;
 
-  const ordinaryIncomeLimit = filingStatus === 'marriedFilingSeparately'
-    ? sharedLimits.capitalLossLimit.marriedFilingSeparately
-    : sharedLimits.capitalLossLimit.default;
-  const ordinaryIncomeOffset = remainingCarryover > 0 && stateIncome > 0
-    ? Math.min(remainingCarryover, ordinaryIncomeLimit, stateIncome)
-    : 0;
+  const ordinaryIncomeLimit =
+    filingStatus === "marriedFilingSeparately"
+      ? sharedLimits.capitalLossLimit.marriedFilingSeparately
+      : sharedLimits.capitalLossLimit.default;
+  const ordinaryIncomeOffset =
+    remainingCarryover > 0 && stateIncome > 0
+      ? Math.min(remainingCarryover, ordinaryIncomeLimit, stateIncome)
+      : 0;
 
   const shortTermLossCarryoverOffset = stGainsOffset + ordinaryIncomeOffset;
-  const shortTermLossCarryoverUnused = stCarryover - shortTermLossCarryoverOffset;
+  const shortTermLossCarryoverUnused =
+    stCarryover - shortTermLossCarryoverOffset;
 
   // Step 1c: Apply long-term loss carryover
   const ltCarryover = inputs.priorYearLongTermLossCarryover;
@@ -74,19 +79,25 @@ export function calculateIllinoisTax(
   // Step 2: Apply pre-tax deductions (401k, medical, and deductible SE tax)
   // IL conforms to federal above-the-line deductions
   const deductibleSETax = ficaData
-    ? calculateDeductibleSETax(selfEmploymentIncome, inputs.federalIncome, ficaData)
+    ? calculateDeductibleSETax(
+        selfEmploymentIncome,
+        inputs.federalIncome,
+        ficaData,
+      )
     : 0;
-  const preTaxDeductions = inputs.contributions401k + inputs.preTaxMedical + deductibleSETax;
+  const preTaxDeductions =
+    inputs.contributions401k + inputs.preTaxMedical + deductibleSETax;
 
   // Step 3: Apply Illinois personal exemption (instead of standard deduction)
   const personalExemption = illinoisDeductions.personalExemption[filingStatus];
 
   // Calculate AGI after all deductions
-  const adjustedGrossIncome = grossIncome
-    - shortTermLossCarryoverOffset
-    - longTermLossCarryoverOffset
-    - preTaxDeductions
-    - personalExemption;
+  const adjustedGrossIncome =
+    grossIncome -
+    shortTermLossCarryoverOffset -
+    longTermLossCarryoverOffset -
+    preTaxDeductions -
+    personalExemption;
 
   // Step 4: Calculate taxable income
   const taxableOrdinaryIncome = Math.max(0, adjustedGrossIncome);
@@ -94,7 +105,7 @@ export function calculateIllinoisTax(
   // Step 5: Calculate tax using flat rate (single bracket)
   const ordinaryTax = calculateTaxByBrackets(
     taxableOrdinaryIncome,
-    illinoisBrackets.brackets[filingStatus]
+    illinoisBrackets.brackets[filingStatus],
   );
 
   const totalTax = ordinaryTax.total;
@@ -103,7 +114,7 @@ export function calculateIllinoisTax(
   const { totalPaid, remainingOwed, refundDue } = calculatePaymentSummary(
     totalTax,
     inputs.stateTaxWithheld,
-    inputs.stateEstimatedPaid
+    inputs.stateEstimatedPaid,
   );
 
   // Step 7: Calculate safe harbor using shared utility
@@ -115,14 +126,14 @@ export function calculateIllinoisTax(
     {
       currentYearPercent: illinoisLimits.safeHarbor.currentYearPercent,
       priorYearPercent: illinoisLimits.safeHarbor.priorYearPercent,
-    }
+    },
   );
 
   // Create empty deduction breakdown (IL uses personal exemptions, not std/itemized)
   const emptyDeductionBreakdown: DeductionBreakdown = {
     standardDeduction: personalExemption, // Use personal exemption as "standard"
     itemizedDeduction: 0,
-    deductionUsed: 'standard',
+    deductionUsed: "standard",
     deductionAmount: personalExemption,
     saltDeduction: 0,
     saltCapped: false,
@@ -140,7 +151,8 @@ export function calculateIllinoisTax(
     longTermLossCarryoverOffset,
     contributions401k: inputs.contributions401k,
     preTaxMedical: inputs.preTaxMedical,
-    selfEmploymentIncome: selfEmploymentIncome > 0 ? selfEmploymentIncome : undefined,
+    selfEmploymentIncome:
+      selfEmploymentIncome > 0 ? selfEmploymentIncome : undefined,
     deductibleSETax: deductibleSETax > 0 ? deductibleSETax : undefined,
     adjustedGrossIncome,
     deductionBreakdown: emptyDeductionBreakdown,

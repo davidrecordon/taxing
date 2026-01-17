@@ -49,27 +49,35 @@ TaxInputs (user form data)
 ## Key Modules
 
 ### types.ts
+
 Central type definitions including:
+
 - `TaxInputs` - Form input data
 - `TaxCalculationResult` - Calculator output
 - `TaxBracketsData`, `DeductionsData` - Tax data structures
 - State-specific limit types
 
 ### taxUtils.ts
+
 Shared utilities:
+
 - `calculateTaxByBracket()` - Progressive tax calculation
 - `calculateIncomeInBrackets()` - Bracket breakdown
 - `calculateEffectiveRates()` - Effective rate calculations
 
 ### deductionCalculator.ts
+
 Handles federal deduction logic:
+
 - Standard vs itemized comparison
 - SALT cap application (with AGI-based elevated limits)
 - Mortgage interest limits
 - Charitable contribution limits
 
 ### states/stateCalcUtils.ts
+
 Shared state calculator utilities:
+
 - `calculatePaymentSummary()` - Withholding and payments
 - `calculateSafeHarbor()` - Safe harbor calculations
 

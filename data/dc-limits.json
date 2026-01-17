@@ -1,14 +1,14 @@
 {
   "2025": {
     "safeHarbor": {
-      "currentYearPercent": 0.90,
-      "priorYearPercent": 1.10
+      "currentYearPercent": 0.9,
+      "priorYearPercent": 1.1
     }
   },
   "2026": {
     "safeHarbor": {
-      "currentYearPercent": 0.90,
-      "priorYearPercent": 1.10
+      "currentYearPercent": 0.9,
+      "priorYearPercent": 1.1
     }
   }
 }

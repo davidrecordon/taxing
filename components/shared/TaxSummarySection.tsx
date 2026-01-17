@@ -1,5 +1,5 @@
-import { memo } from 'react';
-import { formatCurrency, formatPercent } from '@/lib/formatters';
+import { memo } from "react";
+import { formatCurrency, formatPercent } from "@/lib/formatters";
 
 interface EffectiveRates {
   onTaxableIncome: number;
@@ -83,14 +83,18 @@ export default memo(function TaxSummarySection({
         <div className="pt-2 mt-2 border-t border-blue-200 space-y-1">
           <div className="flex justify-between text-sm text-gray-600">
             <span>Effective Rate (on taxable income)</span>
-            <span className="font-mono">{formatPercent(effectiveRates.onTaxableIncome, 1)}</span>
+            <span className="font-mono">
+              {formatPercent(effectiveRates.onTaxableIncome, 1)}
+            </span>
           </div>
           <div className="flex justify-between text-sm text-gray-600">
             <span>Effective Rate (on gross income)</span>
-            <span className="font-mono">{formatPercent(effectiveRates.onGrossIncome, 1)}</span>
+            <span className="font-mono">
+              {formatPercent(effectiveRates.onGrossIncome, 1)}
+            </span>
           </div>
         </div>
       )}
     </div>
   );
-})
+});

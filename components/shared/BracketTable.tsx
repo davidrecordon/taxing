@@ -1,6 +1,6 @@
-import { memo } from 'react';
-import { BracketBreakdown } from '@/lib/types';
-import { formatCurrency, formatPercent } from '@/lib/formatters';
+import { memo } from "react";
+import { BracketBreakdown } from "@/lib/types";
+import { formatCurrency, formatPercent } from "@/lib/formatters";
 
 interface BracketTableProps {
   /** Array of bracket breakdown data */
@@ -24,7 +24,7 @@ interface BracketTableProps {
 export default memo(function BracketTable({
   breakdown,
   title,
-  incomeLabel = 'Income',
+  incomeLabel = "Income",
   totalLabel,
   totalAmount,
   footnote,
@@ -48,12 +48,19 @@ export default memo(function BracketTable({
           </thead>
           <tbody>
             {breakdown.map((bracket) => (
-              <tr key={`${bracket.bracketMin}-${bracket.rate}`} className="border-b">
+              <tr
+                key={`${bracket.bracketMin}-${bracket.rate}`}
+                className="border-b"
+              >
                 <td className="p-2">
-                  {formatCurrency(bracket.bracketMin)} -{' '}
-                  {bracket.bracketMax ? formatCurrency(bracket.bracketMax) : '...'}
+                  {formatCurrency(bracket.bracketMin)} -{" "}
+                  {bracket.bracketMax
+                    ? formatCurrency(bracket.bracketMax)
+                    : "..."}
                 </td>
-                <td className="text-right p-2">{formatPercent(bracket.rate)}</td>
+                <td className="text-right p-2">
+                  {formatPercent(bracket.rate)}
+                </td>
                 <td className="text-right p-2 font-mono">
                   {formatCurrency(bracket.incomeInBracket)}
                 </td>
@@ -75,9 +82,7 @@ export default memo(function BracketTable({
           </tfoot>
         </table>
       </div>
-      {footnote && (
-        <p className="text-xs text-gray-500 mt-1">{footnote}</p>
-      )}
+      {footnote && <p className="text-xs text-gray-500 mt-1">{footnote}</p>}
     </div>
   );
-})
+});

@@ -1,10 +1,13 @@
-import { TaxBracket, BracketBreakdown, TaxCalculationResult } from './types';
+import { TaxBracket, BracketBreakdown, TaxCalculationResult } from "./types";
 
 /**
  * Calculate effective tax rate as a decimal (e.g., 0.15 for 15%)
  * Returns 0 if income is zero to avoid division by zero
  */
-export function calculateEffectiveRate(totalTax: number, income: number): number {
+export function calculateEffectiveRate(
+  totalTax: number,
+  income: number,
+): number {
   if (income <= 0) return 0;
   return totalTax / income;
 }
@@ -20,7 +23,10 @@ export function calculateEffectiveRates(result: TaxCalculationResult): {
 } {
   const totalTaxableIncome = result.taxableOrdinaryIncome + result.taxableLTCG;
   return {
-    onTaxableIncome: calculateEffectiveRate(result.totalTax, totalTaxableIncome),
+    onTaxableIncome: calculateEffectiveRate(
+      result.totalTax,
+      totalTaxableIncome,
+    ),
     onGrossIncome: calculateEffectiveRate(result.totalTax, result.grossIncome),
   };
 }
@@ -40,7 +46,7 @@ export function calculateEffectiveRates(result: TaxCalculationResult): {
 export function calculateLTCGTaxWithStacking(
   ltcg: number,
   ordinaryTaxableIncome: number,
-  ltcgBrackets: TaxBracket[]
+  ltcgBrackets: TaxBracket[],
 ): { total: number; breakdown: BracketBreakdown[]; ltcgInZeroBracket: number } {
   if (ltcg <= 0) {
     return { total: 0, breakdown: [], ltcgInZeroBracket: 0 };
@@ -91,7 +97,7 @@ export function calculateLTCGTaxWithStacking(
 
 export function calculateTaxByBrackets(
   taxableIncome: number,
-  brackets: TaxBracket[]
+  brackets: TaxBracket[],
 ): { total: number; breakdown: BracketBreakdown[] } {
   let remainingIncome = taxableIncome;
   let totalTax = 0;

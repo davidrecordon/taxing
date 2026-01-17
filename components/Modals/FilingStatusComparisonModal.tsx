@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useMemo, useEffect } from 'react';
-import { formatCurrency, formatPercent } from '@/lib/formatters';
-import { TaxInputs } from '@/lib/types';
+import { useState, useMemo, useEffect } from "react";
+import { formatCurrency } from "@/lib/formatters";
+import { TaxInputs } from "@/lib/types";
 
 export interface SplitConfig {
   wages: number;
@@ -40,7 +40,12 @@ interface SplitSliderProps {
   onChange: (percent: number) => void;
 }
 
-function SplitSlider({ label, totalAmount, spouse1Percent, onChange }: SplitSliderProps) {
+function SplitSlider({
+  label,
+  totalAmount,
+  spouse1Percent,
+  onChange,
+}: SplitSliderProps) {
   const spouse1Amount = totalAmount * (spouse1Percent / 100);
   const spouse2Amount = totalAmount - spouse1Amount;
 
@@ -66,8 +71,12 @@ function SplitSlider({ label, totalAmount, spouse1Percent, onChange }: SplitSlid
           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
         />
         <div className="flex justify-between text-sm tabular-nums">
-          <span className="text-gray-700">{spouse1Percent}% / {100 - spouse1Percent}%</span>
-          <span className="text-gray-400">{formatCurrency(spouse1Amount)} / {formatCurrency(spouse2Amount)}</span>
+          <span className="text-gray-700">
+            {spouse1Percent}% / {100 - spouse1Percent}%
+          </span>
+          <span className="text-gray-400">
+            {formatCurrency(spouse1Amount)} / {formatCurrency(spouse2Amount)}
+          </span>
         </div>
       </div>
 
@@ -76,7 +85,9 @@ function SplitSlider({ label, totalAmount, spouse1Percent, onChange }: SplitSlid
         {/* Column 1: Category */}
         <div className="w-52 shrink-0 text-sm text-gray-700">
           <span className="font-medium">{label}</span>
-          <span className="text-gray-500 ml-1">({formatCurrency(totalAmount)})</span>
+          <span className="text-gray-500 ml-1">
+            ({formatCurrency(totalAmount)})
+          </span>
         </div>
         {/* Column 2: Slider */}
         <div className="flex-1">
@@ -131,20 +142,21 @@ export default function FilingStatusComparisonModal({
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
+      document.addEventListener("keydown", handleEscape);
+      return () => document.removeEventListener("keydown", handleEscape);
     }
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  const totalWages = currentInputs.federalIncome + (currentInputs.selfEmploymentIncome || 0);
+  const totalWages =
+    currentInputs.federalIncome + (currentInputs.selfEmploymentIncome || 0);
   const totalDeductions =
     currentInputs.mortgageInterestPaid +
     currentInputs.propertyTaxesPaid +
@@ -156,7 +168,11 @@ export default function FilingStatusComparisonModal({
     if (diff > 0) {
       return <span className="text-red-600">+{formatCurrency(diff)}</span>;
     } else if (diff < 0) {
-      return <span className="text-green-600">-{formatCurrency(Math.abs(diff))}</span>;
+      return (
+        <span className="text-green-600">
+          -{formatCurrency(Math.abs(diff))}
+        </span>
+      );
     }
     return <span className="text-gray-500">No change</span>;
   };
@@ -181,16 +197,27 @@ export default function FilingStatusComparisonModal({
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600"
             >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
 
           {/* Info text */}
           <p className="text-sm text-gray-600 mb-4">
-            Allocate income and deductions between spouses to roughly reflect each's
-            share to compare Married Filing Jointly vs Married Filing Separately.
+            Allocate income and deductions between spouses to roughly reflect
+            each spouse&apos;s share to compare Married Filing Jointly vs
+            Married Filing Separately.
           </p>
 
           {/* Split Configuration */}
@@ -204,37 +231,37 @@ export default function FilingStatusComparisonModal({
                 label="Wages"
                 totalAmount={totalWages}
                 spouse1Percent={splits.wages}
-                onChange={(v) => updateSplit('wages', v)}
+                onChange={(v) => updateSplit("wages", v)}
               />
               <SplitSlider
                 label="STCG"
                 totalAmount={currentInputs.shortTermCapitalGains}
                 spouse1Percent={splits.stcg}
-                onChange={(v) => updateSplit('stcg', v)}
+                onChange={(v) => updateSplit("stcg", v)}
               />
               <SplitSlider
                 label="LTCG"
                 totalAmount={currentInputs.longTermCapitalGains}
                 spouse1Percent={splits.ltcg}
-                onChange={(v) => updateSplit('ltcg', v)}
+                onChange={(v) => updateSplit("ltcg", v)}
               />
               <SplitSlider
                 label="401(k)"
                 totalAmount={currentInputs.contributions401k}
                 spouse1Percent={splits.contributions401k}
-                onChange={(v) => updateSplit('contributions401k', v)}
+                onChange={(v) => updateSplit("contributions401k", v)}
               />
               <SplitSlider
                 label="Pre-Tax Medical"
                 totalAmount={currentInputs.preTaxMedical}
                 spouse1Percent={splits.preTaxMedical}
-                onChange={(v) => updateSplit('preTaxMedical', v)}
+                onChange={(v) => updateSplit("preTaxMedical", v)}
               />
               <SplitSlider
                 label="Deductions"
                 totalAmount={totalDeductions}
                 spouse1Percent={splits.deductions}
-                onChange={(v) => updateSplit('deductions', v)}
+                onChange={(v) => updateSplit("deductions", v)}
               />
             </div>
           </div>
@@ -245,33 +272,57 @@ export default function FilingStatusComparisonModal({
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-2 px-2 font-medium text-gray-700"></th>
-                  <th className="text-right py-2 px-2 font-medium text-gray-700">MFJ</th>
-                  <th className="text-right py-2 px-2 font-medium text-gray-700">MFS (Combined)</th>
-                  <th className="text-right py-2 px-2 font-medium text-gray-700">Difference</th>
+                  <th className="text-right py-2 px-2 font-medium text-gray-700">
+                    MFJ
+                  </th>
+                  <th className="text-right py-2 px-2 font-medium text-gray-700">
+                    MFS (Combined)
+                  </th>
+                  <th className="text-right py-2 px-2 font-medium text-gray-700">
+                    Difference
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b border-gray-100">
                   <td className="py-2 px-2 text-gray-700">Federal Tax</td>
-                  <td className="py-2 px-2 text-right text-gray-900">{formatCurrency(mfjResults.federalTax)}</td>
-                  <td className="py-2 px-2 text-right text-gray-900">{formatCurrency(mfsResults.combined.federalTax)}</td>
+                  <td className="py-2 px-2 text-right text-gray-900">
+                    {formatCurrency(mfjResults.federalTax)}
+                  </td>
+                  <td className="py-2 px-2 text-right text-gray-900">
+                    {formatCurrency(mfsResults.combined.federalTax)}
+                  </td>
                   <td className="py-2 px-2 text-right">
-                    {getDifferenceDisplay(mfsResults.combined.federalTax - mfjResults.federalTax)}
+                    {getDifferenceDisplay(
+                      mfsResults.combined.federalTax - mfjResults.federalTax,
+                    )}
                   </td>
                 </tr>
                 <tr className="border-b border-gray-100">
                   <td className="py-2 px-2 text-gray-700">State Tax</td>
-                  <td className="py-2 px-2 text-right text-gray-900">{formatCurrency(mfjResults.stateTax)}</td>
-                  <td className="py-2 px-2 text-right text-gray-900">{formatCurrency(mfsResults.combined.stateTax)}</td>
+                  <td className="py-2 px-2 text-right text-gray-900">
+                    {formatCurrency(mfjResults.stateTax)}
+                  </td>
+                  <td className="py-2 px-2 text-right text-gray-900">
+                    {formatCurrency(mfsResults.combined.stateTax)}
+                  </td>
                   <td className="py-2 px-2 text-right">
-                    {getDifferenceDisplay(mfsResults.combined.stateTax - mfjResults.stateTax)}
+                    {getDifferenceDisplay(
+                      mfsResults.combined.stateTax - mfjResults.stateTax,
+                    )}
                   </td>
                 </tr>
                 <tr className="border-b border-gray-200 font-medium">
                   <td className="py-2 px-2 text-gray-900">Total</td>
-                  <td className="py-2 px-2 text-right text-gray-900">{formatCurrency(mfjResults.totalTax)}</td>
-                  <td className="py-2 px-2 text-right text-gray-900">{formatCurrency(mfsResults.combined.totalTax)}</td>
-                  <td className="py-2 px-2 text-right">{getDifferenceDisplay(taxDifference)}</td>
+                  <td className="py-2 px-2 text-right text-gray-900">
+                    {formatCurrency(mfjResults.totalTax)}
+                  </td>
+                  <td className="py-2 px-2 text-right text-gray-900">
+                    {formatCurrency(mfsResults.combined.totalTax)}
+                  </td>
+                  <td className="py-2 px-2 text-right">
+                    {getDifferenceDisplay(taxDifference)}
+                  </td>
                 </tr>
               </tbody>
             </table>

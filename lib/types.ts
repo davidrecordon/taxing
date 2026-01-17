@@ -1,15 +1,25 @@
-export type FilingStatus = 'single' | 'marriedFilingJointly' | 'marriedFilingSeparately';
+export type FilingStatus =
+  | "single"
+  | "marriedFilingJointly"
+  | "marriedFilingSeparately";
 
-export type TaxState = 'california' | 'colorado' | 'dc' | 'florida' | 'illinois' | 'newyork' | 'washington';
+export type TaxState =
+  | "california"
+  | "colorado"
+  | "dc"
+  | "florida"
+  | "illinois"
+  | "newyork"
+  | "washington";
 
 export const STATE_LABELS: Record<TaxState, string> = {
-  california: 'California',
-  colorado: 'Colorado',
-  dc: 'District of Columbia',
-  florida: 'Florida',
-  illinois: 'Illinois',
-  newyork: 'New York',
-  washington: 'Washington',
+  california: "California",
+  colorado: "Colorado",
+  dc: "District of Columbia",
+  florida: "Florida",
+  illinois: "Illinois",
+  newyork: "New York",
+  washington: "Washington",
 };
 
 export interface TaxBracket {
@@ -186,7 +196,10 @@ export type MultiYearCaliforniaLimits = Record<string, CaliforniaLimitsData>;
 export type MultiYearWashingtonLimits = Record<string, WashingtonLimitsData>;
 export type MultiYearNewYorkLimits = Record<string, NewYorkLimitsData>;
 export type MultiYearIllinoisLimits = Record<string, IllinoisLimitsData>;
-export type MultiYearIllinoisDeductions = Record<string, IllinoisDeductionsData>;
+export type MultiYearIllinoisDeductions = Record<
+  string,
+  IllinoisDeductionsData
+>;
 export type MultiYearColoradoLimits = Record<string, ColoradoLimitsData>;
 export type MultiYearDCLimits = Record<string, DCLimitsData>;
 export type MultiYearFloridaLimits = Record<string, FloridaLimitsData>;
@@ -265,7 +278,7 @@ export interface BracketBreakdown {
 export interface DeductionBreakdown {
   standardDeduction: number;
   itemizedDeduction: number;
-  deductionUsed: 'standard' | 'itemized';
+  deductionUsed: "standard" | "itemized";
   deductionAmount: number;
   saltDeduction: number;
   saltCapped: boolean;
@@ -310,8 +323,8 @@ export interface SafeHarbor {
   minimum: number;
   met: boolean;
   remaining: number;
-  highIncomeException?: boolean;  // CA only - AGI over threshold
-  isHighIncome?: boolean;  // NY - whether 110% rule applies
+  highIncomeException?: boolean; // CA only - AGI over threshold
+  isHighIncome?: boolean; // NY - whether 110% rule applies
 }
 
 export interface TaxCalculationResult {
@@ -321,13 +334,13 @@ export interface TaxCalculationResult {
   longTermCapitalGains: number;
   grossIncome: number;
   shortTermLossCarryoverOffset: number;
-  shortTermLossCarryoverUnused?: number;  // Preserved for future years
+  shortTermLossCarryoverUnused?: number; // Preserved for future years
   longTermLossCarryoverOffset: number;
-  longTermLossCarryoverUnused?: number;  // Preserved for future years (0% bracket optimization)
+  longTermLossCarryoverUnused?: number; // Preserved for future years (0% bracket optimization)
   contributions401k: number;
   preTaxMedical: number;
-  selfEmploymentIncome?: number;  // For state displays
-  deductibleSETax?: number;  // For state displays
+  selfEmploymentIncome?: number; // For state displays
+  deductibleSETax?: number; // For state displays
   adjustedGrossIncome: number;
 
   // Deduction details
@@ -344,9 +357,9 @@ export interface TaxCalculationResult {
   // Tax totals
   ordinaryIncomeTax: number;
   ltcgTax: number;
-  caMentalHealthTax?: number;  // California only - 1% on income over $1M
-  nycTax?: number;  // New York City local tax
-  nycBracketBreakdown?: BracketBreakdown[];  // NYC tax bracket breakdown
+  caMentalHealthTax?: number; // California only - 1% on income over $1M
+  nycTax?: number; // New York City local tax
+  nycBracketBreakdown?: BracketBreakdown[]; // NYC tax bracket breakdown
   ficaBreakdown?: FicaBreakdown;
   niitBreakdown?: NIITBreakdown;
   qbiDeduction?: QbiDeduction;

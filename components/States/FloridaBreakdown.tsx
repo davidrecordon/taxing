@@ -1,7 +1,7 @@
-import { memo } from 'react';
-import { TaxCalculationResult } from '@/lib/types';
-import { formatCurrency } from '@/lib/formatters';
-import TaxSummarySection from '../shared/TaxSummarySection';
+import { memo } from "react";
+import { TaxCalculationResult } from "@/lib/types";
+import { formatCurrency } from "@/lib/formatters";
+import TaxSummarySection from "../shared/TaxSummarySection";
 
 interface Props {
   result: TaxCalculationResult;
@@ -19,7 +19,8 @@ export default memo(function FloridaBreakdown({ result }: Props) {
       {/* No Income Tax Notice */}
       <div className="bg-green-50 p-3 rounded mb-4">
         <p className="text-sm text-green-800 font-medium">
-          Florida has no state income tax on wages, capital gains, or other personal income.
+          Florida has no state income tax on wages, capital gains, or other
+          personal income.
         </p>
       </div>
 
@@ -38,10 +39,12 @@ export default memo(function FloridaBreakdown({ result }: Props) {
         <div className="bg-gray-50 p-3 rounded">
           <div className="flex justify-between font-medium">
             <span>Florida Income Tax</span>
-            <span className="font-mono text-green-600">{formatCurrency(0)}</span>
+            <span className="font-mono text-green-600">
+              {formatCurrency(0)}
+            </span>
           </div>
         </div>
       )}
     </div>
   );
-})
+});

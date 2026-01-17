@@ -1,9 +1,11 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import FederalBreakdown from '../FederalBreakdown';
-import { TaxCalculationResult } from '@/lib/types';
+import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
+import FederalBreakdown from "../FederalBreakdown";
+import { TaxCalculationResult } from "@/lib/types";
 
-const createMockResult = (overrides: Partial<TaxCalculationResult> = {}): TaxCalculationResult => ({
+const createMockResult = (
+  overrides: Partial<TaxCalculationResult> = {},
+): TaxCalculationResult => ({
   wageIncome: 100000,
   shortTermCapitalGains: 0,
   longTermCapitalGains: 0,
@@ -16,7 +18,7 @@ const createMockResult = (overrides: Partial<TaxCalculationResult> = {}): TaxCal
   deductionBreakdown: {
     standardDeduction: 15700,
     itemizedDeduction: 0,
-    deductionUsed: 'standard',
+    deductionUsed: "standard",
     deductionAmount: 15700,
     saltDeduction: 0,
     saltCapped: false,
@@ -26,9 +28,27 @@ const createMockResult = (overrides: Partial<TaxCalculationResult> = {}): TaxCal
   taxableOrdinaryIncome: 84300,
   taxableLTCG: 0,
   ordinaryIncomeBracketBreakdown: [
-    { bracketMin: 0, bracketMax: 11925, rate: 0.10, incomeInBracket: 11925, taxForBracket: 1192.5 },
-    { bracketMin: 11925, bracketMax: 48475, rate: 0.12, incomeInBracket: 36550, taxForBracket: 4386 },
-    { bracketMin: 48475, bracketMax: 103350, rate: 0.22, incomeInBracket: 35825, taxForBracket: 7881.5 },
+    {
+      bracketMin: 0,
+      bracketMax: 11925,
+      rate: 0.1,
+      incomeInBracket: 11925,
+      taxForBracket: 1192.5,
+    },
+    {
+      bracketMin: 11925,
+      bracketMax: 48475,
+      rate: 0.12,
+      incomeInBracket: 36550,
+      taxForBracket: 4386,
+    },
+    {
+      bracketMin: 48475,
+      bracketMax: 103350,
+      rate: 0.22,
+      incomeInBracket: 35825,
+      taxForBracket: 7881.5,
+    },
   ],
   ltcgBracketBreakdown: [],
   ordinaryIncomeTax: 13460,
@@ -49,58 +69,58 @@ const createMockResult = (overrides: Partial<TaxCalculationResult> = {}): TaxCal
   ...overrides,
 });
 
-describe('FederalBreakdown', () => {
-  describe('income section', () => {
-    it('displays wage income', () => {
+describe("FederalBreakdown", () => {
+  describe("income section", () => {
+    it("displays wage income", () => {
       const result = createMockResult({ wageIncome: 150000 });
       render(<FederalBreakdown result={result} />);
 
-      expect(screen.getByText('Wages & Other Income')).toBeInTheDocument();
-      expect(screen.getByText('$150,000')).toBeInTheDocument();
+      expect(screen.getByText("Wages & Other Income")).toBeInTheDocument();
+      expect(screen.getByText("$150,000")).toBeInTheDocument();
     });
 
-    it('shows short-term capital gains when present', () => {
+    it("shows short-term capital gains when present", () => {
       const result = createMockResult({
         shortTermCapitalGains: 10000,
         grossIncome: 110000,
       });
       render(<FederalBreakdown result={result} />);
 
-      expect(screen.getByText('Short-Term Capital Gains')).toBeInTheDocument();
+      expect(screen.getByText("Short-Term Capital Gains")).toBeInTheDocument();
     });
 
-    it('shows long-term capital gains when present', () => {
+    it("shows long-term capital gains when present", () => {
       const result = createMockResult({
         longTermCapitalGains: 20000,
         grossIncome: 120000,
       });
       render(<FederalBreakdown result={result} />);
 
-      expect(screen.getByText('Long-Term Capital Gains')).toBeInTheDocument();
+      expect(screen.getByText("Long-Term Capital Gains")).toBeInTheDocument();
     });
 
-    it('shows gross income total', () => {
+    it("shows gross income total", () => {
       const result = createMockResult({ grossIncome: 125000 });
       render(<FederalBreakdown result={result} />);
 
-      expect(screen.getByText('Gross Income')).toBeInTheDocument();
+      expect(screen.getByText("Gross Income")).toBeInTheDocument();
     });
   });
 
-  describe('deductions', () => {
-    it('shows standard deduction when used', () => {
+  describe("deductions", () => {
+    it("shows standard deduction when used", () => {
       const result = createMockResult();
       render(<FederalBreakdown result={result} />);
 
-      expect(screen.getByText('Less: Standard Deduction')).toBeInTheDocument();
+      expect(screen.getByText("Less: Standard Deduction")).toBeInTheDocument();
     });
 
-    it('shows itemized deduction when used', () => {
+    it("shows itemized deduction when used", () => {
       const result = createMockResult({
         deductionBreakdown: {
           standardDeduction: 15700,
           itemizedDeduction: 25000,
-          deductionUsed: 'itemized',
+          deductionUsed: "itemized",
           deductionAmount: 25000,
           saltDeduction: 10000,
           saltCapped: true,
@@ -110,34 +130,42 @@ describe('FederalBreakdown', () => {
       });
       render(<FederalBreakdown result={result} />);
 
-      expect(screen.getByText('Less: Itemized Deduction')).toBeInTheDocument();
-      expect(screen.getByText('Itemized Deduction Breakdown:')).toBeInTheDocument();
+      expect(screen.getByText("Less: Itemized Deduction")).toBeInTheDocument();
+      expect(
+        screen.getByText("Itemized Deduction Breakdown:"),
+      ).toBeInTheDocument();
     });
 
-    it('shows 401k contributions when present', () => {
+    it("shows 401k contributions when present", () => {
       const result = createMockResult({ contributions401k: 23000 });
       render(<FederalBreakdown result={result} />);
 
-      expect(screen.getByText('Less: 401(k) Contributions')).toBeInTheDocument();
+      expect(
+        screen.getByText("Less: 401(k) Contributions"),
+      ).toBeInTheDocument();
     });
   });
 
-  describe('loss carryovers', () => {
-    it('shows short-term carryover offset when present', () => {
+  describe("loss carryovers", () => {
+    it("shows short-term carryover offset when present", () => {
       const result = createMockResult({ shortTermLossCarryoverOffset: 5000 });
       render(<FederalBreakdown result={result} />);
 
-      expect(screen.getByText('Less: Short-Term Carryover Offset')).toBeInTheDocument();
+      expect(
+        screen.getByText("Less: Short-Term Carryover Offset"),
+      ).toBeInTheDocument();
     });
 
-    it('shows long-term carryover offset when present', () => {
+    it("shows long-term carryover offset when present", () => {
       const result = createMockResult({ longTermLossCarryoverOffset: 10000 });
       render(<FederalBreakdown result={result} />);
 
-      expect(screen.getByText('Less: Long-Term Carryover Offset')).toBeInTheDocument();
+      expect(
+        screen.getByText("Less: Long-Term Carryover Offset"),
+      ).toBeInTheDocument();
     });
 
-    it('shows preserved ST carryover when applicable', () => {
+    it("shows preserved ST carryover when applicable", () => {
       const result = createMockResult({
         shortTermLossCarryoverOffset: 5000,
         shortTermLossCarryoverUnused: 2000,
@@ -148,16 +176,18 @@ describe('FederalBreakdown', () => {
     });
   });
 
-  describe('FICA taxes', () => {
-    it('displays FICA breakdown', () => {
+  describe("FICA taxes", () => {
+    it("displays FICA breakdown", () => {
       const result = createMockResult();
       render(<FederalBreakdown result={result} />);
 
-      expect(screen.getByText('FICA Taxes (Social Security & Medicare)')).toBeInTheDocument();
-      expect(screen.getByText('Total FICA')).toBeInTheDocument();
+      expect(
+        screen.getByText("FICA Taxes (Social Security & Medicare)"),
+      ).toBeInTheDocument();
+      expect(screen.getByText("Total FICA")).toBeInTheDocument();
     });
 
-    it('shows additional Medicare when applicable', () => {
+    it("shows additional Medicare when applicable", () => {
       const result = createMockResult({
         ficaBreakdown: {
           socialSecurityTax: 10918.2,
@@ -173,32 +203,48 @@ describe('FederalBreakdown', () => {
     });
   });
 
-  describe('bracket tables', () => {
-    it('displays ordinary income bracket table', () => {
+  describe("bracket tables", () => {
+    it("displays ordinary income bracket table", () => {
       const result = createMockResult();
       render(<FederalBreakdown result={result} />);
 
-      expect(screen.getByText('Ordinary Income Tax by Bracket')).toBeInTheDocument();
+      expect(
+        screen.getByText("Ordinary Income Tax by Bracket"),
+      ).toBeInTheDocument();
     });
 
-    it('displays LTCG bracket table when there are gains', () => {
+    it("displays LTCG bracket table when there are gains", () => {
       const result = createMockResult({
         longTermCapitalGains: 50000,
         taxableLTCG: 50000,
         ltcgBracketBreakdown: [
-          { bracketMin: 0, bracketMax: 47025, rate: 0, incomeInBracket: 47025, taxForBracket: 0 },
-          { bracketMin: 47025, bracketMax: 518900, rate: 0.15, incomeInBracket: 2975, taxForBracket: 446.25 },
+          {
+            bracketMin: 0,
+            bracketMax: 47025,
+            rate: 0,
+            incomeInBracket: 47025,
+            taxForBracket: 0,
+          },
+          {
+            bracketMin: 47025,
+            bracketMax: 518900,
+            rate: 0.15,
+            incomeInBracket: 2975,
+            taxForBracket: 446.25,
+          },
         ],
         ltcgTax: 446.25,
       });
       render(<FederalBreakdown result={result} />);
 
-      expect(screen.getByText('Long-Term Capital Gains Tax by Bracket')).toBeInTheDocument();
+      expect(
+        screen.getByText("Long-Term Capital Gains Tax by Bracket"),
+      ).toBeInTheDocument();
     });
   });
 
-  describe('safe harbor', () => {
-    it('shows safe harbor section when tax is owed', () => {
+  describe("safe harbor", () => {
+    it("shows safe harbor section when tax is owed", () => {
       const result = createMockResult({
         remainingOwed: 5000,
         safeHarbor: {
@@ -211,10 +257,12 @@ describe('FederalBreakdown', () => {
       });
       render(<FederalBreakdown result={result} />);
 
-      expect(screen.getByText('Safe Harbor (Penalty Avoidance)')).toBeInTheDocument();
+      expect(
+        screen.getByText("Safe Harbor (Penalty Avoidance)"),
+      ).toBeInTheDocument();
     });
 
-    it('shows safe harbor met message when criteria satisfied', () => {
+    it("shows safe harbor met message when criteria satisfied", () => {
       const result = createMockResult({
         remainingOwed: 1000,
         safeHarbor: {

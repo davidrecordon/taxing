@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import TaxSummarySection from '../TaxSummarySection';
+import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
+import TaxSummarySection from "../TaxSummarySection";
 
-describe('TaxSummarySection', () => {
-  describe('tax owed scenario', () => {
-    it('shows remaining owed in red', () => {
+describe("TaxSummarySection", () => {
+  describe("tax owed scenario", () => {
+    it("shows remaining owed in red", () => {
       render(
         <TaxSummarySection
           totalTax={10000}
@@ -13,13 +13,13 @@ describe('TaxSummarySection', () => {
           remainingOwed={3000}
           refundDue={0}
           taxLabel="Federal"
-        />
+        />,
       );
-      expect(screen.getByText('$3,000')).toBeInTheDocument();
-      expect(screen.getByText('Estimated Tax Still Owed')).toBeInTheDocument();
+      expect(screen.getByText("$3,000")).toBeInTheDocument();
+      expect(screen.getByText("Estimated Tax Still Owed")).toBeInTheDocument();
     });
 
-    it('shows withheld and estimated payments', () => {
+    it("shows withheld and estimated payments", () => {
       render(
         <TaxSummarySection
           totalTax={10000}
@@ -28,15 +28,15 @@ describe('TaxSummarySection', () => {
           remainingOwed={3000}
           refundDue={0}
           taxLabel="Federal"
-        />
+        />,
       );
-      expect(screen.getByText('-$5,000')).toBeInTheDocument();
-      expect(screen.getByText('-$2,000')).toBeInTheDocument();
+      expect(screen.getByText("-$5,000")).toBeInTheDocument();
+      expect(screen.getByText("-$2,000")).toBeInTheDocument();
     });
   });
 
-  describe('refund scenario', () => {
-    it('shows refund in green', () => {
+  describe("refund scenario", () => {
+    it("shows refund in green", () => {
       render(
         <TaxSummarySection
           totalTax={10000}
@@ -45,15 +45,15 @@ describe('TaxSummarySection', () => {
           remainingOwed={0}
           refundDue={2000}
           taxLabel="Federal"
-        />
+        />,
       );
-      expect(screen.getByText('$2,000')).toBeInTheDocument();
-      expect(screen.getByText('Estimated Refund')).toBeInTheDocument();
+      expect(screen.getByText("$2,000")).toBeInTheDocument();
+      expect(screen.getByText("Estimated Refund")).toBeInTheDocument();
     });
   });
 
-  describe('no tax scenario', () => {
-    it('shows no tax due message', () => {
+  describe("no tax scenario", () => {
+    it("shows no tax due message", () => {
       render(
         <TaxSummarySection
           totalTax={0}
@@ -62,14 +62,14 @@ describe('TaxSummarySection', () => {
           remainingOwed={0}
           refundDue={0}
           taxLabel="Federal"
-        />
+        />,
       );
-      expect(screen.getByText('No Tax Due')).toBeInTheDocument();
+      expect(screen.getByText("No Tax Due")).toBeInTheDocument();
     });
   });
 
-  describe('effective rates', () => {
-    it('shows effective rates when enabled', () => {
+  describe("effective rates", () => {
+    it("shows effective rates when enabled", () => {
       render(
         <TaxSummarySection
           totalTax={10000}
@@ -80,15 +80,19 @@ describe('TaxSummarySection', () => {
           taxLabel="Federal"
           showEffectiveRates={true}
           effectiveRates={{ onTaxableIncome: 0.15, onGrossIncome: 0.12 }}
-        />
+        />,
       );
-      expect(screen.getByText('Effective Rate (on taxable income)')).toBeInTheDocument();
-      expect(screen.getByText('Effective Rate (on gross income)')).toBeInTheDocument();
-      expect(screen.getByText('15.0%')).toBeInTheDocument();
-      expect(screen.getByText('12.0%')).toBeInTheDocument();
+      expect(
+        screen.getByText("Effective Rate (on taxable income)"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText("Effective Rate (on gross income)"),
+      ).toBeInTheDocument();
+      expect(screen.getByText("15.0%")).toBeInTheDocument();
+      expect(screen.getByText("12.0%")).toBeInTheDocument();
     });
 
-    it('hides effective rates when disabled', () => {
+    it("hides effective rates when disabled", () => {
       render(
         <TaxSummarySection
           totalTax={10000}
@@ -98,14 +102,16 @@ describe('TaxSummarySection', () => {
           refundDue={0}
           taxLabel="Federal"
           showEffectiveRates={false}
-        />
+        />,
       );
-      expect(screen.queryByText('Effective Rate (on taxable income)')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Effective Rate (on taxable income)"),
+      ).not.toBeInTheDocument();
     });
   });
 
-  describe('tax label', () => {
-    it('uses custom tax label', () => {
+  describe("tax label", () => {
+    it("uses custom tax label", () => {
       render(
         <TaxSummarySection
           totalTax={5000}
@@ -114,14 +120,14 @@ describe('TaxSummarySection', () => {
           remainingOwed={5000}
           refundDue={0}
           taxLabel="California"
-        />
+        />,
       );
-      expect(screen.getByText('Total California Tax')).toBeInTheDocument();
+      expect(screen.getByText("Total California Tax")).toBeInTheDocument();
     });
   });
 
-  describe('hides zero payments', () => {
-    it('does not show withheld row when zero', () => {
+  describe("hides zero payments", () => {
+    it("does not show withheld row when zero", () => {
       render(
         <TaxSummarySection
           totalTax={5000}
@@ -130,13 +136,13 @@ describe('TaxSummarySection', () => {
           remainingOwed={4000}
           refundDue={0}
           taxLabel="Federal"
-        />
+        />,
       );
-      expect(screen.queryByText('Less: Withheld')).not.toBeInTheDocument();
-      expect(screen.getByText('Less: Estimated Paid')).toBeInTheDocument();
+      expect(screen.queryByText("Less: Withheld")).not.toBeInTheDocument();
+      expect(screen.getByText("Less: Estimated Paid")).toBeInTheDocument();
     });
 
-    it('does not show estimated paid row when zero', () => {
+    it("does not show estimated paid row when zero", () => {
       render(
         <TaxSummarySection
           totalTax={5000}
@@ -145,10 +151,12 @@ describe('TaxSummarySection', () => {
           remainingOwed={4000}
           refundDue={0}
           taxLabel="Federal"
-        />
+        />,
       );
-      expect(screen.getByText('Less: Withheld')).toBeInTheDocument();
-      expect(screen.queryByText('Less: Estimated Paid')).not.toBeInTheDocument();
+      expect(screen.getByText("Less: Withheld")).toBeInTheDocument();
+      expect(
+        screen.queryByText("Less: Estimated Paid"),
+      ).not.toBeInTheDocument();
     });
   });
 });

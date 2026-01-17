@@ -7,10 +7,14 @@ import {
   FederalLimitsData,
   DCLimitsData,
   FicaData,
-} from '../types';
-import { calculateDCDeductions } from '../deductionCalculator';
-import { calculateTaxByBrackets } from '../taxUtils';
-import { calculateDeductibleSETax, calculatePaymentSummary, calculateSafeHarbor } from './stateCalcUtils';
+} from "../types";
+import { calculateDCDeductions } from "../deductionCalculator";
+import { calculateTaxByBrackets } from "../taxUtils";
+import {
+  calculateDeductibleSETax,
+  calculatePaymentSummary,
+  calculateSafeHarbor,
+} from "./stateCalcUtils";
 
 /**
  * Washington DC Tax Calculator
@@ -29,7 +33,7 @@ export function calculateDCTax(
   sharedLimits: SharedLimitsData,
   federalLimits: FederalLimitsData,
   dcLimits: DCLimitsData,
-  ficaData?: FicaData
+  ficaData?: FicaData,
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
 
@@ -45,25 +49,26 @@ export function calculateDCTax(
   // DC taxes ALL capital gains and self-employment income as ordinary income
   const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
   const grossIncome =
-    stateIncome +
-    effectiveSTCG +
-    effectiveLTCG +
-    selfEmploymentIncome;
+    stateIncome + effectiveSTCG + effectiveLTCG + selfEmploymentIncome;
 
   // Step 1b: Apply short-term loss carryover (includes current year losses, DC follows federal rules)
-  const stCarryover = inputs.priorYearShortTermLossCarryover + currentYearSTLoss;
+  const stCarryover =
+    inputs.priorYearShortTermLossCarryover + currentYearSTLoss;
   const stGainsOffset = Math.min(stCarryover, effectiveSTCG);
   const remainingCarryover = stCarryover - stGainsOffset;
 
-  const ordinaryIncomeLimit = filingStatus === 'marriedFilingSeparately'
-    ? sharedLimits.capitalLossLimit.marriedFilingSeparately
-    : sharedLimits.capitalLossLimit.default;
-  const ordinaryIncomeOffset = remainingCarryover > 0 && stateIncome > 0
-    ? Math.min(remainingCarryover, ordinaryIncomeLimit, stateIncome)
-    : 0;
+  const ordinaryIncomeLimit =
+    filingStatus === "marriedFilingSeparately"
+      ? sharedLimits.capitalLossLimit.marriedFilingSeparately
+      : sharedLimits.capitalLossLimit.default;
+  const ordinaryIncomeOffset =
+    remainingCarryover > 0 && stateIncome > 0
+      ? Math.min(remainingCarryover, ordinaryIncomeLimit, stateIncome)
+      : 0;
 
   const shortTermLossCarryoverOffset = stGainsOffset + ordinaryIncomeOffset;
-  const shortTermLossCarryoverUnused = stCarryover - shortTermLossCarryoverOffset;
+  const shortTermLossCarryoverUnused =
+    stCarryover - shortTermLossCarryoverOffset;
 
   // Step 1c: Apply long-term loss carryover
   const ltCarryover = inputs.priorYearLongTermLossCarryover;
@@ -81,20 +86,26 @@ export function calculateDCTax(
     },
     filingStatus,
     dcDeductions,
-    federalLimits
+    federalLimits,
   );
 
   // Step 3: Calculate AGI
   // DC conforms to federal above-the-line deductions including deductible SE tax
   const deductibleSETax = ficaData
-    ? calculateDeductibleSETax(selfEmploymentIncome, inputs.federalIncome, ficaData)
+    ? calculateDeductibleSETax(
+        selfEmploymentIncome,
+        inputs.federalIncome,
+        ficaData,
+      )
     : 0;
-  const preTaxDeductions = inputs.contributions401k + inputs.preTaxMedical + deductibleSETax;
-  const adjustedGrossIncome = grossIncome
-    - shortTermLossCarryoverOffset
-    - longTermLossCarryoverOffset
-    - preTaxDeductions
-    - deductionBreakdown.deductionAmount;
+  const preTaxDeductions =
+    inputs.contributions401k + inputs.preTaxMedical + deductibleSETax;
+  const adjustedGrossIncome =
+    grossIncome -
+    shortTermLossCarryoverOffset -
+    longTermLossCarryoverOffset -
+    preTaxDeductions -
+    deductionBreakdown.deductionAmount;
 
   // Step 4: Calculate taxable income
   const taxableOrdinaryIncome = Math.max(0, adjustedGrossIncome);
@@ -102,7 +113,7 @@ export function calculateDCTax(
   // Step 5: Calculate DC tax
   const dcTax = calculateTaxByBrackets(
     taxableOrdinaryIncome,
-    dcBrackets.brackets[filingStatus]
+    dcBrackets.brackets[filingStatus],
   );
 
   const totalTax = dcTax.total;
@@ -111,7 +122,7 @@ export function calculateDCTax(
   const { totalPaid, remainingOwed, refundDue } = calculatePaymentSummary(
     totalTax,
     inputs.stateTaxWithheld,
-    inputs.stateEstimatedPaid
+    inputs.stateEstimatedPaid,
   );
 
   // Step 7: Calculate safe harbor
@@ -123,7 +134,7 @@ export function calculateDCTax(
     {
       currentYearPercent: dcLimits.safeHarbor.currentYearPercent,
       priorYearPercent: dcLimits.safeHarbor.priorYearPercent,
-    }
+    },
   );
 
   return {
@@ -136,7 +147,8 @@ export function calculateDCTax(
     longTermLossCarryoverOffset,
     contributions401k: inputs.contributions401k,
     preTaxMedical: inputs.preTaxMedical,
-    selfEmploymentIncome: selfEmploymentIncome > 0 ? selfEmploymentIncome : undefined,
+    selfEmploymentIncome:
+      selfEmploymentIncome > 0 ? selfEmploymentIncome : undefined,
     deductibleSETax: deductibleSETax > 0 ? deductibleSETax : undefined,
     adjustedGrossIncome,
     deductionBreakdown,

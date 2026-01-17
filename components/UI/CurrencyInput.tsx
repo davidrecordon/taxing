@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useId, useState, useEffect } from 'react';
-import { parseNumericInput, formatNumberWithCommas } from '@/lib/formatters';
+import { useId, useState } from "react";
+import { parseNumericInput, formatNumberWithCommas } from "@/lib/formatters";
 
 interface CurrencyInputProps {
   label: string;
@@ -11,6 +11,13 @@ interface CurrencyInputProps {
   warning?: string;
   error?: string;
   allowNegative?: boolean;
+}
+
+// Format value for display, including negative sign if needed
+function formatDisplayValue(val: number): string {
+  if (val === 0) return "";
+  const absValue = formatNumberWithCommas(String(Math.abs(val)));
+  return val < 0 ? `-${absValue}` : absValue;
 }
 
 export default function CurrencyInput({
@@ -24,39 +31,34 @@ export default function CurrencyInput({
 }: CurrencyInputProps) {
   const id = useId();
 
-  // Format value for display, including negative sign if needed
-  const formatDisplayValue = (val: number): string => {
-    if (val === 0) return '';
-    const absValue = formatNumberWithCommas(String(Math.abs(val)));
-    return val < 0 ? `-${absValue}` : absValue;
-  };
-
   const [inputValue, setInputValue] = useState(formatDisplayValue(value));
+  const [prevValue, setPrevValue] = useState(value);
 
-  // Sync with external value changes (e.g., form reset)
-  useEffect(() => {
-    setInputValue((current) => {
-      const numericValue = parseNumericInput(current, allowNegative);
-      if (value !== numericValue) {
-        return formatDisplayValue(value);
-      }
-      return current;
-    });
-  }, [value, allowNegative]);
+  // Sync with external value changes during render (React recommended pattern)
+  // See: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  if (value !== prevValue) {
+    const numericValue = parseNumericInput(inputValue, allowNegative);
+    if (value !== numericValue) {
+      setInputValue(formatDisplayValue(value));
+    }
+    setPrevValue(value);
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
 
     // Check for negative sign at the start
-    const hasNegative = allowNegative && raw.trimStart().startsWith('-');
+    const hasNegative = allowNegative && raw.trimStart().startsWith("-");
 
     // Only allow digits, decimal point, and commas (strip minus for processing)
-    const cleaned = raw.replace(/[^0-9.,]/g, '');
+    const cleaned = raw.replace(/[^0-9.,]/g, "");
 
     // Prevent multiple decimal points
-    const parts = cleaned.replace(/,/g, '').split('.');
+    const parts = cleaned.replace(/,/g, "").split(".");
     const validInput =
-      parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned.replace(/,/g, '');
+      parts.length > 2
+        ? parts[0] + "." + parts.slice(1).join("")
+        : cleaned.replace(/,/g, "");
 
     // Format with commas and add back negative sign if present
     const formattedValue = formatNumberWithCommas(validInput);
@@ -69,23 +71,34 @@ export default function CurrencyInput({
 
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-900 mb-1">
+      <label
+        htmlFor={id}
+        className="block text-sm font-medium text-gray-900 mb-1"
+      >
         {label}
       </label>
       <div className="relative">
-        <span className={`absolute left-3 top-2 ${isNegative ? 'text-red-600' : 'text-gray-600'}`}>$</span>
+        <span
+          className={`absolute left-3 top-2 ${isNegative ? "text-red-600" : "text-gray-600"}`}
+        >
+          $
+        </span>
         <input
           id={id}
           type="text"
           value={inputValue}
           onChange={handleChange}
-          className={`w-full border border-gray-300 rounded-md pl-7 pr-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${isNegative ? 'text-red-600' : 'text-gray-900'}`}
+          className={`w-full border border-gray-300 rounded-md pl-7 pr-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${isNegative ? "text-red-600" : "text-gray-900"}`}
           placeholder="0"
         />
       </div>
       {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
-      {warning && !error && <p className="text-xs text-amber-600 mt-1">{warning}</p>}
-      {hint && !error && !warning && <p className="text-xs text-gray-600 mt-1">{hint}</p>}
+      {warning && !error && (
+        <p className="text-xs text-amber-600 mt-1">{warning}</p>
+      )}
+      {hint && !error && !warning && (
+        <p className="text-xs text-gray-600 mt-1">{hint}</p>
+      )}
     </div>
   );
 }

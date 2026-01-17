@@ -30,7 +30,9 @@ npm run lint       # Run ESLint
 ## Key Patterns
 
 ### State Support Pattern
+
 Each supported state follows the same structure:
+
 1. **Data files**: `data/{state}-brackets.json`, `data/{state}-deductions.json`, `data/{state}-limits.json`
 2. **Types**: `{State}LimitsData` interface in `lib/types.ts`
 3. **Calculator**: `lib/states/{state}TaxCalculator.ts`
@@ -39,20 +41,25 @@ Each supported state follows the same structure:
 6. **Integration**: Wire up in `TaxCalculator.tsx`, `TaxResultsDisplay.tsx`, `ConfigurationSection.tsx`
 
 ### Calculation Flow
+
 ```
 TaxInputs → TaxCalculator.tsx → federalTaxCalculator + stateCalculator → CalculationResults → Display components
 ```
 
 ### Multi-Year Data
+
 All tax data JSON files are keyed by year (e.g., `"2025": { ... }`). The active year is set in `lib/config.ts`.
 
 ## Common Tasks
+
 There are multiple `README.md` files throughout the codebase; refer to them regurarly and update them when changes are made which should be better documents.
 
 ### Adding a New State
+
 Follow the guide in `README.md` under "Adding a New State". The pattern is well-established.
 
 ### Adding a New Input Field
+
 1. Add field to `TaxInputs` type in `lib/types.ts`
 2. Add to `defaultInputs` in `TaxCalculator.tsx`
 3. Add UI in appropriate form component (`Forms/`)
@@ -60,12 +67,15 @@ Follow the guide in `README.md` under "Adding a New State". The pattern is well-
 5. Add tests
 
 ### Modifying Tax Calculations
+
 1. Update the relevant calculator in `lib/` or `lib/states/`
 2. Update or add tests in `lib/__tests__/`
 3. Run `npm test` to verify
 
 ### Updating Tax Data
+
 When updating tax brackets, deductions, or limits in `data/`:
+
 1. Always verify values against official government sources (IRS, FTB, DOR, etc.)
 2. Update `data/VERIFICATION.md` with the source URL and verification date
 3. Update affected tests with correct expected values
@@ -86,6 +96,7 @@ All tests must pass and the build must succeed.
 For significant code changes, use the code-simplifier skill to refine code for clarity.
 
 Tests are colocated with their components:
+
 - `lib/__tests__/` for calculation logic
 - `components/*/__tests__/` for React components
 
@@ -103,20 +114,24 @@ Tests are colocated with their components:
 This project uses Claude Code plugins for significant work:
 
 **`/frontend-design`** - Use when building or modifying UI components
+
 - Designs distinctive, production-grade interfaces
 - Ensures brand consistency
 
 **`/feature-dev`** - Use when implementing new features
+
 - Guided feature development with codebase understanding
 - Explores existing patterns before writing code
 - Includes code review phase
 
 **`code-simplifier`** - Use after completing significant work
+
 - Reviews recently modified code for duplication and complexity
 - Extracts shared utilities, consolidates patterns
 - Removes dead code, simplifies conditionals
 
 **`vercel-react-best-practices`** - Use when reviewing or optimizing React/Next.js code
+
 - Performance optimization guidelines from Vercel Engineering
 - Covers bundle size, re-renders, server-side, client-side patterns
 

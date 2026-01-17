@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { formatCurrency, formatPercent } from '@/lib/formatters';
+import { useEffect } from "react";
+import { formatCurrency, formatPercent } from "@/lib/formatters";
 
 interface ScenarioResult {
   totalTax: number;
@@ -30,37 +30,60 @@ export default function CharitableWhatIfModal({
 }: Props) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
+      document.addEventListener("keydown", handleEscape);
+      return () => document.removeEventListener("keydown", handleEscape);
     }
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   // Build scenarios based on current contributions
-  const scenarios = currentContributions === 0
-    ? [
-        { label: 'Current ($0)', value: 0, isCurrent: true },
-        { label: '1% of AGI', value: Math.round(federalAgi * 0.01), isCurrent: false },
-        { label: '5% of AGI', value: Math.round(federalAgi * 0.05), isCurrent: false },
-        { label: '10% of AGI', value: Math.round(federalAgi * 0.10), isCurrent: false },
-      ]
-    : [
-        { label: 'Half', value: Math.round(currentContributions / 2), isCurrent: false },
-        { label: 'Current', value: currentContributions, isCurrent: true },
-        { label: 'Double', value: currentContributions * 2, isCurrent: false },
-      ];
+  const scenarios =
+    currentContributions === 0
+      ? [
+          { label: "Current ($0)", value: 0, isCurrent: true },
+          {
+            label: "1% of AGI",
+            value: Math.round(federalAgi * 0.01),
+            isCurrent: false,
+          },
+          {
+            label: "5% of AGI",
+            value: Math.round(federalAgi * 0.05),
+            isCurrent: false,
+          },
+          {
+            label: "10% of AGI",
+            value: Math.round(federalAgi * 0.1),
+            isCurrent: false,
+          },
+        ]
+      : [
+          {
+            label: "Half",
+            value: Math.round(currentContributions / 2),
+            isCurrent: false,
+          },
+          { label: "Current", value: currentContributions, isCurrent: true },
+          {
+            label: "Double",
+            value: currentContributions * 2,
+            isCurrent: false,
+          },
+        ];
 
   // Calculate results for each scenario
   const scenarioResults = scenarios.map((scenario) => ({
     ...scenario,
-    results: scenario.isCurrent ? currentResults : calculateScenario(scenario.value),
+    results: scenario.isCurrent
+      ? currentResults
+      : calculateScenario(scenario.value),
   }));
 
   // Calculate savings/change compared to current
@@ -70,7 +93,11 @@ export default function CharitableWhatIfModal({
     if (savings > 0) {
       return <span className="text-green-600">-{formatCurrency(savings)}</span>;
     } else if (savings < 0) {
-      return <span className="text-red-600">+{formatCurrency(Math.abs(savings))}</span>;
+      return (
+        <span className="text-red-600">
+          +{formatCurrency(Math.abs(savings))}
+        </span>
+      );
     }
     return <span className="text-gray-500">No change</span>;
   };
@@ -100,17 +127,28 @@ export default function CharitableWhatIfModal({
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600"
             >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
 
           {/* Info text */}
           <p className="text-sm text-gray-600 mb-4">
-            See how different charitable contribution amounts would affect your federal taxes. Effective
-            rate is calculated based upon gross (not taxable) income for planning purposes. Charitable
-            contributions will also impact your state taxes.
+            See how different charitable contribution amounts would affect your
+            federal taxes. Effective rate is calculated based upon gross (not
+            taxable) income for planning purposes. Charitable contributions will
+            also impact your state taxes.
           </p>
 
           {/* Table */}
@@ -118,11 +156,21 @@ export default function CharitableWhatIfModal({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-2 font-medium text-gray-700">Scenario</th>
-                  <th className="text-right py-2 px-2 font-medium text-gray-700">Amount</th>
-                  <th className="text-right py-2 px-2 font-medium text-gray-700">Tax Due</th>
-                  <th className="hidden sm:table-cell text-right py-2 px-2 font-medium text-gray-700">Eff. Rate</th>
-                  <th className="text-right py-2 px-2 font-medium text-gray-700">Total Tax Impact</th>
+                  <th className="text-left py-2 px-2 font-medium text-gray-700">
+                    Scenario
+                  </th>
+                  <th className="text-right py-2 px-2 font-medium text-gray-700">
+                    Amount
+                  </th>
+                  <th className="text-right py-2 px-2 font-medium text-gray-700">
+                    Tax Due
+                  </th>
+                  <th className="hidden sm:table-cell text-right py-2 px-2 font-medium text-gray-700">
+                    Eff. Rate
+                  </th>
+                  <th className="text-right py-2 px-2 font-medium text-gray-700">
+                    Total Tax Impact
+                  </th>
                   <th className="py-2 px-2"></th>
                 </tr>
               </thead>
@@ -131,7 +179,7 @@ export default function CharitableWhatIfModal({
                   <tr
                     key={scenario.label}
                     className={`border-b border-gray-100 ${
-                      scenario.isCurrent ? 'bg-blue-50' : 'hover:bg-gray-50'
+                      scenario.isCurrent ? "bg-blue-50" : "hover:bg-gray-50"
                     }`}
                   >
                     <td className="py-3 px-2 font-medium text-gray-900">

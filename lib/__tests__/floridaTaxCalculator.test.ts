@@ -1,14 +1,14 @@
-import { describe, it, expect } from 'vitest';
-import { calculateFloridaTax } from '../states/floridaTaxCalculator';
-import { createDefaultInputs } from './testData';
+import { describe, it, expect } from "vitest";
+import { calculateFloridaTax } from "../states/floridaTaxCalculator";
+import { createDefaultInputs } from "./testData";
 
-describe('calculateFloridaTax', () => {
-  describe('no income tax', () => {
-    it('returns zero tax for any income amount', () => {
+describe("calculateFloridaTax", () => {
+  describe("no income tax", () => {
+    it("returns zero tax for any income amount", () => {
       const inputs = createDefaultInputs({
         federalIncome: 1000000,
-        selectedState: 'florida',
-        filingStatus: 'single',
+        selectedState: "florida",
+        filingStatus: "single",
       });
 
       const result = calculateFloridaTax(inputs);
@@ -18,13 +18,17 @@ describe('calculateFloridaTax', () => {
       expect(result.ltcgTax).toBe(0);
     });
 
-    it('returns zero tax regardless of filing status', () => {
-      const statuses = ['single', 'marriedFilingJointly', 'marriedFilingSeparately'] as const;
+    it("returns zero tax regardless of filing status", () => {
+      const statuses = [
+        "single",
+        "marriedFilingJointly",
+        "marriedFilingSeparately",
+      ] as const;
 
       for (const filingStatus of statuses) {
         const inputs = createDefaultInputs({
           federalIncome: 100000,
-          selectedState: 'florida',
+          selectedState: "florida",
           filingStatus,
         });
 
@@ -33,13 +37,13 @@ describe('calculateFloridaTax', () => {
       }
     });
 
-    it('returns zero tax with capital gains', () => {
+    it("returns zero tax with capital gains", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         shortTermCapitalGains: 50000,
         longTermCapitalGains: 100000,
-        selectedState: 'florida',
-        filingStatus: 'single',
+        selectedState: "florida",
+        filingStatus: "single",
       });
 
       const result = calculateFloridaTax(inputs);
@@ -49,13 +53,13 @@ describe('calculateFloridaTax', () => {
     });
   });
 
-  describe('payment handling', () => {
-    it('returns full refund when withholding is present', () => {
+  describe("payment handling", () => {
+    it("returns full refund when withholding is present", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         stateTaxWithheld: 5000,
-        selectedState: 'florida',
-        filingStatus: 'single',
+        selectedState: "florida",
+        filingStatus: "single",
       });
 
       const result = calculateFloridaTax(inputs);
@@ -66,12 +70,12 @@ describe('calculateFloridaTax', () => {
       expect(result.remainingOwed).toBe(0);
     });
 
-    it('returns full refund when estimated payments are present', () => {
+    it("returns full refund when estimated payments are present", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         stateEstimatedPaid: 3000,
-        selectedState: 'florida',
-        filingStatus: 'single',
+        selectedState: "florida",
+        filingStatus: "single",
       });
 
       const result = calculateFloridaTax(inputs);
@@ -82,13 +86,13 @@ describe('calculateFloridaTax', () => {
       expect(result.remainingOwed).toBe(0);
     });
 
-    it('returns combined refund for withholding and estimated', () => {
+    it("returns combined refund for withholding and estimated", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         stateTaxWithheld: 2000,
         stateEstimatedPaid: 1000,
-        selectedState: 'florida',
-        filingStatus: 'single',
+        selectedState: "florida",
+        filingStatus: "single",
       });
 
       const result = calculateFloridaTax(inputs);
@@ -99,10 +103,10 @@ describe('calculateFloridaTax', () => {
     });
   });
 
-  describe('edge cases', () => {
-    it('handles zero income', () => {
+  describe("edge cases", () => {
+    it("handles zero income", () => {
       const inputs = createDefaultInputs({
-        selectedState: 'florida',
+        selectedState: "florida",
       });
 
       const result = calculateFloridaTax(inputs);
@@ -113,12 +117,12 @@ describe('calculateFloridaTax', () => {
       expect(result.refundDue).toBe(0);
     });
 
-    it('does not include safe harbor (no tax to safe harbor against)', () => {
+    it("does not include safe harbor (no tax to safe harbor against)", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         priorYearStateTaxPaid: 5000,
-        selectedState: 'florida',
-        filingStatus: 'single',
+        selectedState: "florida",
+        filingStatus: "single",
       });
 
       const result = calculateFloridaTax(inputs);
@@ -126,11 +130,11 @@ describe('calculateFloridaTax', () => {
       expect(result.safeHarbor).toBeUndefined();
     });
 
-    it('returns zero taxable income', () => {
+    it("returns zero taxable income", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        selectedState: 'florida',
-        filingStatus: 'single',
+        selectedState: "florida",
+        filingStatus: "single",
       });
 
       const result = calculateFloridaTax(inputs);

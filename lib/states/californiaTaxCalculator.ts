@@ -6,10 +6,14 @@ import {
   SharedLimitsData,
   CaliforniaLimitsData,
   FicaData,
-} from '../types';
-import { calculateCaliforniaDeductions } from '../deductionCalculator';
-import { calculateTaxByBrackets } from '../taxUtils';
-import { calculateDeductibleSETax, calculatePaymentSummary, calculateSafeHarbor } from './stateCalcUtils';
+} from "../types";
+import { calculateCaliforniaDeductions } from "../deductionCalculator";
+import { calculateTaxByBrackets } from "../taxUtils";
+import {
+  calculateDeductibleSETax,
+  calculatePaymentSummary,
+  calculateSafeHarbor,
+} from "./stateCalcUtils";
 
 export function calculateCaliforniaTax(
   inputs: TaxInputs,
@@ -17,7 +21,7 @@ export function calculateCaliforniaTax(
   californiaDeductions: DeductionsData,
   sharedLimits: SharedLimitsData,
   californiaLimits: CaliforniaLimitsData,
-  ficaData?: FicaData
+  ficaData?: FicaData,
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
 
@@ -33,26 +37,27 @@ export function calculateCaliforniaTax(
   // California taxes ALL capital gains and self-employment income as ordinary income
   const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
   const grossIncome =
-    stateIncome +
-    effectiveSTCG +
-    effectiveLTCG +
-    selfEmploymentIncome;
+    stateIncome + effectiveSTCG + effectiveLTCG + selfEmploymentIncome;
 
   // Step 1b: Apply short-term loss carryover (includes current year losses, CA follows federal rules)
   // First offset short-term gains, then ordinary income up to limit
-  const stCarryover = inputs.priorYearShortTermLossCarryover + currentYearSTLoss;
+  const stCarryover =
+    inputs.priorYearShortTermLossCarryover + currentYearSTLoss;
   const stGainsOffset = Math.min(stCarryover, effectiveSTCG);
   const remainingCarryover = stCarryover - stGainsOffset;
 
-  const ordinaryIncomeLimit = filingStatus === 'marriedFilingSeparately'
-    ? sharedLimits.capitalLossLimit.marriedFilingSeparately
-    : sharedLimits.capitalLossLimit.default;
-  const ordinaryIncomeOffset = remainingCarryover > 0 && stateIncome > 0
-    ? Math.min(remainingCarryover, ordinaryIncomeLimit, stateIncome)
-    : 0;
+  const ordinaryIncomeLimit =
+    filingStatus === "marriedFilingSeparately"
+      ? sharedLimits.capitalLossLimit.marriedFilingSeparately
+      : sharedLimits.capitalLossLimit.default;
+  const ordinaryIncomeOffset =
+    remainingCarryover > 0 && stateIncome > 0
+      ? Math.min(remainingCarryover, ordinaryIncomeLimit, stateIncome)
+      : 0;
 
   const shortTermLossCarryoverOffset = stGainsOffset + ordinaryIncomeOffset;
-  const shortTermLossCarryoverUnused = stCarryover - shortTermLossCarryoverOffset;
+  const shortTermLossCarryoverUnused =
+    stCarryover - shortTermLossCarryoverOffset;
 
   // Step 1c: Apply long-term loss carryover (CA taxes all gains as ordinary, so reduces gross income)
   const ltCarryover = inputs.priorYearLongTermLossCarryover;
@@ -70,20 +75,26 @@ export function calculateCaliforniaTax(
     },
     filingStatus,
     californiaDeductions,
-    californiaLimits
+    californiaLimits,
   );
 
   // Step 3b: Calculate AGI (includes all deductions for display)
   // CA conforms to federal above-the-line deductions including deductible SE tax
   const deductibleSETax = ficaData
-    ? calculateDeductibleSETax(selfEmploymentIncome, inputs.federalIncome, ficaData)
+    ? calculateDeductibleSETax(
+        selfEmploymentIncome,
+        inputs.federalIncome,
+        ficaData,
+      )
     : 0;
-  const preTaxDeductions = inputs.contributions401k + inputs.preTaxMedical + deductibleSETax;
-  const adjustedGrossIncome = grossIncome
-    - shortTermLossCarryoverOffset
-    - longTermLossCarryoverOffset
-    - preTaxDeductions
-    - deductionBreakdown.deductionAmount;
+  const preTaxDeductions =
+    inputs.contributions401k + inputs.preTaxMedical + deductibleSETax;
+  const adjustedGrossIncome =
+    grossIncome -
+    shortTermLossCarryoverOffset -
+    longTermLossCarryoverOffset -
+    preTaxDeductions -
+    deductionBreakdown.deductionAmount;
 
   // Step 4: Calculate taxable income (same as AGI for CA since all deductions are included)
   const taxableOrdinaryIncome = Math.max(0, adjustedGrossIncome);
@@ -91,14 +102,16 @@ export function calculateCaliforniaTax(
   // Step 5: Calculate tax (all income taxed as ordinary in CA)
   const ordinaryTax = calculateTaxByBrackets(
     taxableOrdinaryIncome,
-    californiaBrackets.brackets[filingStatus]
+    californiaBrackets.brackets[filingStatus],
   );
 
   // Step 6: Calculate Mental Health Services Tax (1% on taxable income over $1M)
   const mentalHealthThreshold = californiaLimits.mentalHealthTax.threshold;
-  const mentalHealthTax = taxableOrdinaryIncome > mentalHealthThreshold
-    ? (taxableOrdinaryIncome - mentalHealthThreshold) * californiaLimits.mentalHealthTax.rate
-    : 0;
+  const mentalHealthTax =
+    taxableOrdinaryIncome > mentalHealthThreshold
+      ? (taxableOrdinaryIncome - mentalHealthThreshold) *
+        californiaLimits.mentalHealthTax.rate
+      : 0;
 
   const totalTax = ordinaryTax.total + mentalHealthTax;
 
@@ -106,16 +119,21 @@ export function calculateCaliforniaTax(
   const { totalPaid, remainingOwed, refundDue } = calculatePaymentSummary(
     totalTax,
     inputs.stateTaxWithheld,
-    inputs.stateEstimatedPaid
+    inputs.stateEstimatedPaid,
   );
 
   // Step 8: Calculate safe harbor using shared utility
   // CA uses 100% prior year (not 110% like federal)
   // High income exception: AGI > $1M (single/MFJ) or $500K (MFS) - only 90% current year applies
-  const highIncomeThreshold = filingStatus === 'marriedFilingSeparately'
-    ? californiaLimits.safeHarbor.highIncomeThresholdMFS
-    : californiaLimits.safeHarbor.highIncomeThreshold;
-  const caAgiForThreshold = grossIncome - shortTermLossCarryoverOffset - longTermLossCarryoverOffset - preTaxDeductions;
+  const highIncomeThreshold =
+    filingStatus === "marriedFilingSeparately"
+      ? californiaLimits.safeHarbor.highIncomeThresholdMFS
+      : californiaLimits.safeHarbor.highIncomeThreshold;
+  const caAgiForThreshold =
+    grossIncome -
+    shortTermLossCarryoverOffset -
+    longTermLossCarryoverOffset -
+    preTaxDeductions;
   const isHighIncome = caAgiForThreshold > highIncomeThreshold;
 
   const safeHarbor = calculateSafeHarbor(
@@ -126,7 +144,7 @@ export function calculateCaliforniaTax(
       currentYearPercent: californiaLimits.safeHarbor.currentYearPercent,
       priorYearPercent: californiaLimits.safeHarbor.priorYearPercent,
       isHighIncome,
-    }
+    },
   );
 
   return {
@@ -139,7 +157,8 @@ export function calculateCaliforniaTax(
     longTermLossCarryoverOffset,
     contributions401k: inputs.contributions401k,
     preTaxMedical: inputs.preTaxMedical,
-    selfEmploymentIncome: selfEmploymentIncome > 0 ? selfEmploymentIncome : undefined,
+    selfEmploymentIncome:
+      selfEmploymentIncome > 0 ? selfEmploymentIncome : undefined,
     deductibleSETax: deductibleSETax > 0 ? deductibleSETax : undefined,
     adjustedGrossIncome,
     deductionBreakdown,

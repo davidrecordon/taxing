@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { TaxInputs, STATE_LABELS } from '@/lib/types';
-import CurrencyInput from '../UI/CurrencyInput';
+import { TaxInputs, STATE_LABELS } from "@/lib/types";
+import CurrencyInput from "../UI/CurrencyInput";
 
 interface Props {
   inputs: TaxInputs;
@@ -9,31 +9,37 @@ interface Props {
 }
 
 export default function IncomeInputs({ inputs, onUpdate }: Props) {
-  const stateLabel = STATE_LABELS[inputs.selectedState] || 'State';
+  const stateLabel = STATE_LABELS[inputs.selectedState] || "State";
 
   return (
     <div className="bg-white rounded-lg shadow p-4 space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Income</h2>
+      <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">
+        Income
+      </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CurrencyInput
           label="Wages & Other Income"
           value={inputs.federalIncome}
-          onChange={(v) => onUpdate('federalIncome', v)}
+          onChange={(v) => onUpdate("federalIncome", v)}
           hint="W-2 wages, 1099 interest, dividends, etc."
         />
         <CurrencyInput
           label={`${stateLabel} Income`}
           value={inputs.stateIncome}
-          onChange={(v) => onUpdate('stateIncome', v)}
-          hint={inputs.stateIncome ? undefined : "Leave blank to use Federal amount."}
+          onChange={(v) => onUpdate("stateIncome", v)}
+          hint={
+            inputs.stateIncome
+              ? undefined
+              : "Leave blank to use Federal amount."
+          }
         />
       </div>
 
       <CurrencyInput
         label="Self-Employment Income"
         value={inputs.selfEmploymentIncome}
-        onChange={(v) => onUpdate('selfEmploymentIncome', v)}
+        onChange={(v) => onUpdate("selfEmploymentIncome", v)}
         hint="Freelance, contractor or gig economy income"
       />
 
@@ -42,19 +48,26 @@ export default function IncomeInputs({ inputs, onUpdate }: Props) {
         <CurrencyInput
           label="Short-Term Capital Gains"
           value={inputs.shortTermCapitalGains}
-          onChange={(v) => onUpdate('shortTermCapitalGains', v)}
+          onChange={(v) => onUpdate("shortTermCapitalGains", v)}
           allowNegative={true}
-          warning={inputs.shortTermCapitalGains < 0 ? "Short-term losses offset up to $3,000 of ordinary income." : undefined}
+          warning={
+            inputs.shortTermCapitalGains < 0
+              ? "Short-term losses offset up to $3,000 of ordinary income."
+              : undefined
+          }
         />
         <CurrencyInput
           label="Long-Term Capital Gains"
           value={inputs.longTermCapitalGains}
-          onChange={(v) => onUpdate('longTermCapitalGains', v)}
+          onChange={(v) => onUpdate("longTermCapitalGains", v)}
           allowNegative={true}
-          warning={inputs.longTermCapitalGains < 0 ? "Long-term capital losses will be carried over to next year." : undefined}
+          warning={
+            inputs.longTermCapitalGains < 0
+              ? "Long-term capital losses will be carried over to next year."
+              : undefined
+          }
         />
       </div>
-
     </div>
   );
 }

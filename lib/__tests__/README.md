@@ -12,19 +12,19 @@ npm run test:coverage   # With coverage report
 
 ## Test Files
 
-| File | Tests | Description |
-|------|-------|-------------|
-| `federalTaxCalculator.test.ts` | 65 | Federal income tax, FICA, LTCG, NIIT, self-employment, QBI |
-| `californiaTaxCalculator.test.ts` | 35 | CA state tax, mental health surtax, safe harbor |
-| `coloradoTaxCalculator.test.ts` | 8 | CO flat tax, federal taxable income basis |
-| `dcTaxCalculator.test.ts` | 15 | DC progressive tax, same brackets all statuses |
-| `floridaTaxCalculator.test.ts` | 9 | FL no income tax, zero calculations |
-| `illinoisTaxCalculator.test.ts` | 19 | IL flat tax, personal exemptions |
-| `newYorkTaxCalculator.test.ts` | 39 | NY state tax, NYC local tax, high-income safe harbor |
-| `washingtonTaxCalculator.test.ts` | 22 | WA capital gains tax, exemption, surtax |
-| `deductionCalculator.test.ts` | 31 | Standard vs itemized, SALT cap, mortgage proration |
-| `taxUtils.test.ts` | 19 | Effective rate calculations, LTCG stacking |
-| `formatters.test.ts` | 10 | Currency and percentage formatting |
+| File                              | Tests | Description                                                |
+| --------------------------------- | ----- | ---------------------------------------------------------- |
+| `federalTaxCalculator.test.ts`    | 65    | Federal income tax, FICA, LTCG, NIIT, self-employment, QBI |
+| `californiaTaxCalculator.test.ts` | 35    | CA state tax, mental health surtax, safe harbor            |
+| `coloradoTaxCalculator.test.ts`   | 8     | CO flat tax, federal taxable income basis                  |
+| `dcTaxCalculator.test.ts`         | 15    | DC progressive tax, same brackets all statuses             |
+| `floridaTaxCalculator.test.ts`    | 9     | FL no income tax, zero calculations                        |
+| `illinoisTaxCalculator.test.ts`   | 19    | IL flat tax, personal exemptions                           |
+| `newYorkTaxCalculator.test.ts`    | 39    | NY state tax, NYC local tax, high-income safe harbor       |
+| `washingtonTaxCalculator.test.ts` | 22    | WA capital gains tax, exemption, surtax                    |
+| `deductionCalculator.test.ts`     | 31    | Standard vs itemized, SALT cap, mortgage proration         |
+| `taxUtils.test.ts`                | 19    | Effective rate calculations, LTCG stacking                 |
+| `formatters.test.ts`              | 10    | Currency and percentage formatting                         |
 
 **Total: 343 tests**
 
@@ -47,7 +47,7 @@ import {
   californiaLimits,
   // ... other state data
   createDefaultInputs,
-} from './testData';
+} from "./testData";
 ```
 
 The `createDefaultInputs()` helper creates a `TaxInputs` object with sensible defaults:
@@ -65,6 +65,7 @@ const inputs = createDefaultInputs({
 Each calculator test file follows a consistent structure:
 
 ### Federal (`federalTaxCalculator.test.ts`)
+
 - **basic bracket math** - Ordinary income through 7 brackets
 - **FICA taxes** - Social Security cap, Medicare, Additional Medicare
 - **long-term capital gains** - 0%/15%/20% bracket stacking
@@ -84,7 +85,9 @@ Each calculator test file follows a consistent structure:
 - **QBI phaseout exact verification** - Phaseout threshold testing
 
 ### State Calculators
+
 Each state calculator tests:
+
 - **Bracket calculations** - State-specific rates and thresholds
 - **Capital gains treatment** - Ordinary income vs special rates
 - **Loss carryovers** - Interaction with state calculations
@@ -95,6 +98,7 @@ Each state calculator tests:
 - **Edge cases** - Zero income, negative values, boundaries
 
 ### Deductions (`deductionCalculator.test.ts`)
+
 - **SALT cap and standard vs itemized** - $10,000 cap, automatic comparison
 - **mortgage interest proration** - Balance limits ($750k/$375k MFS)
 - **MFS edge cases** - Half limits for married filing separately
@@ -102,6 +106,7 @@ Each state calculator tests:
 - **AGI-dependent SALT cap** - Elevated caps for AGI < $500k
 
 ### Utilities
+
 - **taxUtils.test.ts** - Effective rate calculations, LTCG tax with bracket stacking
 - **formatters.test.ts** - `formatCurrency()` and `formatPercent()` functions
 
@@ -110,13 +115,13 @@ Each state calculator tests:
 ### Pattern
 
 ```typescript
-import { describe, it, expect } from 'vitest';
-import { calculateSomeTax } from '../someTaxCalculator';
-import { createDefaultInputs, someBrackets, someLimits } from './testData';
+import { describe, it, expect } from "vitest";
+import { calculateSomeTax } from "../someTaxCalculator";
+import { createDefaultInputs, someBrackets, someLimits } from "./testData";
 
-describe('calculateSomeTax', () => {
-  describe('category of behavior', () => {
-    it('should handle specific case', () => {
+describe("calculateSomeTax", () => {
+  describe("category of behavior", () => {
+    it("should handle specific case", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
       });

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { Component, ReactNode } from 'react';
+import { Component, ReactNode } from "react";
 
 interface Props {
   children: ReactNode;
@@ -38,7 +38,8 @@ export default class ErrorBoundary extends Component<Props, State> {
             Oops! We hit a snag
           </h2>
           <p className="text-red-600 mb-4">
-            We couldn&apos;t complete your tax calculation. This might happen with unusual input combinations.
+            We couldn&apos;t complete your tax calculation. This might happen
+            with unusual input combinations.
           </p>
           <button
             onClick={this.handleReset}

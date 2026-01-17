@@ -1,11 +1,11 @@
-import { memo } from 'react';
-import { TaxCalculationResult, WashingtonLimitsData } from '@/lib/types';
-import { formatCurrency, formatPercent } from '@/lib/formatters';
-import { calculateEffectiveRates } from '@/lib/taxUtils';
-import { TAX_YEAR } from '@/lib/config';
-import BracketTable from '../shared/BracketTable';
-import TaxSummarySection from '../shared/TaxSummarySection';
-import allWashingtonLimits from '@/data/washington-limits.json';
+import { memo } from "react";
+import { TaxCalculationResult, WashingtonLimitsData } from "@/lib/types";
+import { formatCurrency, formatPercent } from "@/lib/formatters";
+import { calculateEffectiveRates } from "@/lib/taxUtils";
+import { TAX_YEAR } from "@/lib/config";
+import BracketTable from "../shared/BracketTable";
+import TaxSummarySection from "../shared/TaxSummarySection";
+import allWashingtonLimits from "@/data/washington-limits.json";
 
 const limits = allWashingtonLimits[TAX_YEAR] as WashingtonLimitsData;
 
@@ -17,7 +17,8 @@ export default memo(function WashingtonBreakdown({ result }: Props) {
   const hasLTCG = result.longTermCapitalGains > 0;
 
   // Calculate net LTCG for display
-  const netLTCG = result.longTermCapitalGains - result.longTermLossCarryoverOffset;
+  const netLTCG =
+    result.longTermCapitalGains - result.longTermLossCarryoverOffset;
 
   return (
     <div className="bg-white rounded-lg shadow p-4 text-gray-900">
@@ -38,12 +39,16 @@ export default memo(function WashingtonBreakdown({ result }: Props) {
           <div className="bg-gray-50 p-3 rounded mb-4 space-y-2">
             <div className="flex justify-between">
               <span>Long-Term Capital Gains</span>
-              <span className="font-mono">{formatCurrency(result.longTermCapitalGains)}</span>
+              <span className="font-mono">
+                {formatCurrency(result.longTermCapitalGains)}
+              </span>
             </div>
             {result.longTermLossCarryoverOffset > 0 && (
               <div className="flex justify-between text-green-700">
                 <span>Less: Loss Carryover</span>
-                <span className="font-mono">-{formatCurrency(result.longTermLossCarryoverOffset)}</span>
+                <span className="font-mono">
+                  -{formatCurrency(result.longTermLossCarryoverOffset)}
+                </span>
               </div>
             )}
             <div className="flex justify-between font-medium border-t pt-1">
@@ -86,16 +91,23 @@ export default memo(function WashingtonBreakdown({ result }: Props) {
         <div className="bg-amber-50 p-3 rounded space-y-2">
           <h3 className="font-medium">Safe Harbor (Penalty Avoidance)</h3>
           <p className="text-xs text-gray-600 mb-2">
-            Washington requires {formatPercent(limits.safeHarbor.percent)} of current year tax to avoid an underpayment penalty.
+            Washington requires {formatPercent(limits.safeHarbor.percent)} of
+            current year tax to avoid an underpayment penalty.
           </p>
           <div className="text-sm space-y-1">
             <div className="flex justify-between">
-              <span>{formatPercent(limits.safeHarbor.percent)} of Current Year Tax</span>
-              <span className="font-mono">{formatCurrency(result.safeHarbor.minimum)}</span>
+              <span>
+                {formatPercent(limits.safeHarbor.percent)} of Current Year Tax
+              </span>
+              <span className="font-mono">
+                {formatCurrency(result.safeHarbor.minimum)}
+              </span>
             </div>
             <div className="flex justify-between text-green-600">
               <span>Already Paid</span>
-              <span className="font-mono">{formatCurrency(result.totalPaid)}</span>
+              <span className="font-mono">
+                {formatCurrency(result.totalPaid)}
+              </span>
             </div>
           </div>
           {result.safeHarbor.met ? (
@@ -114,4 +126,4 @@ export default memo(function WashingtonBreakdown({ result }: Props) {
       )}
     </div>
   );
-})
+});

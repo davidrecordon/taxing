@@ -2,38 +2,38 @@
   "2025": {
     "brackets": {
       "single": [
-        { "min": 0, "max": 48350, "rate": 0.00 },
+        { "min": 0, "max": 48350, "rate": 0.0 },
         { "min": 48350, "max": 533400, "rate": 0.15 },
-        { "min": 533400, "max": null, "rate": 0.20 }
+        { "min": 533400, "max": null, "rate": 0.2 }
       ],
       "marriedFilingJointly": [
-        { "min": 0, "max": 96700, "rate": 0.00 },
+        { "min": 0, "max": 96700, "rate": 0.0 },
         { "min": 96700, "max": 600050, "rate": 0.15 },
-        { "min": 600050, "max": null, "rate": 0.20 }
+        { "min": 600050, "max": null, "rate": 0.2 }
       ],
       "marriedFilingSeparately": [
-        { "min": 0, "max": 48350, "rate": 0.00 },
+        { "min": 0, "max": 48350, "rate": 0.0 },
         { "min": 48350, "max": 300000, "rate": 0.15 },
-        { "min": 300000, "max": null, "rate": 0.20 }
+        { "min": 300000, "max": null, "rate": 0.2 }
       ]
     }
   },
   "2026": {
     "brackets": {
       "single": [
-        { "min": 0, "max": 49450, "rate": 0.00 },
+        { "min": 0, "max": 49450, "rate": 0.0 },
         { "min": 49450, "max": 545500, "rate": 0.15 },
-        { "min": 545500, "max": null, "rate": 0.20 }
+        { "min": 545500, "max": null, "rate": 0.2 }
       ],
       "marriedFilingJointly": [
-        { "min": 0, "max": 98900, "rate": 0.00 },
+        { "min": 0, "max": 98900, "rate": 0.0 },
         { "min": 98900, "max": 613700, "rate": 0.15 },
-        { "min": 613700, "max": null, "rate": 0.20 }
+        { "min": 613700, "max": null, "rate": 0.2 }
       ],
       "marriedFilingSeparately": [
-        { "min": 0, "max": 49450, "rate": 0.00 },
+        { "min": 0, "max": 49450, "rate": 0.0 },
         { "min": 49450, "max": 306850, "rate": 0.15 },
-        { "min": 306850, "max": null, "rate": 0.20 }
+        { "min": 306850, "max": null, "rate": 0.2 }
       ]
     }
   }

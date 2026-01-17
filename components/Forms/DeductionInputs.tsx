@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { TaxInputs, SharedLimitsData, FederalLimitsData } from '@/lib/types';
-import { formatCurrency } from '@/lib/formatters';
-import CurrencyInput from '../UI/CurrencyInput';
-import CharitableWhatIfModal from '../Modals/CharitableWhatIfModal';
+import { useState } from "react";
+import { TaxInputs, SharedLimitsData, FederalLimitsData } from "@/lib/types";
+import { formatCurrency } from "@/lib/formatters";
+import CurrencyInput from "../UI/CurrencyInput";
+import CharitableWhatIfModal from "../Modals/CharitableWhatIfModal";
 
 interface ScenarioResult {
   totalTax: number;
@@ -34,14 +34,20 @@ export default function DeductionInputs({
   const [isWhatIfOpen, setIsWhatIfOpen] = useState(false);
 
   // Calculate rough pre-deduction AGI to determine applicable SALT limit
-  const roughAgi = inputs.federalIncome + inputs.shortTermCapitalGains + inputs.longTermCapitalGains - inputs.contributions401k - inputs.preTaxMedical;
+  const roughAgi =
+    inputs.federalIncome +
+    inputs.shortTermCapitalGains +
+    inputs.longTermCapitalGains -
+    inputs.contributions401k -
+    inputs.preTaxMedical;
 
   // Select SALT limit based on AGI threshold
-  const applicableSaltLimit = roughAgi < federalLimits.saltLimit.elevatedAgiThreshold
-    ? federalLimits.saltLimit.elevated[inputs.filingStatus]
-    : (inputs.filingStatus === 'marriedFilingSeparately'
+  const applicableSaltLimit =
+    roughAgi < federalLimits.saltLimit.elevatedAgiThreshold
+      ? federalLimits.saltLimit.elevated[inputs.filingStatus]
+      : inputs.filingStatus === "marriedFilingSeparately"
         ? federalLimits.saltLimit.marriedFilingSeparately
-        : federalLimits.saltLimit.default);
+        : federalLimits.saltLimit.default;
 
   // Generate SALT warning message
   const getSaltWarning = (): string | undefined => {
@@ -52,37 +58,43 @@ export default function DeductionInputs({
   };
 
   const contribution401kLimit =
-    inputs.filingStatus === 'marriedFilingJointly'
+    inputs.filingStatus === "marriedFilingJointly"
       ? sharedLimits.contribution401k.standard * 2
       : sharedLimits.contribution401k.standard;
 
   return (
     <div className="bg-white rounded-lg shadow p-4 space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Deductions</h2>
+      <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">
+        Deductions
+      </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CurrencyInput
           label="401(k) Pre-Tax Contributions"
           value={inputs.contributions401k}
-          onChange={(v) => onUpdate('contributions401k', v)}
-          error={inputs.contributions401k > contribution401kLimit
-            ? `Exceeds 2025 limit of ${formatCurrency(contribution401kLimit)}.`
-            : undefined}
+          onChange={(v) => onUpdate("contributions401k", v)}
+          error={
+            inputs.contributions401k > contribution401kLimit
+              ? `Exceeds 2025 limit of ${formatCurrency(contribution401kLimit)}.`
+              : undefined
+          }
         />
         <CurrencyInput
           label="Pre-Tax Medical"
           value={inputs.preTaxMedical}
-          onChange={(v) => onUpdate('preTaxMedical', v)}
+          onChange={(v) => onUpdate("preTaxMedical", v)}
           hint="HSA/FSA and insurance"
         />
       </div>
 
-      <h3 className="text-md font-medium text-gray-900 pt-2">Itemized Deduction Items</h3>
+      <h3 className="text-md font-medium text-gray-900 pt-2">
+        Itemized Deduction Items
+      </h3>
 
       <CurrencyInput
         label="Property / Local Taxes Paid"
         value={inputs.propertyTaxesPaid}
-        onChange={(v) => onUpdate('propertyTaxesPaid', v)}
+        onChange={(v) => onUpdate("propertyTaxesPaid", v)}
         warning={getSaltWarning()}
       />
 
@@ -90,21 +102,22 @@ export default function DeductionInputs({
         <CurrencyInput
           label="Mortgage Interest Paid"
           value={inputs.mortgageInterestPaid}
-          onChange={(v) => onUpdate('mortgageInterestPaid', v)}
+          onChange={(v) => onUpdate("mortgageInterestPaid", v)}
           hint="Fully deducted if balance is blank. Otherwise prorated based on limits."
         />
         <CurrencyInput
           label="Mortgage Balance"
           value={inputs.mortgageBalance}
-          onChange={(v) => onUpdate('mortgageBalance', v)}
+          onChange={(v) => onUpdate("mortgageBalance", v)}
           hint="Average balance across the year."
-          warning={inputs.mortgageBalance > (
-            inputs.filingStatus === 'marriedFilingSeparately'
+          warning={
+            inputs.mortgageBalance >
+            (inputs.filingStatus === "marriedFilingSeparately"
               ? federalLimits.mortgageBalanceLimit.marriedFilingSeparately
-              : federalLimits.mortgageBalanceLimit.default
-          )
-            ? `Interest deduction will be prorated based on mortgage limits.`
-            : undefined}
+              : federalLimits.mortgageBalanceLimit.default)
+              ? `Interest deduction will be prorated based on mortgage limits.`
+              : undefined
+          }
         />
       </div>
 
@@ -113,7 +126,7 @@ export default function DeductionInputs({
           <CurrencyInput
             label="Charitable Contributions"
             value={inputs.charitableContributions}
-            onChange={(v) => onUpdate('charitableContributions', v)}
+            onChange={(v) => onUpdate("charitableContributions", v)}
           />
         </div>
         {federalResults && calculateCharitableScenario && (
@@ -134,10 +147,9 @@ export default function DeductionInputs({
           federalAgi={federalAgi ?? 0}
           currentResults={federalResults}
           calculateScenario={calculateCharitableScenario}
-          onApply={(value) => onUpdate('charitableContributions', value)}
+          onApply={(value) => onUpdate("charitableContributions", value)}
         />
       )}
-
     </div>
   );
 }

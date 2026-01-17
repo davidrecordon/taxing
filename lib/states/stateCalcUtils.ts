@@ -1,4 +1,4 @@
-import { FicaData, SafeHarbor } from '../types';
+import { FicaData, SafeHarbor } from "../types";
 
 /**
  * Calculate deductible portion of self-employment tax for state calculations.
@@ -7,7 +7,7 @@ import { FicaData, SafeHarbor } from '../types';
 export function calculateDeductibleSETax(
   selfEmploymentIncome: number,
   wageIncome: number,
-  ficaData: FicaData
+  ficaData: FicaData,
 ): number {
   if (selfEmploymentIncome <= 0) return 0;
 
@@ -15,7 +15,10 @@ export function calculateDeductibleSETax(
   const netEarnings = selfEmploymentIncome * seData.netEarningsRate;
 
   // Social Security: 12.4% up to remaining wage base after W-2 wages
-  const remainingSsRoom = Math.max(0, ficaData.socialSecurity.wageBaseCap - wageIncome);
+  const remainingSsRoom = Math.max(
+    0,
+    ficaData.socialSecurity.wageBaseCap - wageIncome,
+  );
   const ssEarnings = Math.min(netEarnings, remainingSsRoom);
   const socialSecurityTax = ssEarnings * seData.socialSecurityRate;
 
@@ -32,7 +35,7 @@ export function calculateDeductibleSETax(
 export function calculatePaymentSummary(
   totalTax: number,
   withheld: number,
-  estimatedPaid: number
+  estimatedPaid: number,
 ): { totalPaid: number; remainingOwed: number; refundDue: number } {
   const totalPaid = withheld + estimatedPaid;
   const remainingOwed = Math.max(0, totalTax - totalPaid);
@@ -67,14 +70,15 @@ export function calculateSafeHarbor(
   totalTax: number,
   totalPaid: number,
   priorYearTax: number,
-  config: SafeHarborConfig
+  config: SafeHarborConfig,
 ): SafeHarbor {
   const currentYearSafeHarbor = totalTax * config.currentYearPercent;
 
   // Calculate prior year safe harbor if applicable
-  const priorYearSafeHarbor = config.priorYearPercent !== undefined
-    ? priorYearTax * config.priorYearPercent
-    : 0;
+  const priorYearSafeHarbor =
+    config.priorYearPercent !== undefined
+      ? priorYearTax * config.priorYearPercent
+      : 0;
 
   // Determine minimum: use prior year comparison only if:
   // 1. Prior year percentage is defined

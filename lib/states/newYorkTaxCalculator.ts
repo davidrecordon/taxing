@@ -8,10 +8,14 @@ import {
   NewYorkLimitsData,
   BracketBreakdown,
   FicaData,
-} from '../types';
-import { calculateNewYorkDeductions } from '../deductionCalculator';
-import { calculateTaxByBrackets } from '../taxUtils';
-import { calculateDeductibleSETax, calculatePaymentSummary, calculateSafeHarbor } from './stateCalcUtils';
+} from "../types";
+import { calculateNewYorkDeductions } from "../deductionCalculator";
+import { calculateTaxByBrackets } from "../taxUtils";
+import {
+  calculateDeductibleSETax,
+  calculatePaymentSummary,
+  calculateSafeHarbor,
+} from "./stateCalcUtils";
 
 /**
  * New York State Tax Calculator
@@ -31,7 +35,7 @@ export function calculateNewYorkTax(
   sharedLimits: SharedLimitsData,
   federalLimits: FederalLimitsData,
   newYorkLimits: NewYorkLimitsData,
-  ficaData?: FicaData
+  ficaData?: FicaData,
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
   const isNYCResident = inputs.isNYCResident ?? false;
@@ -48,25 +52,26 @@ export function calculateNewYorkTax(
   // New York taxes ALL capital gains and self-employment income as ordinary income
   const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
   const grossIncome =
-    stateIncome +
-    effectiveSTCG +
-    effectiveLTCG +
-    selfEmploymentIncome;
+    stateIncome + effectiveSTCG + effectiveLTCG + selfEmploymentIncome;
 
   // Step 1b: Apply short-term loss carryover (includes current year losses, NY follows federal rules)
-  const stCarryover = inputs.priorYearShortTermLossCarryover + currentYearSTLoss;
+  const stCarryover =
+    inputs.priorYearShortTermLossCarryover + currentYearSTLoss;
   const stGainsOffset = Math.min(stCarryover, effectiveSTCG);
   const remainingCarryover = stCarryover - stGainsOffset;
 
-  const ordinaryIncomeLimit = filingStatus === 'marriedFilingSeparately'
-    ? sharedLimits.capitalLossLimit.marriedFilingSeparately
-    : sharedLimits.capitalLossLimit.default;
-  const ordinaryIncomeOffset = remainingCarryover > 0 && stateIncome > 0
-    ? Math.min(remainingCarryover, ordinaryIncomeLimit, stateIncome)
-    : 0;
+  const ordinaryIncomeLimit =
+    filingStatus === "marriedFilingSeparately"
+      ? sharedLimits.capitalLossLimit.marriedFilingSeparately
+      : sharedLimits.capitalLossLimit.default;
+  const ordinaryIncomeOffset =
+    remainingCarryover > 0 && stateIncome > 0
+      ? Math.min(remainingCarryover, ordinaryIncomeLimit, stateIncome)
+      : 0;
 
   const shortTermLossCarryoverOffset = stGainsOffset + ordinaryIncomeOffset;
-  const shortTermLossCarryoverUnused = stCarryover - shortTermLossCarryoverOffset;
+  const shortTermLossCarryoverUnused =
+    stCarryover - shortTermLossCarryoverOffset;
 
   // Step 1c: Apply long-term loss carryover
   const ltCarryover = inputs.priorYearLongTermLossCarryover;
@@ -84,20 +89,26 @@ export function calculateNewYorkTax(
     },
     filingStatus,
     newYorkDeductions,
-    federalLimits
+    federalLimits,
   );
 
   // Step 3: Calculate AGI
   // NY conforms to federal above-the-line deductions including deductible SE tax
   const deductibleSETax = ficaData
-    ? calculateDeductibleSETax(selfEmploymentIncome, inputs.federalIncome, ficaData)
+    ? calculateDeductibleSETax(
+        selfEmploymentIncome,
+        inputs.federalIncome,
+        ficaData,
+      )
     : 0;
-  const preTaxDeductions = inputs.contributions401k + inputs.preTaxMedical + deductibleSETax;
-  const adjustedGrossIncome = grossIncome
-    - shortTermLossCarryoverOffset
-    - longTermLossCarryoverOffset
-    - preTaxDeductions
-    - deductionBreakdown.deductionAmount;
+  const preTaxDeductions =
+    inputs.contributions401k + inputs.preTaxMedical + deductibleSETax;
+  const adjustedGrossIncome =
+    grossIncome -
+    shortTermLossCarryoverOffset -
+    longTermLossCarryoverOffset -
+    preTaxDeductions -
+    deductionBreakdown.deductionAmount;
 
   // Step 4: Calculate taxable income
   const taxableOrdinaryIncome = Math.max(0, adjustedGrossIncome);
@@ -105,7 +116,7 @@ export function calculateNewYorkTax(
   // Step 5: Calculate NY State tax
   const nyStateTax = calculateTaxByBrackets(
     taxableOrdinaryIncome,
-    newYorkBrackets.brackets[filingStatus]
+    newYorkBrackets.brackets[filingStatus],
   );
 
   // Step 6: Calculate NYC local tax if resident
@@ -115,7 +126,7 @@ export function calculateNewYorkTax(
   if (isNYCResident && taxableOrdinaryIncome > 0) {
     const nycTaxResult = calculateTaxByBrackets(
       taxableOrdinaryIncome,
-      nycBrackets.brackets[filingStatus]
+      nycBrackets.brackets[filingStatus],
     );
     nycTax = nycTaxResult.total;
     nycBracketBreakdown = nycTaxResult.breakdown;
@@ -127,15 +138,20 @@ export function calculateNewYorkTax(
   const { totalPaid, remainingOwed, refundDue } = calculatePaymentSummary(
     totalTax,
     inputs.stateTaxWithheld,
-    inputs.stateEstimatedPaid
+    inputs.stateEstimatedPaid,
   );
 
   // Step 8: Calculate safe harbor
   // NY uses 100% prior year (110% if high income)
-  const highIncomeThreshold = filingStatus === 'marriedFilingSeparately'
-    ? newYorkLimits.safeHarbor.highIncomeThresholdMFS
-    : newYorkLimits.safeHarbor.highIncomeThreshold;
-  const nyAgi = grossIncome - shortTermLossCarryoverOffset - longTermLossCarryoverOffset - preTaxDeductions;
+  const highIncomeThreshold =
+    filingStatus === "marriedFilingSeparately"
+      ? newYorkLimits.safeHarbor.highIncomeThresholdMFS
+      : newYorkLimits.safeHarbor.highIncomeThreshold;
+  const nyAgi =
+    grossIncome -
+    shortTermLossCarryoverOffset -
+    longTermLossCarryoverOffset -
+    preTaxDeductions;
   const isHighIncome = nyAgi > highIncomeThreshold;
 
   const safeHarbor = calculateSafeHarbor(
@@ -147,7 +163,7 @@ export function calculateNewYorkTax(
       priorYearPercent: isHighIncome
         ? newYorkLimits.safeHarbor.highIncomePercent
         : newYorkLimits.safeHarbor.priorYearPercent,
-    }
+    },
   );
 
   return {
@@ -160,7 +176,8 @@ export function calculateNewYorkTax(
     longTermLossCarryoverOffset,
     contributions401k: inputs.contributions401k,
     preTaxMedical: inputs.preTaxMedical,
-    selfEmploymentIncome: selfEmploymentIncome > 0 ? selfEmploymentIncome : undefined,
+    selfEmploymentIncome:
+      selfEmploymentIncome > 0 ? selfEmploymentIncome : undefined,
     deductibleSETax: deductibleSETax > 0 ? deductibleSETax : undefined,
     adjustedGrossIncome,
     deductionBreakdown,

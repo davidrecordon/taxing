@@ -1,11 +1,11 @@
-import { memo } from 'react';
-import { TaxCalculationResult, IllinoisLimitsData } from '@/lib/types';
-import { formatCurrency, formatPercent } from '@/lib/formatters';
-import { calculateEffectiveRates } from '@/lib/taxUtils';
-import { TAX_YEAR } from '@/lib/config';
-import BracketTable from '../shared/BracketTable';
-import TaxSummarySection from '../shared/TaxSummarySection';
-import allIllinoisLimits from '@/data/illinois-limits.json';
+import { memo } from "react";
+import { TaxCalculationResult, IllinoisLimitsData } from "@/lib/types";
+import { formatCurrency, formatPercent } from "@/lib/formatters";
+import { calculateEffectiveRates } from "@/lib/taxUtils";
+import { TAX_YEAR } from "@/lib/config";
+import BracketTable from "../shared/BracketTable";
+import TaxSummarySection from "../shared/TaxSummarySection";
+import allIllinoisLimits from "@/data/illinois-limits.json";
 
 const limits = allIllinoisLimits[TAX_YEAR] as IllinoisLimitsData;
 
@@ -22,7 +22,8 @@ export default memo(function IllinoisBreakdown({ result }: Props) {
 
       <div className="bg-blue-50 p-3 rounded mb-4">
         <p className="text-sm text-blue-800">
-          Illinois has a flat 4.95% income tax rate. All capital gains are taxed as ordinary income.
+          Illinois has a flat 4.95% income tax rate. All capital gains are taxed
+          as ordinary income.
         </p>
       </div>
 
@@ -35,24 +36,32 @@ export default memo(function IllinoisBreakdown({ result }: Props) {
         {result.selfEmploymentIncome && (
           <div className="flex justify-between">
             <span>Self-Employment Income</span>
-            <span className="font-mono">{formatCurrency(result.selfEmploymentIncome)}</span>
+            <span className="font-mono">
+              {formatCurrency(result.selfEmploymentIncome)}
+            </span>
           </div>
         )}
         {result.shortTermCapitalGains > 0 && (
           <div className="flex justify-between">
             <span>Short-Term Capital Gains</span>
-            <span className="font-mono">{formatCurrency(result.shortTermCapitalGains)}</span>
+            <span className="font-mono">
+              {formatCurrency(result.shortTermCapitalGains)}
+            </span>
           </div>
         )}
         {result.longTermCapitalGains > 0 && (
           <div className="flex justify-between">
             <span>Long-Term Capital Gains</span>
-            <span className="font-mono">{formatCurrency(result.longTermCapitalGains)}</span>
+            <span className="font-mono">
+              {formatCurrency(result.longTermCapitalGains)}
+            </span>
           </div>
         )}
         <div className="flex justify-between font-medium border-t pt-1">
           <span>Gross Income</span>
-          <span className="font-mono">{formatCurrency(result.grossIncome)}</span>
+          <span className="font-mono">
+            {formatCurrency(result.grossIncome)}
+          </span>
         </div>
         {result.shortTermLossCarryoverOffset > 0 && (
           <div className="flex justify-between text-green-700">
@@ -135,22 +144,39 @@ export default memo(function IllinoisBreakdown({ result }: Props) {
           <h3 className="font-medium">Safe Harbor (Penalty Avoidance)</h3>
           <div className="text-sm space-y-1">
             <div className="flex justify-between">
-              <span>{formatPercent(limits.safeHarbor.currentYearPercent)} of Current Year Tax</span>
-              <span className="font-mono">{formatCurrency(result.safeHarbor.currentYear90Percent)}</span>
+              <span>
+                {formatPercent(limits.safeHarbor.currentYearPercent)} of Current
+                Year Tax
+              </span>
+              <span className="font-mono">
+                {formatCurrency(result.safeHarbor.currentYear90Percent)}
+              </span>
             </div>
             {result.safeHarbor.priorYearSafeHarbor > 0 && (
               <div className="flex justify-between">
-                <span>{formatPercent(limits.safeHarbor.priorYearPercent)} of Prior Year Tax</span>
-                <span className="font-mono">{formatCurrency(result.safeHarbor.priorYearSafeHarbor)}</span>
+                <span>
+                  {formatPercent(limits.safeHarbor.priorYearPercent)} of Prior
+                  Year Tax
+                </span>
+                <span className="font-mono">
+                  {formatCurrency(result.safeHarbor.priorYearSafeHarbor)}
+                </span>
               </div>
             )}
             <div className="flex justify-between font-medium pt-1 border-t">
-              <span>Safe Harbor Minimum{result.safeHarbor.priorYearSafeHarbor > 0 ? ' (lesser)' : ''}</span>
-              <span className="font-mono">{formatCurrency(result.safeHarbor.minimum)}</span>
+              <span>
+                Safe Harbor Minimum
+                {result.safeHarbor.priorYearSafeHarbor > 0 ? " (lesser)" : ""}
+              </span>
+              <span className="font-mono">
+                {formatCurrency(result.safeHarbor.minimum)}
+              </span>
             </div>
             <div className="flex justify-between text-green-600">
               <span>Already Paid</span>
-              <span className="font-mono">{formatCurrency(result.totalPaid)}</span>
+              <span className="font-mono">
+                {formatCurrency(result.totalPaid)}
+              </span>
             </div>
           </div>
           {result.safeHarbor.met ? (
@@ -169,4 +195,4 @@ export default memo(function IllinoisBreakdown({ result }: Props) {
       )}
     </div>
   );
-})
+});

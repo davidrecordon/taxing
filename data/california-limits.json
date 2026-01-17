@@ -7,10 +7,10 @@
     },
     "mortgageBalanceLimit": 1000000,
     "safeHarbor": {
-      "currentYearPercent": 0.90,
+      "currentYearPercent": 0.9,
       "highIncomeThreshold": 1000000,
       "highIncomeThresholdMFS": 500000,
-      "priorYearPercent": 1.00
+      "priorYearPercent": 1.0
     }
   },
   "2026": {
@@ -21,10 +21,10 @@
     },
     "mortgageBalanceLimit": 1000000,
     "safeHarbor": {
-      "currentYearPercent": 0.90,
+      "currentYearPercent": 0.9,
       "highIncomeThreshold": 1000000,
       "highIncomeThresholdMFS": 500000,
-      "priorYearPercent": 1.00
+      "priorYearPercent": 1.0
     }
   }
 }

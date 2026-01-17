@@ -1,5 +1,5 @@
-import { TAX_YEAR } from './config';
-import { TaxState } from './types';
+import { TAX_YEAR } from "./config";
+import { TaxState } from "./types";
 
 // Type definitions for state data
 export interface StateData {
@@ -15,9 +15,9 @@ const stateDataCache = new Map<TaxState, StateData>();
 const stateDataLoaders: Record<TaxState, () => Promise<StateData>> = {
   california: async () => {
     const [brackets, deductions, limits] = await Promise.all([
-      import('@/data/california-brackets.json'),
-      import('@/data/california-deductions.json'),
-      import('@/data/california-limits.json'),
+      import("@/data/california-brackets.json"),
+      import("@/data/california-deductions.json"),
+      import("@/data/california-limits.json"),
     ]);
     return {
       brackets: brackets.default[TAX_YEAR],
@@ -27,8 +27,8 @@ const stateDataLoaders: Record<TaxState, () => Promise<StateData>> = {
   },
   colorado: async () => {
     const [brackets, limits] = await Promise.all([
-      import('@/data/colorado-brackets.json'),
-      import('@/data/colorado-limits.json'),
+      import("@/data/colorado-brackets.json"),
+      import("@/data/colorado-limits.json"),
     ]);
     return {
       brackets: brackets.default[TAX_YEAR],
@@ -37,9 +37,9 @@ const stateDataLoaders: Record<TaxState, () => Promise<StateData>> = {
   },
   dc: async () => {
     const [brackets, deductions, limits] = await Promise.all([
-      import('@/data/dc-brackets.json'),
-      import('@/data/dc-deductions.json'),
-      import('@/data/dc-limits.json'),
+      import("@/data/dc-brackets.json"),
+      import("@/data/dc-deductions.json"),
+      import("@/data/dc-limits.json"),
     ]);
     return {
       brackets: brackets.default[TAX_YEAR],
@@ -49,8 +49,8 @@ const stateDataLoaders: Record<TaxState, () => Promise<StateData>> = {
   },
   florida: async () => {
     const [brackets, limits] = await Promise.all([
-      import('@/data/florida-brackets.json'),
-      import('@/data/florida-limits.json'),
+      import("@/data/florida-brackets.json"),
+      import("@/data/florida-limits.json"),
     ]);
     return {
       brackets: brackets.default[TAX_YEAR],
@@ -59,9 +59,9 @@ const stateDataLoaders: Record<TaxState, () => Promise<StateData>> = {
   },
   illinois: async () => {
     const [brackets, deductions, limits] = await Promise.all([
-      import('@/data/illinois-brackets.json'),
-      import('@/data/illinois-deductions.json'),
-      import('@/data/illinois-limits.json'),
+      import("@/data/illinois-brackets.json"),
+      import("@/data/illinois-deductions.json"),
+      import("@/data/illinois-limits.json"),
     ]);
     return {
       brackets: brackets.default[TAX_YEAR],
@@ -71,10 +71,10 @@ const stateDataLoaders: Record<TaxState, () => Promise<StateData>> = {
   },
   newyork: async () => {
     const [brackets, nycBrackets, deductions, limits] = await Promise.all([
-      import('@/data/newyork-brackets.json'),
-      import('@/data/nyc-brackets.json'),
-      import('@/data/newyork-deductions.json'),
-      import('@/data/newyork-limits.json'),
+      import("@/data/newyork-brackets.json"),
+      import("@/data/nyc-brackets.json"),
+      import("@/data/newyork-deductions.json"),
+      import("@/data/newyork-limits.json"),
     ]);
     return {
       brackets: brackets.default[TAX_YEAR],
@@ -85,8 +85,8 @@ const stateDataLoaders: Record<TaxState, () => Promise<StateData>> = {
   },
   washington: async () => {
     const [brackets, limits] = await Promise.all([
-      import('@/data/washington-brackets.json'),
-      import('@/data/washington-limits.json'),
+      import("@/data/washington-brackets.json"),
+      import("@/data/washington-limits.json"),
     ]);
     return {
       brackets: brackets.default[TAX_YEAR],

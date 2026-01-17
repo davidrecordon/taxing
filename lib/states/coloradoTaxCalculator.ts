@@ -6,9 +6,13 @@ import {
   ColoradoLimitsData,
   DeductionBreakdown,
   FicaData,
-} from '../types';
-import { calculateTaxByBrackets } from '../taxUtils';
-import { calculateDeductibleSETax, calculatePaymentSummary, calculateSafeHarbor } from './stateCalcUtils';
+} from "../types";
+import { calculateTaxByBrackets } from "../taxUtils";
+import {
+  calculateDeductibleSETax,
+  calculatePaymentSummary,
+  calculateSafeHarbor,
+} from "./stateCalcUtils";
 
 /**
  * Colorado State Tax Calculator
@@ -28,7 +32,7 @@ export function calculateColoradoTax(
   sharedLimits: SharedLimitsData,
   coloradoLimits: ColoradoLimitsData,
   federalTaxableIncome: number,
-  ficaData?: FicaData
+  ficaData?: FicaData,
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
 
@@ -43,25 +47,26 @@ export function calculateColoradoTax(
   // Calculate gross income for display purposes
   const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
   const grossIncome =
-    stateIncome +
-    effectiveSTCG +
-    effectiveLTCG +
-    selfEmploymentIncome;
+    stateIncome + effectiveSTCG + effectiveLTCG + selfEmploymentIncome;
 
   // Apply short-term loss carryover
-  const stCarryover = inputs.priorYearShortTermLossCarryover + currentYearSTLoss;
+  const stCarryover =
+    inputs.priorYearShortTermLossCarryover + currentYearSTLoss;
   const stGainsOffset = Math.min(stCarryover, effectiveSTCG);
   const remainingCarryover = stCarryover - stGainsOffset;
 
-  const ordinaryIncomeLimit = filingStatus === 'marriedFilingSeparately'
-    ? sharedLimits.capitalLossLimit.marriedFilingSeparately
-    : sharedLimits.capitalLossLimit.default;
-  const ordinaryIncomeOffset = remainingCarryover > 0 && stateIncome > 0
-    ? Math.min(remainingCarryover, ordinaryIncomeLimit, stateIncome)
-    : 0;
+  const ordinaryIncomeLimit =
+    filingStatus === "marriedFilingSeparately"
+      ? sharedLimits.capitalLossLimit.marriedFilingSeparately
+      : sharedLimits.capitalLossLimit.default;
+  const ordinaryIncomeOffset =
+    remainingCarryover > 0 && stateIncome > 0
+      ? Math.min(remainingCarryover, ordinaryIncomeLimit, stateIncome)
+      : 0;
 
   const shortTermLossCarryoverOffset = stGainsOffset + ordinaryIncomeOffset;
-  const shortTermLossCarryoverUnused = stCarryover - shortTermLossCarryoverOffset;
+  const shortTermLossCarryoverUnused =
+    stCarryover - shortTermLossCarryoverOffset;
 
   // Apply long-term loss carryover
   const ltCarryover = inputs.priorYearLongTermLossCarryover;
@@ -69,7 +74,11 @@ export function calculateColoradoTax(
 
   // Calculate deductible SE tax for display
   const deductibleSETax = ficaData
-    ? calculateDeductibleSETax(selfEmploymentIncome, inputs.federalIncome, ficaData)
+    ? calculateDeductibleSETax(
+        selfEmploymentIncome,
+        inputs.federalIncome,
+        ficaData,
+      )
     : 0;
 
   // Colorado uses federal taxable income as the starting point
@@ -79,7 +88,7 @@ export function calculateColoradoTax(
   // Calculate tax using flat rate (single bracket)
   const ordinaryTax = calculateTaxByBrackets(
     taxableIncome,
-    coloradoBrackets.brackets[filingStatus]
+    coloradoBrackets.brackets[filingStatus],
   );
 
   const totalTax = ordinaryTax.total;
@@ -88,7 +97,7 @@ export function calculateColoradoTax(
   const { totalPaid, remainingOwed, refundDue } = calculatePaymentSummary(
     totalTax,
     inputs.stateTaxWithheld,
-    inputs.stateEstimatedPaid
+    inputs.stateEstimatedPaid,
   );
 
   // Calculate safe harbor
@@ -99,14 +108,14 @@ export function calculateColoradoTax(
     {
       currentYearPercent: coloradoLimits.safeHarbor.currentYearPercent,
       priorYearPercent: coloradoLimits.safeHarbor.priorYearPercent,
-    }
+    },
   );
 
   // Create deduction breakdown (showing federal deductions used by CO)
   const emptyDeductionBreakdown: DeductionBreakdown = {
     standardDeduction: 0, // CO uses federal taxable income directly
     itemizedDeduction: 0,
-    deductionUsed: 'standard',
+    deductionUsed: "standard",
     deductionAmount: 0,
     saltDeduction: 0,
     saltCapped: false,
@@ -124,7 +133,8 @@ export function calculateColoradoTax(
     longTermLossCarryoverOffset,
     contributions401k: inputs.contributions401k,
     preTaxMedical: inputs.preTaxMedical,
-    selfEmploymentIncome: selfEmploymentIncome > 0 ? selfEmploymentIncome : undefined,
+    selfEmploymentIncome:
+      selfEmploymentIncome > 0 ? selfEmploymentIncome : undefined,
     deductibleSETax: deductibleSETax > 0 ? deductibleSETax : undefined,
     adjustedGrossIncome: taxableIncome, // For CO, this is federal taxable income
     deductionBreakdown: emptyDeductionBreakdown,

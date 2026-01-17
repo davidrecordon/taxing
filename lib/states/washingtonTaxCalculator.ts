@@ -5,8 +5,8 @@ import {
   WashingtonLimitsData,
   DeductionBreakdown,
   BracketBreakdown,
-} from '../types';
-import { calculatePaymentSummary, calculateSafeHarbor } from './stateCalcUtils';
+} from "../types";
+import { calculatePaymentSummary, calculateSafeHarbor } from "./stateCalcUtils";
 
 /**
  * Washington State Tax Calculator
@@ -27,7 +27,7 @@ import { calculatePaymentSummary, calculateSafeHarbor } from './stateCalcUtils';
 export function calculateWashingtonTax(
   inputs: TaxInputs,
   washingtonBrackets: TaxBracketsData,
-  washingtonLimits: WashingtonLimitsData
+  washingtonLimits: WashingtonLimitsData,
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
 
@@ -40,10 +40,7 @@ export function calculateWashingtonTax(
 
   // Washington only taxes LONG-TERM capital gains
   // Short-term gains and wages are NOT taxed
-  const grossIncome =
-    stateIncome +
-    effectiveSTCG +
-    effectiveLTCG;
+  const grossIncome = stateIncome + effectiveSTCG + effectiveLTCG;
 
   // Apply long-term loss carryover to LTCG only
   const ltCarryover = inputs.priorYearLongTermLossCarryover;
@@ -88,7 +85,7 @@ export function calculateWashingtonTax(
   const { totalPaid, remainingOwed, refundDue } = calculatePaymentSummary(
     totalTax,
     inputs.stateTaxWithheld,
-    inputs.stateEstimatedPaid
+    inputs.stateEstimatedPaid,
   );
 
   // Washington safe harbor: 80% of current year tax (simpler than CA/Federal)
@@ -97,14 +94,14 @@ export function calculateWashingtonTax(
     totalTax,
     totalPaid,
     0, // WA doesn't use prior year comparison
-    { currentYearPercent: washingtonLimits.safeHarbor.percent }
+    { currentYearPercent: washingtonLimits.safeHarbor.percent },
   );
 
   // Create empty deduction breakdown (WA doesn't have standard/itemized deductions)
   const emptyDeductionBreakdown: DeductionBreakdown = {
     standardDeduction: 0,
     itemizedDeduction: 0,
-    deductionUsed: 'standard',
+    deductionUsed: "standard",
     deductionAmount: 0,
     saltDeduction: 0,
     saltCapped: false,

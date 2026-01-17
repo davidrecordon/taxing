@@ -1,9 +1,5 @@
-import {
-  TaxInputs,
-  TaxCalculationResult,
-  DeductionBreakdown,
-} from '../types';
-import { calculatePaymentSummary } from './stateCalcUtils';
+import { TaxInputs, TaxCalculationResult, DeductionBreakdown } from "../types";
+import { calculatePaymentSummary } from "./stateCalcUtils";
 
 /**
  * Florida State Tax Calculator
@@ -14,9 +10,7 @@ import { calculatePaymentSummary } from './stateCalcUtils';
  * This calculator still tracks withholding and estimated payments to handle
  * any refunds due from erroneous withholding.
  */
-export function calculateFloridaTax(
-  inputs: TaxInputs
-): TaxCalculationResult {
+export function calculateFloridaTax(inputs: TaxInputs): TaxCalculationResult {
   // Use federal income if state income is not specified (for display purposes)
   const stateIncome = inputs.stateIncome || inputs.federalIncome;
 
@@ -26,10 +20,7 @@ export function calculateFloridaTax(
   const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
 
   const grossIncome =
-    stateIncome +
-    effectiveSTCG +
-    effectiveLTCG +
-    selfEmploymentIncome;
+    stateIncome + effectiveSTCG + effectiveLTCG + selfEmploymentIncome;
 
   // Florida has no income tax, so total tax is always 0
   const totalTax = 0;
@@ -38,14 +29,14 @@ export function calculateFloridaTax(
   const { totalPaid, remainingOwed, refundDue } = calculatePaymentSummary(
     totalTax,
     inputs.stateTaxWithheld,
-    inputs.stateEstimatedPaid
+    inputs.stateEstimatedPaid,
   );
 
   // Empty deduction breakdown (no deductions needed when tax is 0)
   const emptyDeductionBreakdown: DeductionBreakdown = {
     standardDeduction: 0,
     itemizedDeduction: 0,
-    deductionUsed: 'standard',
+    deductionUsed: "standard",
     deductionAmount: 0,
     saltDeduction: 0,
     saltCapped: false,

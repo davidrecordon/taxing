@@ -3,7 +3,7 @@
     "baseRate": 0.07,
     "exemption": 278000,
     "safeHarbor": {
-      "percent": 0.80
+      "percent": 0.8
     },
     "surtaxRate": 0.029,
     "surtaxThreshold": 1000000
@@ -12,7 +12,7 @@
     "baseRate": 0.07,
     "exemption": 278000,
     "safeHarbor": {
-      "percent": 0.80
+      "percent": 0.8
     },
     "surtaxRate": 0.029,
     "surtaxThreshold": 1000000

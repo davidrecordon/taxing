@@ -18,6 +18,7 @@ All files use a multi-year structure with the tax year as the top-level key:
 ### Federal
 
 #### `federal-brackets.json`
+
 Federal income tax brackets by filing status.
 
 ```typescript
@@ -31,11 +32,13 @@ Federal income tax brackets by filing status.
 ```
 
 #### `federal-ltcg-brackets.json`
+
 Long-term capital gains tax brackets (0%, 15%, 20%).
 
 Same structure as `federal-brackets.json`.
 
 #### `federal-deductions.json`
+
 Standard deduction amounts by filing status.
 
 ```typescript
@@ -49,6 +52,7 @@ Standard deduction amounts by filing status.
 ```
 
 #### `federal-limits.json`
+
 Federal-specific limits and thresholds.
 
 ```typescript
@@ -75,6 +79,7 @@ Federal-specific limits and thresholds.
 ```
 
 #### `fica.json`
+
 Social Security and Medicare tax rates and thresholds.
 
 ```typescript
@@ -100,16 +105,19 @@ Social Security and Medicare tax rates and thresholds.
 ### California
 
 #### `california-brackets.json`
+
 California state income tax brackets.
 
 Same structure as `federal-brackets.json`.
 
 #### `california-deductions.json`
+
 California standard deduction amounts.
 
 Same structure as `federal-deductions.json`.
 
 #### `california-limits.json`
+
 California-specific limits and thresholds.
 
 ```typescript
@@ -130,16 +138,19 @@ California-specific limits and thresholds.
 ### New York
 
 #### `newyork-brackets.json`
+
 New York state income tax brackets.
 
 Same structure as `federal-brackets.json`. Note: NY taxes all capital gains as ordinary income.
 
 #### `newyork-deductions.json`
+
 New York standard deduction amounts.
 
 Same structure as `federal-deductions.json`.
 
 #### `newyork-limits.json`
+
 New York-specific limits and thresholds.
 
 ```typescript
@@ -157,6 +168,7 @@ New York-specific limits and thresholds.
 ### NYC (New York City)
 
 #### `nyc-brackets.json`
+
 NYC local income tax brackets for city residents.
 
 Same structure as `federal-brackets.json`. This is an additional tax on top of NY state tax.
@@ -164,11 +176,13 @@ Same structure as `federal-brackets.json`. This is an additional tax on top of N
 ### Washington
 
 #### `washington-brackets.json`
+
 Washington long-term capital gains tax brackets.
 
 Same structure as `federal-brackets.json`. Note: Washington has no income tax on wages; this applies only to LTCG.
 
 #### `washington-limits.json`
+
 Washington-specific limits and thresholds.
 
 ```typescript
@@ -186,11 +200,13 @@ Washington-specific limits and thresholds.
 ### Colorado
 
 #### `colorado-brackets.json`
+
 Colorado state income tax brackets (flat 4.4% rate).
 
 Same structure as `federal-brackets.json`. Note: Colorado uses federal taxable income as the starting point, so there is no separate deductions file.
 
 #### `colorado-limits.json`
+
 Colorado-specific limits and thresholds.
 
 ```typescript
@@ -205,17 +221,19 @@ Colorado-specific limits and thresholds.
 ### Florida
 
 #### `florida-brackets.json`
+
 Florida has no state income tax, so brackets are 0%.
 
 Same structure as `federal-brackets.json` with rate of 0 for all brackets.
 
 #### `florida-limits.json`
+
 Florida-specific limits.
 
 ```typescript
 {
   safeHarbor: {
-    percent: number  // 0 (no tax to safe harbor against)
+    percent: number; // 0 (no tax to safe harbor against)
   }
 }
 ```
@@ -223,11 +241,13 @@ Florida-specific limits.
 ### Illinois
 
 #### `illinois-brackets.json`
+
 Illinois state income tax brackets (flat 4.95% rate).
 
 Same structure as `federal-brackets.json`.
 
 #### `illinois-deductions.json`
+
 Illinois uses personal exemptions instead of standard deductions.
 
 ```typescript
@@ -241,6 +261,7 @@ Illinois uses personal exemptions instead of standard deductions.
 ```
 
 #### `illinois-limits.json`
+
 Illinois-specific limits and thresholds.
 
 ```typescript
@@ -255,16 +276,19 @@ Illinois-specific limits and thresholds.
 ### District of Columbia
 
 #### `dc-brackets.json`
+
 District of Columbia income tax brackets (7 progressive brackets, same for all filing statuses).
 
 Same structure as `federal-brackets.json`. Note: DC taxes all capital gains as ordinary income.
 
 #### `dc-deductions.json`
+
 District of Columbia standard deduction amounts.
 
 Same structure as `federal-deductions.json`.
 
 #### `dc-limits.json`
+
 District of Columbia-specific limits and thresholds.
 
 ```typescript
@@ -279,6 +303,7 @@ District of Columbia-specific limits and thresholds.
 ### Shared
 
 #### `limits.json`
+
 Cross-cutting limits that apply to all jurisdictions.
 
 ```typescript

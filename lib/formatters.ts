@@ -1,7 +1,7 @@
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
@@ -28,24 +28,27 @@ export function formatPercent(rate: number, decimals?: 0 | 1 | 2): string {
     }
   }
 
-  return new Intl.NumberFormat('en-US', {
-    style: 'percent',
+  return new Intl.NumberFormat("en-US", {
+    style: "percent",
     minimumFractionDigits: decimalPlaces,
     maximumFractionDigits: decimalPlaces,
   }).format(rate);
 }
 
-export function parseNumericInput(value: string, allowNegative: boolean = false): number {
+export function parseNumericInput(
+  value: string,
+  allowNegative: boolean = false,
+): number {
   // Check for negative sign at start
-  const isNegative = allowNegative && value.trimStart().startsWith('-');
+  const isNegative = allowNegative && value.trimStart().startsWith("-");
 
   // Remove everything except digits and periods (strip commas and minus signs)
-  let cleaned = value.replace(/[^0-9.]/g, '');
+  let cleaned = value.replace(/[^0-9.]/g, "");
 
   // Handle multiple decimal points - keep only the first
-  const parts = cleaned.split('.');
+  const parts = cleaned.split(".");
   if (parts.length > 2) {
-    cleaned = parts[0] + '.' + parts.slice(1).join('');
+    cleaned = parts[0] + "." + parts.slice(1).join("");
   }
 
   let parsed = parseFloat(cleaned);
@@ -61,18 +64,18 @@ export function parseNumericInput(value: string, allowNegative: boolean = false)
 }
 
 export function formatNumberWithCommas(value: string): string {
-  if (!value) return '';
+  if (!value) return "";
 
   // Split on decimal point
-  const [integerPart, decimalPart] = value.split('.');
+  const [integerPart, decimalPart] = value.split(".");
 
   // Remove existing commas and add new ones
-  const cleanInteger = integerPart.replace(/,/g, '');
-  const formattedInteger = cleanInteger.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const cleanInteger = integerPart.replace(/,/g, "");
+  const formattedInteger = cleanInteger.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
   // Reconstruct the number
   if (decimalPart !== undefined) {
-    return formattedInteger + '.' + decimalPart;
+    return formattedInteger + "." + decimalPart;
   }
   return formattedInteger;
 }

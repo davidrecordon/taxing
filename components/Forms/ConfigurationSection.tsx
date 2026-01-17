@@ -1,4 +1,4 @@
-import { FilingStatus, TaxState } from '@/lib/types';
+import { FilingStatus, TaxState } from "@/lib/types";
 
 interface Props {
   filingStatus: FilingStatus;
@@ -12,19 +12,19 @@ interface Props {
 }
 
 const filingStatusOptions: { value: FilingStatus; label: string }[] = [
-  { value: 'single', label: 'Single' },
-  { value: 'marriedFilingJointly', label: 'Married Filing Jointly' },
-  { value: 'marriedFilingSeparately', label: 'Married Filing Separately' },
+  { value: "single", label: "Single" },
+  { value: "marriedFilingJointly", label: "Married Filing Jointly" },
+  { value: "marriedFilingSeparately", label: "Married Filing Separately" },
 ];
 
 const stateOptions: { value: TaxState; label: string }[] = [
-  { value: 'california', label: 'California' },
-  { value: 'colorado', label: 'Colorado' },
-  { value: 'dc', label: 'District of Columbia' },
-  { value: 'florida', label: 'Florida' },
-  { value: 'illinois', label: 'Illinois' },
-  { value: 'newyork', label: 'New York' },
-  { value: 'washington', label: 'Washington' },
+  { value: "california", label: "California" },
+  { value: "colorado", label: "Colorado" },
+  { value: "dc", label: "District of Columbia" },
+  { value: "florida", label: "Florida" },
+  { value: "illinois", label: "Illinois" },
+  { value: "newyork", label: "New York" },
+  { value: "washington", label: "Washington" },
 ];
 
 export default function ConfigurationSection({
@@ -44,7 +44,8 @@ export default function ConfigurationSection({
     }
   };
   const showCompareButton =
-    (filingStatus === 'marriedFilingJointly' || filingStatus === 'marriedFilingSeparately') &&
+    (filingStatus === "marriedFilingJointly" ||
+      filingStatus === "marriedFilingSeparately") &&
     onCompareFilingStatus;
   return (
     <div className="bg-white rounded-lg shadow p-4">
@@ -55,7 +56,9 @@ export default function ConfigurationSection({
           </label>
           <select
             value={filingStatus}
-            onChange={(e) => onFilingStatusChange(e.target.value as FilingStatus)}
+            onChange={(e) =>
+              onFilingStatusChange(e.target.value as FilingStatus)
+            }
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             {filingStatusOptions.map((option) => (
@@ -93,7 +96,7 @@ export default function ConfigurationSection({
       </div>
 
       {/* NYC Resident Checkbox - only shown when NY is selected */}
-      {selectedState === 'newyork' && onNYCResidentChange && (
+      {selectedState === "newyork" && onNYCResidentChange && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <label className="flex items-center gap-2 cursor-pointer">
             <input

@@ -1,11 +1,10 @@
-import { memo } from 'react';
-import { TaxCalculationResult, ColoradoLimitsData } from '@/lib/types';
-import { formatCurrency, formatPercent } from '@/lib/formatters';
-import { calculateEffectiveRates } from '@/lib/taxUtils';
-import { TAX_YEAR } from '@/lib/config';
-import BracketTable from '../shared/BracketTable';
-import TaxSummarySection from '../shared/TaxSummarySection';
-import allColoradoLimits from '@/data/colorado-limits.json';
+import { memo } from "react";
+import { TaxCalculationResult, ColoradoLimitsData } from "@/lib/types";
+import { formatCurrency, formatPercent } from "@/lib/formatters";
+import { TAX_YEAR } from "@/lib/config";
+import BracketTable from "../shared/BracketTable";
+import TaxSummarySection from "../shared/TaxSummarySection";
+import allColoradoLimits from "@/data/colorado-limits.json";
 
 const limits = allColoradoLimits[TAX_YEAR] as ColoradoLimitsData;
 
@@ -24,10 +23,13 @@ export default memo(function ColoradoBreakdown({ result }: Props) {
       <div className="bg-gray-50 p-3 rounded mb-4 space-y-2">
         <div className="flex justify-between font-medium">
           <span>Federal Taxable Income</span>
-          <span className="font-mono">{formatCurrency(result.taxableOrdinaryIncome)}</span>
+          <span className="font-mono">
+            {formatCurrency(result.taxableOrdinaryIncome)}
+          </span>
         </div>
         <p className="text-xs text-gray-600">
-          Colorado uses your federal taxable income (after federal deductions) as the starting point for state taxes.
+          Colorado uses your federal taxable income (after federal deductions)
+          as the starting point for state taxes.
         </p>
       </div>
 
@@ -56,22 +58,39 @@ export default memo(function ColoradoBreakdown({ result }: Props) {
           <h3 className="font-medium">Safe Harbor (Penalty Avoidance)</h3>
           <div className="text-sm space-y-1">
             <div className="flex justify-between">
-              <span>{formatPercent(limits.safeHarbor.currentYearPercent)} of Current Year Tax</span>
-              <span className="font-mono">{formatCurrency(result.safeHarbor.currentYear90Percent)}</span>
+              <span>
+                {formatPercent(limits.safeHarbor.currentYearPercent)} of Current
+                Year Tax
+              </span>
+              <span className="font-mono">
+                {formatCurrency(result.safeHarbor.currentYear90Percent)}
+              </span>
             </div>
             {result.safeHarbor.priorYearSafeHarbor > 0 && (
               <div className="flex justify-between">
-                <span>{formatPercent(limits.safeHarbor.priorYearPercent)} of Prior Year Tax</span>
-                <span className="font-mono">{formatCurrency(result.safeHarbor.priorYearSafeHarbor)}</span>
+                <span>
+                  {formatPercent(limits.safeHarbor.priorYearPercent)} of Prior
+                  Year Tax
+                </span>
+                <span className="font-mono">
+                  {formatCurrency(result.safeHarbor.priorYearSafeHarbor)}
+                </span>
               </div>
             )}
             <div className="flex justify-between font-medium pt-1 border-t">
-              <span>Safe Harbor Minimum{result.safeHarbor.priorYearSafeHarbor > 0 ? ' (lesser)' : ''}</span>
-              <span className="font-mono">{formatCurrency(result.safeHarbor.minimum)}</span>
+              <span>
+                Safe Harbor Minimum
+                {result.safeHarbor.priorYearSafeHarbor > 0 ? " (lesser)" : ""}
+              </span>
+              <span className="font-mono">
+                {formatCurrency(result.safeHarbor.minimum)}
+              </span>
             </div>
             <div className="flex justify-between text-green-600">
               <span>Already Paid</span>
-              <span className="font-mono">{formatCurrency(result.totalPaid)}</span>
+              <span className="font-mono">
+                {formatCurrency(result.totalPaid)}
+              </span>
             </div>
           </div>
           {result.safeHarbor.met ? (
@@ -90,4 +109,4 @@ export default memo(function ColoradoBreakdown({ result }: Props) {
       )}
     </div>
   );
-})
+});

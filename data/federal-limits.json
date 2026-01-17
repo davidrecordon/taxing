@@ -18,7 +18,7 @@
         "marriedFilingSeparately": 50000,
         "single": 50000
       },
-      "rate": 0.20,
+      "rate": 0.2,
       "taxableIncomeThreshold": {
         "marriedFilingJointly": 383900,
         "marriedFilingSeparately": 191950,
@@ -26,8 +26,8 @@
       }
     },
     "safeHarbor": {
-      "currentYearPercent": 0.90,
-      "priorYearPercent": 1.10
+      "currentYearPercent": 0.9,
+      "priorYearPercent": 1.1
     },
     "saltLimit": {
       "default": 10000,
@@ -59,7 +59,7 @@
         "marriedFilingSeparately": 50000,
         "single": 50000
       },
-      "rate": 0.20,
+      "rate": 0.2,
       "taxableIncomeThreshold": {
         "marriedFilingJointly": 383900,
         "marriedFilingSeparately": 191950,
@@ -67,8 +67,8 @@
       }
     },
     "safeHarbor": {
-      "currentYearPercent": 0.90,
-      "priorYearPercent": 1.10
+      "currentYearPercent": 0.9,
+      "priorYearPercent": 1.1
     },
     "saltLimit": {
       "default": 10000,

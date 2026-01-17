@@ -1,4 +1,10 @@
-import { FilingStatus, DeductionBreakdown, FederalLimitsData, CaliforniaLimitsData, DeductionsData } from './types';
+import {
+  FilingStatus,
+  DeductionBreakdown,
+  FederalLimitsData,
+  CaliforniaLimitsData,
+  DeductionsData,
+} from "./types";
 
 interface DeductionInputs {
   propertyTaxesPaid: number;
@@ -12,7 +18,7 @@ interface DeductionInputs {
 function calculateDeductibleMortgageInterest(
   interestPaid: number,
   balance: number,
-  balanceLimit: number
+  balanceLimit: number,
 ): number {
   // If no balance entered, assume 100% is deductible
   if (balance <= 0) return interestPaid;
@@ -29,7 +35,7 @@ export function calculateFederalDeductions(
   filingStatus: FilingStatus,
   federalDeductions: DeductionsData,
   federalLimits: FederalLimitsData,
-  agi: number
+  agi: number,
 ): DeductionBreakdown {
   const standardDeduction = federalDeductions.standardDeduction[filingStatus];
 
@@ -42,25 +48,26 @@ export function calculateFederalDeductions(
   // SALT cap is AGI-dependent for 2025:
   // - AGI < $500k: elevated limits ($40k MFJ, $20k Single/MFS)
   // - AGI >= $500k: standard limits ($10k default, $5k MFS)
-  const saltLimit = agi < federalLimits.saltLimit.elevatedAgiThreshold
-    ? federalLimits.saltLimit.elevated[filingStatus]
-    : (filingStatus === 'marriedFilingSeparately'
+  const saltLimit =
+    agi < federalLimits.saltLimit.elevatedAgiThreshold
+      ? federalLimits.saltLimit.elevated[filingStatus]
+      : filingStatus === "marriedFilingSeparately"
         ? federalLimits.saltLimit.marriedFilingSeparately
-        : federalLimits.saltLimit.default);
+        : federalLimits.saltLimit.default;
 
   const saltDeduction = Math.min(totalStateAndLocalTaxes, saltLimit);
   const saltCapped = totalStateAndLocalTaxes > saltLimit;
 
   // Calculate deductible mortgage interest (limited by balance)
   const mortgageBalanceLimit =
-    filingStatus === 'marriedFilingSeparately'
+    filingStatus === "marriedFilingSeparately"
       ? federalLimits.mortgageBalanceLimit.marriedFilingSeparately
       : federalLimits.mortgageBalanceLimit.default;
 
   const deductibleMortgageInterest = calculateDeductibleMortgageInterest(
     inputs.mortgageInterestPaid,
     inputs.mortgageBalance,
-    mortgageBalanceLimit
+    mortgageBalanceLimit,
   );
 
   // Calculate itemized deductions
@@ -73,7 +80,7 @@ export function calculateFederalDeductions(
   return {
     standardDeduction,
     itemizedDeduction,
-    deductionUsed: useItemized ? 'itemized' : 'standard',
+    deductionUsed: useItemized ? "itemized" : "standard",
     deductionAmount: useItemized ? itemizedDeduction : standardDeduction,
     saltDeduction: useItemized ? saltDeduction : 0,
     saltCapped: useItemized && saltCapped,
@@ -87,15 +94,16 @@ export function calculateCaliforniaDeductions(
   inputs: DeductionInputs,
   filingStatus: FilingStatus,
   californiaDeductions: DeductionsData,
-  californiaLimits: CaliforniaLimitsData
+  californiaLimits: CaliforniaLimitsData,
 ): DeductionBreakdown {
-  const standardDeduction = californiaDeductions.standardDeduction[filingStatus];
+  const standardDeduction =
+    californiaDeductions.standardDeduction[filingStatus];
 
   // Calculate deductible mortgage interest (CA limit is $1M for all filing statuses)
   const deductibleMortgageInterest = calculateDeductibleMortgageInterest(
     inputs.mortgageInterestPaid,
     inputs.mortgageBalance,
-    californiaLimits.mortgageBalanceLimit
+    californiaLimits.mortgageBalanceLimit,
   );
 
   // California itemized deductions (no SALT)
@@ -107,7 +115,7 @@ export function calculateCaliforniaDeductions(
   return {
     standardDeduction,
     itemizedDeduction,
-    deductionUsed: useItemized ? 'itemized' : 'standard',
+    deductionUsed: useItemized ? "itemized" : "standard",
     deductionAmount: useItemized ? itemizedDeduction : standardDeduction,
     saltDeduction: 0, // CA doesn't allow SALT
     saltCapped: false,
@@ -122,20 +130,20 @@ export function calculateNewYorkDeductions(
   inputs: DeductionInputs,
   filingStatus: FilingStatus,
   newYorkDeductions: DeductionsData,
-  federalLimits: FederalLimitsData
+  federalLimits: FederalLimitsData,
 ): DeductionBreakdown {
   const standardDeduction = newYorkDeductions.standardDeduction[filingStatus];
 
   // NY follows federal mortgage balance limits
   const mortgageBalanceLimit =
-    filingStatus === 'marriedFilingSeparately'
+    filingStatus === "marriedFilingSeparately"
       ? federalLimits.mortgageBalanceLimit.marriedFilingSeparately
       : federalLimits.mortgageBalanceLimit.default;
 
   const deductibleMortgageInterest = calculateDeductibleMortgageInterest(
     inputs.mortgageInterestPaid,
     inputs.mortgageBalance,
-    mortgageBalanceLimit
+    mortgageBalanceLimit,
   );
 
   // New York itemized deductions (no SALT)
@@ -147,7 +155,7 @@ export function calculateNewYorkDeductions(
   return {
     standardDeduction,
     itemizedDeduction,
-    deductionUsed: useItemized ? 'itemized' : 'standard',
+    deductionUsed: useItemized ? "itemized" : "standard",
     deductionAmount: useItemized ? itemizedDeduction : standardDeduction,
     saltDeduction: 0, // NY doesn't allow SALT
     saltCapped: false,
@@ -162,20 +170,20 @@ export function calculateDCDeductions(
   inputs: DeductionInputs,
   filingStatus: FilingStatus,
   dcDeductions: DeductionsData,
-  federalLimits: FederalLimitsData
+  federalLimits: FederalLimitsData,
 ): DeductionBreakdown {
   const standardDeduction = dcDeductions.standardDeduction[filingStatus];
 
   // DC follows federal mortgage balance limits
   const mortgageBalanceLimit =
-    filingStatus === 'marriedFilingSeparately'
+    filingStatus === "marriedFilingSeparately"
       ? federalLimits.mortgageBalanceLimit.marriedFilingSeparately
       : federalLimits.mortgageBalanceLimit.default;
 
   const deductibleMortgageInterest = calculateDeductibleMortgageInterest(
     inputs.mortgageInterestPaid,
     inputs.mortgageBalance,
-    mortgageBalanceLimit
+    mortgageBalanceLimit,
   );
 
   // DC itemized deductions (no SALT)
@@ -187,7 +195,7 @@ export function calculateDCDeductions(
   return {
     standardDeduction,
     itemizedDeduction,
-    deductionUsed: useItemized ? 'itemized' : 'standard',
+    deductionUsed: useItemized ? "itemized" : "standard",
     deductionAmount: useItemized ? itemizedDeduction : standardDeduction,
     saltDeduction: 0, // DC doesn't allow SALT
     saltCapped: false,

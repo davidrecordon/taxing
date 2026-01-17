@@ -1,11 +1,11 @@
-import { memo } from 'react';
-import { TaxCalculationResult, CaliforniaLimitsData } from '@/lib/types';
-import { formatCurrency, formatPercent } from '@/lib/formatters';
-import { calculateEffectiveRates } from '@/lib/taxUtils';
-import { TAX_YEAR } from '@/lib/config';
-import BracketTable from '../shared/BracketTable';
-import TaxSummarySection from '../shared/TaxSummarySection';
-import allCaliforniaLimits from '@/data/california-limits.json';
+import { memo } from "react";
+import { TaxCalculationResult, CaliforniaLimitsData } from "@/lib/types";
+import { formatCurrency, formatPercent } from "@/lib/formatters";
+import { calculateEffectiveRates } from "@/lib/taxUtils";
+import { TAX_YEAR } from "@/lib/config";
+import BracketTable from "../shared/BracketTable";
+import TaxSummarySection from "../shared/TaxSummarySection";
+import allCaliforniaLimits from "@/data/california-limits.json";
 
 const limits = allCaliforniaLimits[TAX_YEAR] as CaliforniaLimitsData;
 
@@ -35,24 +35,32 @@ export default memo(function CaliforniaBreakdown({ result }: Props) {
         {result.selfEmploymentIncome && (
           <div className="flex justify-between">
             <span>Self-Employment Income</span>
-            <span className="font-mono">{formatCurrency(result.selfEmploymentIncome)}</span>
+            <span className="font-mono">
+              {formatCurrency(result.selfEmploymentIncome)}
+            </span>
           </div>
         )}
         {result.shortTermCapitalGains > 0 && (
           <div className="flex justify-between">
             <span>Short-Term Capital Gains</span>
-            <span className="font-mono">{formatCurrency(result.shortTermCapitalGains)}</span>
+            <span className="font-mono">
+              {formatCurrency(result.shortTermCapitalGains)}
+            </span>
           </div>
         )}
         {result.longTermCapitalGains > 0 && (
           <div className="flex justify-between">
             <span>Long-Term Capital Gains</span>
-            <span className="font-mono">{formatCurrency(result.longTermCapitalGains)}</span>
+            <span className="font-mono">
+              {formatCurrency(result.longTermCapitalGains)}
+            </span>
           </div>
         )}
         <div className="flex justify-between font-medium border-t pt-1">
           <span>Gross Income</span>
-          <span className="font-mono">{formatCurrency(result.grossIncome)}</span>
+          <span className="font-mono">
+            {formatCurrency(result.grossIncome)}
+          </span>
         </div>
         {result.shortTermLossCarryoverOffset > 0 && (
           <div className="flex justify-between text-green-700">
@@ -96,7 +104,11 @@ export default memo(function CaliforniaBreakdown({ result }: Props) {
         )}
         <div className="flex justify-between text-green-700">
           <span>
-            Less: {result.deductionBreakdown.deductionUsed === 'standard' ? 'Standard' : 'Itemized'} Deduction
+            Less:{" "}
+            {result.deductionBreakdown.deductionUsed === "standard"
+              ? "Standard"
+              : "Itemized"}{" "}
+            Deduction
           </span>
           <span className="font-mono">
             -{formatCurrency(result.deductionBreakdown.deductionAmount)}
@@ -123,8 +135,14 @@ export default memo(function CaliforniaBreakdown({ result }: Props) {
       {(result.caMentalHealthTax ?? 0) > 0 && (
         <div className="bg-purple-50 p-3 rounded mb-4">
           <div className="flex justify-between font-medium">
-            <span>Mental Health Services Tax ({formatPercent(limits.mentalHealthTax.rate)} over {formatCurrency(limits.mentalHealthTax.threshold)})</span>
-            <span className="font-mono">{formatCurrency(result.caMentalHealthTax ?? 0)}</span>
+            <span>
+              Mental Health Services Tax (
+              {formatPercent(limits.mentalHealthTax.rate)} over{" "}
+              {formatCurrency(limits.mentalHealthTax.threshold)})
+            </span>
+            <span className="font-mono">
+              {formatCurrency(result.caMentalHealthTax ?? 0)}
+            </span>
           </div>
         </div>
       )}
@@ -147,27 +165,50 @@ export default memo(function CaliforniaBreakdown({ result }: Props) {
           <h3 className="font-medium">Safe Harbor (Penalty Avoidance)</h3>
           <div className="text-sm space-y-1">
             <div className="flex justify-between">
-              <span>{formatPercent(limits.safeHarbor.currentYearPercent)} of Current Year Tax</span>
-              <span className="font-mono">{formatCurrency(result.safeHarbor.currentYear90Percent)}</span>
+              <span>
+                {formatPercent(limits.safeHarbor.currentYearPercent)} of Current
+                Year Tax
+              </span>
+              <span className="font-mono">
+                {formatCurrency(result.safeHarbor.currentYear90Percent)}
+              </span>
             </div>
-            {!result.safeHarbor.highIncomeException && result.safeHarbor.priorYearSafeHarbor > 0 && (
-              <div className="flex justify-between">
-                <span>{formatPercent(limits.safeHarbor.priorYearPercent)} of Prior Year Tax</span>
-                <span className="font-mono">{formatCurrency(result.safeHarbor.priorYearSafeHarbor)}</span>
-              </div>
-            )}
+            {!result.safeHarbor.highIncomeException &&
+              result.safeHarbor.priorYearSafeHarbor > 0 && (
+                <div className="flex justify-between">
+                  <span>
+                    {formatPercent(limits.safeHarbor.priorYearPercent)} of Prior
+                    Year Tax
+                  </span>
+                  <span className="font-mono">
+                    {formatCurrency(result.safeHarbor.priorYearSafeHarbor)}
+                  </span>
+                </div>
+              )}
             {result.safeHarbor.highIncomeException && (
               <p className="text-xs text-gray-600 italic">
-                ({formatPercent(limits.safeHarbor.priorYearPercent)} prior year not available - CA AGI over {formatCurrency(limits.mentalHealthTax.threshold)} threshold)
+                ({formatPercent(limits.safeHarbor.priorYearPercent)} prior year
+                not available - CA AGI over{" "}
+                {formatCurrency(limits.mentalHealthTax.threshold)} threshold)
               </p>
             )}
             <div className="flex justify-between font-medium pt-1 border-t">
-              <span>Safe Harbor Minimum{!result.safeHarbor.highIncomeException && result.safeHarbor.priorYearSafeHarbor > 0 ? ' (lesser)' : ''}</span>
-              <span className="font-mono">{formatCurrency(result.safeHarbor.minimum)}</span>
+              <span>
+                Safe Harbor Minimum
+                {!result.safeHarbor.highIncomeException &&
+                result.safeHarbor.priorYearSafeHarbor > 0
+                  ? " (lesser)"
+                  : ""}
+              </span>
+              <span className="font-mono">
+                {formatCurrency(result.safeHarbor.minimum)}
+              </span>
             </div>
             <div className="flex justify-between text-green-600">
               <span>Already Paid</span>
-              <span className="font-mono">{formatCurrency(result.totalPaid)}</span>
+              <span className="font-mono">
+                {formatCurrency(result.totalPaid)}
+              </span>
             </div>
           </div>
           {result.safeHarbor.met ? (
@@ -186,4 +227,4 @@ export default memo(function CaliforniaBreakdown({ result }: Props) {
       )}
     </div>
   );
-})
+});
