@@ -63,8 +63,8 @@ export default function DeductionInputs({
       : sharedLimits.contribution401k.standard;
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">
+    <div className="theme-card p-4 space-y-4">
+      <h2 className="text-lg font-semibold text-text-primary border-b border-border pb-2 font-display">
         Deductions
       </h2>
 
@@ -87,7 +87,7 @@ export default function DeductionInputs({
         />
       </div>
 
-      <h3 className="text-md font-medium text-gray-900 pt-2">
+      <h3 className="text-md font-medium text-text-primary pt-2">
         Itemized Deduction Items
       </h3>
 
@@ -132,7 +132,7 @@ export default function DeductionInputs({
         {federalResults && calculateCharitableScenario && (
           <button
             onClick={() => setIsWhatIfOpen(true)}
-            className="px-4 py-2 bg-blue-50 text-blue-700 text-sm font-medium rounded-md hover:bg-blue-100 whitespace-nowrap"
+            className="px-4 py-2 bg-accent-subtle text-accent text-sm font-medium rounded-[var(--radius-md)] hover:bg-[var(--color-accent)] hover:text-white transition-colors whitespace-nowrap"
           >
             What if...
           </button>

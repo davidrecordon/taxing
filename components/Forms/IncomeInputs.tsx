@@ -12,8 +12,8 @@ export default function IncomeInputs({ inputs, onUpdate }: Props) {
   const stateLabel = STATE_LABELS[inputs.selectedState] || "State";
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">
+    <div className="theme-card p-4 space-y-4">
+      <h2 className="text-lg font-semibold text-text-primary border-b border-border pb-2 font-display">
         Income
       </h2>
 
@@ -43,7 +43,9 @@ export default function IncomeInputs({ inputs, onUpdate }: Props) {
         hint="Freelance, contractor or gig economy income"
       />
 
-      <h3 className="text-md font-medium text-gray-900 pt-2">Capital Gains</h3>
+      <h3 className="text-md font-medium text-text-primary pt-2">
+        Capital Gains
+      </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CurrencyInput
           label="Short-Term Capital Gains"

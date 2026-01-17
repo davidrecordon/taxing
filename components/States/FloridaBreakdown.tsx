@@ -11,14 +11,14 @@ export default memo(function FloridaBreakdown({ result }: Props) {
   const hasWithholding = result.withheld > 0 || result.estimatedPaid > 0;
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 text-gray-900">
-      <h2 className="text-lg font-semibold border-b pb-2 mb-4">
+    <div className="theme-card p-4">
+      <h2 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 font-display">
         Florida Tax Breakdown
       </h2>
 
       {/* No Income Tax Notice */}
-      <div className="bg-green-50 p-3 rounded mb-4">
-        <p className="text-sm text-green-800 font-medium">
+      <div className="bg-positive-bg p-3 rounded-[var(--radius-md)] mb-4">
+        <p className="text-sm text-positive font-medium">
           Florida has no state income tax on wages, capital gains, or other
           personal income.
         </p>
@@ -36,10 +36,10 @@ export default memo(function FloridaBreakdown({ result }: Props) {
           showEffectiveRates={false}
         />
       ) : (
-        <div className="bg-gray-50 p-3 rounded">
-          <div className="flex justify-between font-medium">
+        <div className="bg-secondary p-3 rounded-[var(--radius-md)]">
+          <div className="flex justify-between font-medium text-text-primary">
             <span>Florida Income Tax</span>
-            <span className="font-mono text-green-600">
+            <span className="font-mono text-positive">
               {formatCurrency(0)}
             </span>
           </div>

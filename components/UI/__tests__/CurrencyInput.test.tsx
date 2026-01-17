@@ -165,7 +165,7 @@ describe("CurrencyInput", () => {
       );
 
       const input = screen.getByRole("textbox");
-      expect(input).toHaveClass("text-red-600");
+      expect(input).toHaveClass("text-negative");
       expect(input).toHaveValue("-500");
     });
 
@@ -180,7 +180,7 @@ describe("CurrencyInput", () => {
       );
 
       const dollarSign = screen.getByText("$");
-      expect(dollarSign).toHaveClass("text-red-600");
+      expect(dollarSign).toHaveClass("text-negative");
     });
 
     it("displays positive values with normal text styling", () => {
@@ -194,8 +194,8 @@ describe("CurrencyInput", () => {
       );
 
       const input = screen.getByRole("textbox");
-      expect(input).toHaveClass("text-gray-900");
-      expect(input).not.toHaveClass("text-red-600");
+      expect(input).toHaveClass("theme-input");
+      expect(input).not.toHaveClass("text-negative");
     });
 
     it("formats negative values with comma separators", () => {
@@ -222,7 +222,7 @@ describe("CurrencyInput", () => {
       );
 
       const input = screen.getByRole("textbox");
-      expect(input).not.toHaveClass("text-red-600");
+      expect(input).not.toHaveClass("text-negative");
     });
   });
 });

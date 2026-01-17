@@ -14,20 +14,20 @@ interface Props {
 
 export default memo(function ColoradoBreakdown({ result }: Props) {
   return (
-    <div className="bg-white rounded-lg shadow p-4 text-gray-900">
-      <h2 className="text-lg font-semibold border-b pb-2 mb-4">
+    <div className="theme-card p-4">
+      <h2 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 font-display">
         Colorado Tax Breakdown
       </h2>
 
       {/* Federal Taxable Income as Starting Point */}
-      <div className="bg-gray-50 p-3 rounded mb-4 space-y-2">
-        <div className="flex justify-between font-medium">
+      <div className="bg-secondary p-3 rounded-[var(--radius-md)] mb-4 space-y-2">
+        <div className="flex justify-between font-medium text-text-primary">
           <span>Federal Taxable Income</span>
           <span className="font-mono">
             {formatCurrency(result.taxableOrdinaryIncome)}
           </span>
         </div>
-        <p className="text-xs text-gray-600">
+        <p className="text-xs text-text-muted">
           Colorado uses your federal taxable income (after federal deductions)
           as the starting point for state taxes.
         </p>
@@ -54,30 +54,30 @@ export default memo(function ColoradoBreakdown({ result }: Props) {
 
       {/* Safe Harbor Section */}
       {result.safeHarbor && result.remainingOwed > 0 && (
-        <div className="bg-amber-50 p-3 rounded space-y-2">
-          <h3 className="font-medium">Safe Harbor (Penalty Avoidance)</h3>
+        <div className="bg-warning-bg p-3 rounded-[var(--radius-md)] space-y-2">
+          <h3 className="font-medium text-text-primary">Safe Harbor (Penalty Avoidance)</h3>
           <div className="text-sm space-y-1">
-            <div className="flex justify-between">
+            <div className="flex justify-between text-text-secondary">
               <span>
                 {formatPercent(limits.safeHarbor.currentYearPercent)} of Current
                 Year Tax
               </span>
-              <span className="font-mono">
+              <span className="font-mono text-text-primary">
                 {formatCurrency(result.safeHarbor.currentYear90Percent)}
               </span>
             </div>
             {result.safeHarbor.priorYearSafeHarbor > 0 && (
-              <div className="flex justify-between">
+              <div className="flex justify-between text-text-secondary">
                 <span>
                   {formatPercent(limits.safeHarbor.priorYearPercent)} of Prior
                   Year Tax
                 </span>
-                <span className="font-mono">
+                <span className="font-mono text-text-primary">
                   {formatCurrency(result.safeHarbor.priorYearSafeHarbor)}
                 </span>
               </div>
             )}
-            <div className="flex justify-between font-medium pt-1 border-t">
+            <div className="flex justify-between font-medium pt-1 border-t border-warning text-text-primary">
               <span>
                 Safe Harbor Minimum
                 {result.safeHarbor.priorYearSafeHarbor > 0 ? " (lesser)" : ""}
@@ -86,7 +86,7 @@ export default memo(function ColoradoBreakdown({ result }: Props) {
                 {formatCurrency(result.safeHarbor.minimum)}
               </span>
             </div>
-            <div className="flex justify-between text-green-600">
+            <div className="flex justify-between text-positive">
               <span>Already Paid</span>
               <span className="font-mono">
                 {formatCurrency(result.totalPaid)}
@@ -94,13 +94,13 @@ export default memo(function ColoradoBreakdown({ result }: Props) {
             </div>
           </div>
           {result.safeHarbor.met ? (
-            <div className="text-green-700 font-medium pt-2 border-t border-amber-200">
+            <div className="text-positive font-medium pt-2 border-t border-warning">
               Safe Harbor Met - no additional payment needed to avoid penalties
             </div>
           ) : (
-            <div className="flex justify-between font-bold pt-2 border-t border-amber-200">
-              <span>Still Needed for Safe Harbor</span>
-              <span className="text-amber-700 font-mono">
+            <div className="flex justify-between font-bold pt-2 border-t border-warning">
+              <span className="text-text-primary">Still Needed for Safe Harbor</span>
+              <span className="text-warning font-mono">
                 {formatCurrency(result.safeHarbor.remaining)}
               </span>
             </div>

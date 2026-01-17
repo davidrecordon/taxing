@@ -24,6 +24,7 @@ import PriorYearInputs from "./Forms/PriorYearInputs";
 import TaxResultsDisplay from "./Displays/TaxResultsDisplay";
 import WithholdingInputs from "./Forms/WithholdingInputs";
 import ErrorBoundary from "./UI/ErrorBoundary";
+import ThemeSelector from "./UI/ThemeSelector";
 import { formatCurrency } from "@/lib/formatters";
 import FilingStatusComparisonModal, {
   SplitConfig,
@@ -501,15 +502,16 @@ export default function TaxCalculator() {
   const stateLabel = STATE_LABELS[inputs.selectedState];
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-[#0f2439]">
-          2025 Estimated Tax Calculator
-        </h1>
-        <p className="text-[#0f2439] mt-2">
-          Federal & {stateLabel} Tax Estimation
-        </p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-text-primary font-display">
+            2025 Estimated Tax Calculator
+          </h1>
+          <p className="text-text-secondary mt-2">
+            Federal & {stateLabel} Tax Estimation
+          </p>
+        </div>
 
       <div className="space-y-6">
         {/* Row 1: Config + Summary Cards */}
@@ -534,42 +536,42 @@ export default function TaxCalculator() {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div
-              className={`p-4 rounded-lg ${
+              className={`theme-card p-4 ${
                 results.federal.remainingOwed > 0
-                  ? "bg-red-50 border border-red-200"
-                  : "bg-green-50 border border-green-200"
+                  ? "bg-negative-bg border-l-4 border-l-negative"
+                  : "bg-positive-bg border-l-4 border-l-positive"
               }`}
             >
-              <h3 className="text-sm font-medium text-gray-900">Federal</h3>
+              <h3 className="text-sm font-medium text-text-primary">Federal</h3>
               {results.federal.remainingOwed > 0 ? (
-                <p className="text-2xl font-bold text-red-600">
+                <p className="text-2xl font-bold text-negative number-transition">
                   {formatCurrency(results.federal.remainingOwed)} owed
                 </p>
               ) : (
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-2xl font-bold text-positive number-transition">
                   {formatCurrency(results.federal.refundDue)} refund
                 </p>
               )}
             </div>
 
             <div
-              className={`p-4 rounded-lg ${
+              className={`theme-card p-4 ${
                 results.state.remainingOwed > 0
-                  ? "bg-red-50 border border-red-200"
-                  : "bg-green-50 border border-green-200"
+                  ? "bg-negative-bg border-l-4 border-l-negative"
+                  : "bg-positive-bg border-l-4 border-l-positive"
               }`}
             >
-              <h3 className="text-sm font-medium text-gray-900">
+              <h3 className="text-sm font-medium text-text-primary">
                 {stateLabel}
               </h3>
               {isLoadingState ? (
-                <p className="text-2xl font-bold text-gray-400">Loading...</p>
+                <p className="text-2xl font-bold text-text-muted">Loading...</p>
               ) : results.state.remainingOwed > 0 ? (
-                <p className="text-2xl font-bold text-red-600">
+                <p className="text-2xl font-bold text-negative number-transition">
                   {formatCurrency(results.state.remainingOwed)} owed
                 </p>
               ) : (
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-2xl font-bold text-positive number-transition">
                   {formatCurrency(results.state.refundDue)} refund
                 </p>
               )}
@@ -603,12 +605,16 @@ export default function TaxCalculator() {
         </div>
       </div>
 
-      <footer className="mt-8 text-center text-sm text-gray-600">
-        <p>
-          This calculator provides estimates only. Consult a tax professional
-          for actual tax advice.
-        </p>
-      </footer>
+        <footer className="mt-8 pt-6 border-t border-border">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-text-muted">
+              This calculator provides estimates only. Consult a tax professional
+              for actual tax advice.
+            </p>
+            <ThemeSelector />
+          </div>
+        </footer>
+      </div>
 
       <FilingStatusComparisonModal
         isOpen={isFilingCompareOpen}

@@ -37,25 +37,28 @@ describe("FilingStatusComparisonModal", () => {
     totalTax: 57000,
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const mockMFSScenario = vi.fn(
-    (_splits: SplitConfig): MFSScenarioResult => ({
-      spouse1: {
-        federalTax: 25000,
-        stateTax: 7000,
-        totalTax: 32000,
-      },
-      spouse2: {
-        federalTax: 23000,
-        stateTax: 6500,
-        totalTax: 29500,
-      },
-      combined: {
-        federalTax: 48000,
-        stateTax: 13500,
-        totalTax: 61500,
-      },
-    }),
+    (splits: SplitConfig): MFSScenarioResult => {
+      // Use splits to satisfy TypeScript - return different results based on wages split
+      const adjustedFederal = splits.wages > 50 ? 49000 : 48000;
+      return {
+        spouse1: {
+          federalTax: 25000,
+          stateTax: 7000,
+          totalTax: 32000,
+        },
+        spouse2: {
+          federalTax: 23000,
+          stateTax: 6500,
+          totalTax: 29500,
+        },
+        combined: {
+          federalTax: adjustedFederal,
+          stateTax: 13500,
+          totalTax: adjustedFederal + 13500,
+        },
+      };
+    },
   );
 
   const defaultProps = {
@@ -142,10 +145,10 @@ describe("FilingStatusComparisonModal", () => {
     it("shows difference with correct color for higher MFS taxes", () => {
       render(<FilingStatusComparisonModal {...defaultProps} />);
 
-      // MFS is higher, so difference should be red
+      // MFS is higher, so difference should be red (text-negative class)
       const differences = screen.getAllByText(/\+\$\d/);
       expect(differences.length).toBeGreaterThan(0);
-      expect(differences[0]).toHaveClass("text-red-600");
+      expect(differences[0]).toHaveClass("text-negative");
     });
   });
 

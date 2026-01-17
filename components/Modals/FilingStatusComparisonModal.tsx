@@ -58,8 +58,8 @@ function SplitSlider({
       {/* Mobile: Stacked layout */}
       <div className="sm:hidden space-y-1">
         <div className="flex justify-between text-sm">
-          <span className="font-medium text-gray-700">{label}</span>
-          <span className="text-gray-500">({formatCurrency(totalAmount)})</span>
+          <span className="font-medium text-text-primary">{label}</span>
+          <span className="text-text-muted">({formatCurrency(totalAmount)})</span>
         </div>
         <input
           type="range"
@@ -68,13 +68,13 @@ function SplitSlider({
           step="5"
           value={spouse1Percent}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+          className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-accent"
         />
         <div className="flex justify-between text-sm tabular-nums">
-          <span className="text-gray-700">
+          <span className="text-text-primary">
             {spouse1Percent}% / {100 - spouse1Percent}%
           </span>
-          <span className="text-gray-400">
+          <span className="text-text-muted">
             {formatCurrency(spouse1Amount)} / {formatCurrency(spouse2Amount)}
           </span>
         </div>
@@ -83,9 +83,9 @@ function SplitSlider({
       {/* Desktop: Horizontal layout */}
       <div className="hidden sm:flex items-center gap-3">
         {/* Column 1: Category */}
-        <div className="w-52 shrink-0 text-sm text-gray-700">
+        <div className="w-52 shrink-0 text-sm text-text-primary">
           <span className="font-medium">{label}</span>
-          <span className="text-gray-500 ml-1">
+          <span className="text-text-muted ml-1">
             ({formatCurrency(totalAmount)})
           </span>
         </div>
@@ -98,17 +98,17 @@ function SplitSlider({
             step="5"
             value={spouse1Percent}
             onChange={(e) => onChange(Number(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+            className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-accent"
           />
         </div>
         {/* Column 3: Percentages */}
         <div className="w-24 shrink-0 text-sm text-right tabular-nums">
-          <span className="text-gray-700">{spouse1Percent}%</span>
-          <span className="text-gray-400 mx-1">/</span>
-          <span className="text-gray-700">{100 - spouse1Percent}%</span>
+          <span className="text-text-primary">{spouse1Percent}%</span>
+          <span className="text-text-muted mx-1">/</span>
+          <span className="text-text-primary">{100 - spouse1Percent}%</span>
         </div>
         {/* Column 4: Dollars */}
-        <div className="w-44 shrink-0 text-sm text-right text-gray-400 tabular-nums">
+        <div className="w-44 shrink-0 text-sm text-right text-text-muted tabular-nums">
           {formatCurrency(spouse1Amount)} / {formatCurrency(spouse2Amount)}
         </div>
       </div>
@@ -166,36 +166,36 @@ export default function FilingStatusComparisonModal({
 
   const getDifferenceDisplay = (diff: number) => {
     if (diff > 0) {
-      return <span className="text-red-600">+{formatCurrency(diff)}</span>;
+      return <span className="text-negative">+{formatCurrency(diff)}</span>;
     } else if (diff < 0) {
       return (
-        <span className="text-green-600">
+        <span className="text-positive">
           -{formatCurrency(Math.abs(diff))}
         </span>
       );
     }
-    return <span className="text-gray-500">No change</span>;
+    return <span className="text-text-muted">No change</span>;
   };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        className="fixed inset-0 bg-black/50 transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-lg shadow-xl max-w-full sm:max-w-4xl w-full p-4 sm:p-6">
+        <div className="relative theme-card max-w-full sm:max-w-4xl w-full p-4 sm:p-6 animate-scale-in">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-text-primary font-display">
               Compare MFJ vs MFS
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-text-muted hover:text-text-primary transition-colors"
             >
               <svg
                 className="w-6 h-6"
@@ -214,15 +214,15 @@ export default function FilingStatusComparisonModal({
           </div>
 
           {/* Info text */}
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-text-secondary mb-4">
             Allocate income and deductions between spouses to roughly reflect
             each spouse&apos;s share to compare Married Filing Jointly vs
             Married Filing Separately.
           </p>
 
           {/* Split Configuration */}
-          <div className="border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50">
-            <div className="hidden sm:flex items-center justify-between mb-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <div className="border border-border rounded-[var(--radius-lg)] p-4 mb-4 bg-secondary">
+            <div className="hidden sm:flex items-center justify-between mb-2 text-xs font-medium text-text-muted uppercase tracking-wider">
               <span>Category</span>
               <span>Spouse 1 / Spouse 2</span>
             </div>
@@ -270,26 +270,26 @@ export default function FilingStatusComparisonModal({
           <div className="overflow-x-auto mb-4">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-2 font-medium text-gray-700"></th>
-                  <th className="text-right py-2 px-2 font-medium text-gray-700">
+                <tr className="border-b border-border">
+                  <th className="text-left py-2 px-2 font-medium text-text-primary"></th>
+                  <th className="text-right py-2 px-2 font-medium text-text-primary">
                     MFJ
                   </th>
-                  <th className="text-right py-2 px-2 font-medium text-gray-700">
+                  <th className="text-right py-2 px-2 font-medium text-text-primary">
                     MFS (Combined)
                   </th>
-                  <th className="text-right py-2 px-2 font-medium text-gray-700">
+                  <th className="text-right py-2 px-2 font-medium text-text-primary">
                     Difference
                   </th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b border-gray-100">
-                  <td className="py-2 px-2 text-gray-700">Federal Tax</td>
-                  <td className="py-2 px-2 text-right text-gray-900">
+                <tr className="border-b border-border">
+                  <td className="py-2 px-2 text-text-secondary">Federal Tax</td>
+                  <td className="py-2 px-2 text-right text-text-primary">
                     {formatCurrency(mfjResults.federalTax)}
                   </td>
-                  <td className="py-2 px-2 text-right text-gray-900">
+                  <td className="py-2 px-2 text-right text-text-primary">
                     {formatCurrency(mfsResults.combined.federalTax)}
                   </td>
                   <td className="py-2 px-2 text-right">
@@ -298,12 +298,12 @@ export default function FilingStatusComparisonModal({
                     )}
                   </td>
                 </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-2 px-2 text-gray-700">State Tax</td>
-                  <td className="py-2 px-2 text-right text-gray-900">
+                <tr className="border-b border-border">
+                  <td className="py-2 px-2 text-text-secondary">State Tax</td>
+                  <td className="py-2 px-2 text-right text-text-primary">
                     {formatCurrency(mfjResults.stateTax)}
                   </td>
-                  <td className="py-2 px-2 text-right text-gray-900">
+                  <td className="py-2 px-2 text-right text-text-primary">
                     {formatCurrency(mfsResults.combined.stateTax)}
                   </td>
                   <td className="py-2 px-2 text-right">
@@ -312,12 +312,12 @@ export default function FilingStatusComparisonModal({
                     )}
                   </td>
                 </tr>
-                <tr className="border-b border-gray-200 font-medium">
-                  <td className="py-2 px-2 text-gray-900">Total</td>
-                  <td className="py-2 px-2 text-right text-gray-900">
+                <tr className="border-b border-border font-medium">
+                  <td className="py-2 px-2 text-text-primary">Total</td>
+                  <td className="py-2 px-2 text-right text-text-primary">
                     {formatCurrency(mfjResults.totalTax)}
                   </td>
-                  <td className="py-2 px-2 text-right text-gray-900">
+                  <td className="py-2 px-2 text-right text-text-primary">
                     {formatCurrency(mfsResults.combined.totalTax)}
                   </td>
                   <td className="py-2 px-2 text-right">
@@ -332,7 +332,7 @@ export default function FilingStatusComparisonModal({
           <div className="flex justify-end">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-4 py-2 text-text-secondary border border-border rounded-[var(--radius-md)] hover:bg-secondary transition-colors"
             >
               Close
             </button>

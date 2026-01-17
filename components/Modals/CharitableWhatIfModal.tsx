@@ -91,15 +91,15 @@ export default function CharitableWhatIfModal({
     if (isCurrent) return null;
     const savings = currentResults.totalTax - results.totalTax;
     if (savings > 0) {
-      return <span className="text-green-600">-{formatCurrency(savings)}</span>;
+      return <span className="text-positive">-{formatCurrency(savings)}</span>;
     } else if (savings < 0) {
       return (
-        <span className="text-red-600">
+        <span className="text-negative">
           +{formatCurrency(Math.abs(savings))}
         </span>
       );
     }
-    return <span className="text-gray-500">No change</span>;
+    return <span className="text-text-muted">No change</span>;
   };
 
   const handleApply = (value: number) => {
@@ -111,21 +111,21 @@ export default function CharitableWhatIfModal({
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        className="fixed inset-0 bg-black/50 transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-lg shadow-xl max-w-full sm:max-w-2xl w-full p-4 sm:p-6">
+        <div className="relative theme-card max-w-full sm:max-w-2xl w-full p-4 sm:p-6 animate-scale-in">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-text-primary font-display">
               Charitable Contributions: What If?
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-text-muted hover:text-text-primary transition-colors"
             >
               <svg
                 className="w-6 h-6"
@@ -144,7 +144,7 @@ export default function CharitableWhatIfModal({
           </div>
 
           {/* Info text */}
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-text-secondary mb-4">
             See how different charitable contribution amounts would affect your
             federal taxes. Effective rate is calculated based upon gross (not
             taxable) income for planning purposes. Charitable contributions will
@@ -155,20 +155,20 @@ export default function CharitableWhatIfModal({
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-2 font-medium text-gray-700">
+                <tr className="border-b border-border">
+                  <th className="text-left py-2 px-2 font-medium text-text-primary">
                     Scenario
                   </th>
-                  <th className="text-right py-2 px-2 font-medium text-gray-700">
+                  <th className="text-right py-2 px-2 font-medium text-text-primary">
                     Amount
                   </th>
-                  <th className="text-right py-2 px-2 font-medium text-gray-700">
+                  <th className="text-right py-2 px-2 font-medium text-text-primary">
                     Tax Due
                   </th>
-                  <th className="hidden sm:table-cell text-right py-2 px-2 font-medium text-gray-700">
+                  <th className="hidden sm:table-cell text-right py-2 px-2 font-medium text-text-primary">
                     Eff. Rate
                   </th>
-                  <th className="text-right py-2 px-2 font-medium text-gray-700">
+                  <th className="text-right py-2 px-2 font-medium text-text-primary">
                     Total Tax Impact
                   </th>
                   <th className="py-2 px-2"></th>
@@ -178,22 +178,22 @@ export default function CharitableWhatIfModal({
                 {scenarioResults.map((scenario) => (
                   <tr
                     key={scenario.label}
-                    className={`border-b border-gray-100 ${
-                      scenario.isCurrent ? "bg-blue-50" : "hover:bg-gray-50"
-                    }`}
+                    className={`border-b border-border ${
+                      scenario.isCurrent ? "bg-accent-subtle" : "hover:bg-secondary"
+                    } transition-colors`}
                   >
-                    <td className="py-3 px-2 font-medium text-gray-900">
+                    <td className="py-3 px-2 font-medium text-text-primary">
                       {scenario.label}
                     </td>
-                    <td className="py-3 px-2 text-right text-gray-700">
+                    <td className="py-3 px-2 text-right text-text-secondary">
                       {formatCurrency(scenario.value)}
                     </td>
-                    <td className="py-3 px-2 text-right text-gray-900">
+                    <td className="py-3 px-2 text-right text-text-primary">
                       {scenario.results.remainingOwed >= 0
                         ? formatCurrency(scenario.results.remainingOwed)
                         : `(${formatCurrency(Math.abs(scenario.results.remainingOwed))})`}
                     </td>
-                    <td className="hidden sm:table-cell py-3 px-2 text-right text-gray-900">
+                    <td className="hidden sm:table-cell py-3 px-2 text-right text-text-primary">
                       {formatPercent(scenario.results.effectiveRate, 1)}
                     </td>
                     <td className="py-3 px-2 text-right">
@@ -203,7 +203,7 @@ export default function CharitableWhatIfModal({
                       {!scenario.isCurrent && (
                         <button
                           onClick={() => handleApply(scenario.value)}
-                          className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                          className="theme-button-primary px-3 py-1 text-xs"
                         >
                           Apply
                         </button>
@@ -219,7 +219,7 @@ export default function CharitableWhatIfModal({
           <div className="mt-4 flex justify-end">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-4 py-2 text-text-secondary border border-border rounded-[var(--radius-md)] hover:bg-secondary transition-colors"
             >
               Close
             </button>

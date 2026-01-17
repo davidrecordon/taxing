@@ -12,8 +12,8 @@ export default function PriorYearInputs({ inputs, onUpdate }: Props) {
   const stateLabel = STATE_LABELS[inputs.selectedState] || "State";
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">
+    <div className="theme-card p-4 space-y-4">
+      <h2 className="text-lg font-semibold text-text-primary border-b border-border pb-2 font-display">
         Prior Year
       </h2>
 

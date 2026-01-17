@@ -35,54 +35,54 @@ export default memo(function BracketTable({
 
   return (
     <div className="mb-4">
-      <h3 className="font-medium mb-2">{title}</h3>
+      <h3 className="font-medium text-text-primary mb-2">{title}</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-100">
+          <thead className="bg-secondary">
             <tr>
-              <th className="text-left p-2">Bracket</th>
-              <th className="text-right p-2">Rate</th>
-              <th className="text-right p-2">{incomeLabel}</th>
-              <th className="text-right p-2">Tax</th>
+              <th className="text-left p-2 text-text-primary">Bracket</th>
+              <th className="text-right p-2 text-text-primary">Rate</th>
+              <th className="text-right p-2 text-text-primary">{incomeLabel}</th>
+              <th className="text-right p-2 text-text-primary">Tax</th>
             </tr>
           </thead>
           <tbody>
             {breakdown.map((bracket) => (
               <tr
                 key={`${bracket.bracketMin}-${bracket.rate}`}
-                className="border-b"
+                className="border-b border-border"
               >
-                <td className="p-2">
+                <td className="p-2 text-text-secondary">
                   {formatCurrency(bracket.bracketMin)} -{" "}
                   {bracket.bracketMax
                     ? formatCurrency(bracket.bracketMax)
                     : "..."}
                 </td>
-                <td className="text-right p-2">
+                <td className="text-right p-2 text-text-secondary">
                   {formatPercent(bracket.rate)}
                 </td>
-                <td className="text-right p-2 font-mono">
+                <td className="text-right p-2 font-mono text-text-primary">
                   {formatCurrency(bracket.incomeInBracket)}
                 </td>
-                <td className="text-right p-2 font-mono">
+                <td className="text-right p-2 font-mono text-text-primary">
                   {formatCurrency(bracket.taxForBracket)}
                 </td>
               </tr>
             ))}
           </tbody>
-          <tfoot className="font-medium bg-gray-50">
+          <tfoot className="font-medium bg-secondary">
             <tr>
-              <td colSpan={3} className="p-2 text-right">
+              <td colSpan={3} className="p-2 text-right text-text-primary">
                 {totalLabel}
               </td>
-              <td className="p-2 text-right font-mono">
+              <td className="p-2 text-right font-mono text-text-primary">
                 {formatCurrency(totalAmount)}
               </td>
             </tr>
           </tfoot>
         </table>
       </div>
-      {footnote && <p className="text-xs text-gray-500 mt-1">{footnote}</p>}
+      {footnote && <p className="text-xs text-text-muted mt-1">{footnote}</p>}
     </div>
   );
 });
