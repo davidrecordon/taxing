@@ -1,6 +1,6 @@
 # Federal & Multi-State Tax Calculator
 
-**Live Demo:** https://taxing-one.vercel.app/
+**Live:** https://estimate.tax/
 
 A web-based tax estimation tool for calculating Federal and state income taxes. Supports California, Colorado, District of Columbia, Florida, Illinois, New York (including NYC local tax), and Washington. The calculator helps individuals estimate their tax liability, including support for various income types, deductions, and FICA taxes. Currently configured for the 2025 tax year.
 
