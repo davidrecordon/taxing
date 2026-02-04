@@ -1011,10 +1011,10 @@ describe.each(SUPPORTED_YEARS)(
         data.newYorkLimits,
       );
 
-      // Tax amounts (brackets unchanged between 2025/2026)
+      // Tax amounts (2026 has 0.1% lower rates for bottom 5 brackets)
       const expectedTax = {
         "2025": 4951.75,
-        "2026": 4951.75,
+        "2026": 4859.75,
       };
 
       expect(result.taxableOrdinaryIncome).toBe(92000);

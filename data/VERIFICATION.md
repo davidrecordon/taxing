@@ -346,9 +346,23 @@ This document verifies that all tax data in the JSON files matches official gove
 
 ### Tax Brackets
 
-**Source:** [NY DTF 2026 Tax Tables](https://www.tax.ny.gov/pit/file/tax-tables/2026.htm) (projected)
+**Source:** [NY DTF Withholding Tax Rate Changes](https://www.tax.ny.gov/bus/wt/rate.htm)
 
-Same as 2025 (brackets not inflation-adjusted).
+NY enacted 0.1% rate reductions for the bottom 5 brackets effective 2026:
+
+| Rate (2025) | Rate (2026) | Single             | MFJ                | Match |
+| ----------- | ----------- | ------------------ | ------------------ | ----- |
+| 4.0%        | 3.9%        | $0-$8,500          | $0-$17,150         | Yes   |
+| 4.5%        | 4.4%        | $8,500-$11,700     | $17,150-$23,600    | Yes   |
+| 5.25%       | 5.15%       | $11,700-$13,900    | $23,600-$27,900    | Yes   |
+| 5.5%        | 5.4%        | $13,900-$80,650    | $27,900-$161,550   | Yes   |
+| 6.0%        | 5.9%        | $80,650-$215,400   | $161,550-$323,200  | Yes   |
+| 6.85%       | 6.85%       | $215,400-$1,077,550| $323,200-$2,155,350| Yes   |
+| 9.65%       | 9.65%       | $1,077,550-$5M     | $2,155,350-$5M     | Yes   |
+| 10.3%       | 10.3%       | $5M-$25M           | $5M-$25M           | Yes   |
+| 10.9%       | 10.9%       | $25M+              | $25M+              | Yes   |
+
+**Note:** Brackets remain unchanged; only the rates for the bottom 5 brackets were reduced by 0.1 percentage points.
 
 ### Standard Deductions
 
