@@ -1,6 +1,6 @@
 # Tax Data Verification
 
-Last verified: 2026-01-17
+Last verified: 2026-02-04
 
 This document verifies that all tax data in the JSON files matches official government sources.
 
@@ -379,14 +379,14 @@ NY enacted 0.1% rate reductions for the bottom 5 brackets effective 2026:
 
 **Source:** [WA DOR Capital Gains Tax](https://dor.wa.gov/taxes-rates/other-taxes/capital-gains-tax)
 
-| Item             | Our Data   | Official   | Match       |
-| ---------------- | ---------- | ---------- | ----------- |
-| Exemption        | $278,000   | TBD (2026) | Placeholder |
-| Base Rate        | 7%         | 7%         | Yes         |
-| Surtax Rate      | 9.9%       | 9.9%       | Yes         |
-| Surtax Threshold | $1,000,000 | $1,000,000 | Yes         |
+| Item             | Our Data   | Official   | Match                    |
+| ---------------- | ---------- | ---------- | ------------------------ |
+| Exemption        | $278,000   | TBD        | WAITING - using 2025 value |
+| Base Rate        | 7%         | 7%         | Yes                      |
+| Surtax Rate      | 9.9%       | 9.9%       | Yes                      |
+| Surtax Threshold | $1,000,000 | $1,000,000 | Yes                      |
 
-**Note:** 2026 exemption amount not yet announced; using 2025 value as placeholder.
+**Note:** The 2026 exemption threshold has NOT been announced by WA DOR as of 2026-02-04. Currently using the 2025 value ($278,000) as a placeholder. The exemption is adjusted annually for inflation per RCW 82.87.150. Check the WA DOR website for the official 2026 amount when published.
 
 ---
 
@@ -465,3 +465,22 @@ Same as 2025 (brackets not inflation-adjusted).
 4. Washington capital gains includes SB 5813 changes (May 2025)
 5. 2025 values are for tax year 2025 (returns filed in 2026)
 6. 2026 values are for tax year 2026 (returns filed in 2027)
+
+---
+
+## 2026 Data Status (as of 2026-02-04)
+
+All 2026 tax data has been verified against official sources:
+
+| Jurisdiction | Status | Source |
+| ------------ | ------ | ------ |
+| Federal | Verified | IRS Rev. Proc. 2025-32 |
+| California | Verified | FTB 2026 withholding schedules |
+| New York | Verified | NY DTF (0.1% rate reductions applied) |
+| Illinois | Verified | IDOR FY 2026-15 bulletin |
+| Colorado | Verified | CO DOR (4.4% unchanged) |
+| Florida | N/A | No state income tax |
+| DC | Verified | DC OTR (brackets not inflation-adjusted) |
+| **Washington** | **WAITING** | 2026 exemption threshold not yet announced by WA DOR |
+
+**Only pending item:** Washington 2026 capital gains exemption threshold.
