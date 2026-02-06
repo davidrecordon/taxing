@@ -103,6 +103,7 @@ export function createDefaultInputs(
   overrides: Partial<TaxInputs> = {},
 ): TaxInputs {
   return {
+    taxYear: TAX_YEAR,
     federalIncome: 0,
     stateIncome: 0,
     shortTermCapitalGains: 0,

@@ -17,7 +17,7 @@ import {
 /**
  * Colorado State Tax Calculator
  *
- * Colorado has a flat 4.4% income tax rate (effective 2025).
+ * Colorado has a flat 4.4% income tax rate.
  * Colorado uses federal taxable income as the starting point, meaning:
  * - Federal standard/itemized deductions are already applied
  * - 401k and pre-tax medical are already deducted

@@ -1,19 +1,23 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { TaxCalculationResult, WashingtonLimitsData } from "@/lib/types";
 import { formatCurrency, formatPercent } from "@/lib/formatters";
 import { calculateEffectiveRates } from "@/lib/taxUtils";
-import { TAX_YEAR } from "@/lib/config";
+import { TaxYear } from "@/lib/config";
 import BracketTable from "../shared/BracketTable";
 import TaxSummarySection from "../shared/TaxSummarySection";
 import allWashingtonLimits from "@/data/washington-limits.json";
 
-const limits = allWashingtonLimits[TAX_YEAR] as WashingtonLimitsData;
-
 interface Props {
   result: TaxCalculationResult;
+  taxYear: TaxYear;
 }
 
-export default memo(function WashingtonBreakdown({ result }: Props) {
+export default memo(function WashingtonBreakdown({ result, taxYear }: Props) {
+  const limits = useMemo(
+    () => allWashingtonLimits[taxYear] as WashingtonLimitsData,
+    [taxYear],
+  );
+
   const hasLTCG = result.longTermCapitalGains > 0;
 
   // Calculate net LTCG for display

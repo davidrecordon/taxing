@@ -150,7 +150,7 @@ describe("calculateEffectiveRates", () => {
 });
 
 describe("calculateLTCGTaxWithStacking", () => {
-  // 2025 Single brackets: 0% up to $47,025, 15% up to $518,900, 20% above
+  // Example single brackets: 0% up to $47,025, 15% up to $518,900, 20% above
   const singleBrackets: TaxBracket[] = [
     { min: 0, max: 47025, rate: 0.0 },
     { min: 47025, max: 518900, rate: 0.15 },

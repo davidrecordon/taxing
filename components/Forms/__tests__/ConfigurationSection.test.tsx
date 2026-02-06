@@ -2,14 +2,52 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ConfigurationSection from "../ConfigurationSection";
+import { SUPPORTED_YEARS, TAX_YEAR } from "@/lib/config";
 
 describe("ConfigurationSection", () => {
   const defaultProps = {
     filingStatus: "single" as const,
     selectedState: "california" as const,
+    taxYear: TAX_YEAR,
     onFilingStatusChange: vi.fn(),
     onStateChange: vi.fn(),
+    onTaxYearChange: vi.fn(),
   };
+
+  describe("tax year dropdown", () => {
+    it("renders all supported years", () => {
+      render(<ConfigurationSection {...defaultProps} />);
+
+      for (const year of SUPPORTED_YEARS) {
+        expect(screen.getByText(year)).toBeInTheDocument();
+      }
+    });
+
+    it("shows current tax year as selected", () => {
+      render(<ConfigurationSection {...defaultProps} />);
+
+      const selects = screen.getAllByRole("combobox");
+      expect(selects[0]).toHaveValue(TAX_YEAR);
+    });
+
+    it("calls onTaxYearChange when selection changes", async () => {
+      const user = userEvent.setup();
+      const handleChange = vi.fn();
+
+      render(
+        <ConfigurationSection
+          {...defaultProps}
+          onTaxYearChange={handleChange}
+        />,
+      );
+
+      const selects = screen.getAllByRole("combobox");
+      const otherYear = SUPPORTED_YEARS.find((y) => y !== TAX_YEAR)!;
+      await user.selectOptions(selects[0], otherYear);
+
+      expect(handleChange).toHaveBeenCalledWith(otherYear);
+    });
+  });
 
   describe("filing status dropdown", () => {
     it("renders all filing status options", () => {
@@ -29,7 +67,7 @@ describe("ConfigurationSection", () => {
       );
 
       const selects = screen.getAllByRole("combobox");
-      expect(selects[0]).toHaveValue("marriedFilingJointly");
+      expect(selects[1]).toHaveValue("marriedFilingJointly");
     });
 
     it("calls onFilingStatusChange when selection changes", async () => {
@@ -44,7 +82,7 @@ describe("ConfigurationSection", () => {
       );
 
       const selects = screen.getAllByRole("combobox");
-      await user.selectOptions(selects[0], "marriedFilingJointly");
+      await user.selectOptions(selects[1], "marriedFilingJointly");
 
       expect(handleChange).toHaveBeenCalledWith("marriedFilingJointly");
     });
@@ -65,7 +103,7 @@ describe("ConfigurationSection", () => {
       );
 
       const selects = screen.getAllByRole("combobox");
-      expect(selects[1]).toHaveValue("washington");
+      expect(selects[2]).toHaveValue("washington");
     });
 
     it("calls onStateChange when selection changes", async () => {
@@ -77,7 +115,7 @@ describe("ConfigurationSection", () => {
       );
 
       const selects = screen.getAllByRole("combobox");
-      await user.selectOptions(selects[1], "newyork");
+      await user.selectOptions(selects[2], "newyork");
 
       expect(handleChange).toHaveBeenCalledWith("newyork");
     });

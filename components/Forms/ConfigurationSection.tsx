@@ -1,11 +1,14 @@
 import { FilingStatus, TaxState } from "@/lib/types";
+import { SUPPORTED_YEARS, TaxYear } from "@/lib/config";
 
 interface Props {
   filingStatus: FilingStatus;
   selectedState: TaxState;
+  taxYear: TaxYear;
   isNYCResident?: boolean;
   onFilingStatusChange: (status: FilingStatus) => void;
   onStateChange: (state: TaxState) => void;
+  onTaxYearChange: (year: TaxYear) => void;
   onNYCResidentChange?: (isNYC: boolean) => void;
   onCompareFilingStatus?: () => void;
   onStateHover?: (state: TaxState) => void;
@@ -30,9 +33,11 @@ const stateOptions: { value: TaxState; label: string }[] = [
 export default function ConfigurationSection({
   filingStatus,
   selectedState,
+  taxYear,
   isNYCResident,
   onFilingStatusChange,
   onStateChange,
+  onTaxYearChange,
   onNYCResidentChange,
   onCompareFilingStatus,
   onStateHover,
@@ -49,7 +54,23 @@ export default function ConfigurationSection({
     onCompareFilingStatus;
   return (
     <div className="theme-card p-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-text-primary mb-2">
+            Tax Year
+          </label>
+          <select
+            value={taxYear}
+            onChange={(e) => onTaxYearChange(e.target.value as TaxYear)}
+            className="theme-input w-full px-3 py-2"
+          >
+            {SUPPORTED_YEARS.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </div>
         <div>
           <label className="block text-sm font-medium text-text-primary mb-2">
             Filing Status

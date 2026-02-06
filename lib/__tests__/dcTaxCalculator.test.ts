@@ -129,13 +129,12 @@ describe("calculateDCTax", () => {
         ficaData,
       );
 
-      // Same income but different standard deductions
       // Single: $100k - $15k = $85k taxable
       // MFJ: $100k - $30k = $70k taxable
       expect(singleResult.taxableOrdinaryIncome).toBe(85000);
       expect(mfjResult.taxableOrdinaryIncome).toBe(70000);
 
-      // MFJ should have lower tax due to higher standard deduction
+      // MFJ has higher deduction, so lower tax
       expect(mfjResult.totalTax).toBeLessThan(singleResult.totalTax);
     });
 
@@ -500,7 +499,7 @@ describe.each(SUPPORTED_YEARS)(
       // DC MFJ standard deduction
       const expectedStdDeduction = {
         "2025": 30000,
-        "2026": 15000, // DC 2026 uses $15k for all statuses
+        "2026": 30000, // Using 2025 base pending official COLA-adjusted amount
       };
 
       expect(result.deductionBreakdown.standardDeduction).toBe(

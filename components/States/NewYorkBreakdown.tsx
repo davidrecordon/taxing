@@ -1,19 +1,23 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { TaxCalculationResult, NewYorkLimitsData } from "@/lib/types";
 import { formatCurrency, formatPercent } from "@/lib/formatters";
 import { calculateEffectiveRates } from "@/lib/taxUtils";
-import { TAX_YEAR } from "@/lib/config";
+import { TaxYear } from "@/lib/config";
 import BracketTable from "../shared/BracketTable";
 import TaxSummarySection from "../shared/TaxSummarySection";
 import allNewYorkLimits from "@/data/newyork-limits.json";
 
-const limits = allNewYorkLimits[TAX_YEAR] as NewYorkLimitsData;
-
 interface Props {
   result: TaxCalculationResult;
+  taxYear: TaxYear;
 }
 
-export default memo(function NewYorkBreakdown({ result }: Props) {
+export default memo(function NewYorkBreakdown({ result, taxYear }: Props) {
+  const limits = useMemo(
+    () => allNewYorkLimits[taxYear] as NewYorkLimitsData,
+    [taxYear],
+  );
+
   const hasNYCTax = (result.nycTax ?? 0) > 0;
 
   return (

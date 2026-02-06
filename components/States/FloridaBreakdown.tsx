@@ -1,10 +1,12 @@
 import { memo } from "react";
 import { TaxCalculationResult } from "@/lib/types";
+import { TaxYear } from "@/lib/config";
 import { formatCurrency } from "@/lib/formatters";
 import TaxSummarySection from "../shared/TaxSummarySection";
 
 interface Props {
   result: TaxCalculationResult;
+  taxYear: TaxYear;
 }
 
 export default memo(function FloridaBreakdown({ result }: Props) {

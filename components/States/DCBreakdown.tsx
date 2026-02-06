@@ -1,19 +1,23 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { TaxCalculationResult, DCLimitsData } from "@/lib/types";
 import { formatCurrency, formatPercent } from "@/lib/formatters";
 import { calculateEffectiveRates } from "@/lib/taxUtils";
-import { TAX_YEAR } from "@/lib/config";
+import { TaxYear } from "@/lib/config";
 import BracketTable from "../shared/BracketTable";
 import TaxSummarySection from "../shared/TaxSummarySection";
 import allDCLimits from "@/data/dc-limits.json";
 
-const limits = allDCLimits[TAX_YEAR] as DCLimitsData;
-
 interface Props {
   result: TaxCalculationResult;
+  taxYear: TaxYear;
 }
 
-export default memo(function DCBreakdown({ result }: Props) {
+export default memo(function DCBreakdown({ result, taxYear }: Props) {
+  const limits = useMemo(
+    () => allDCLimits[taxYear] as DCLimitsData,
+    [taxYear],
+  );
+
   return (
     <div className="theme-card p-4">
       <h2 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 font-display">

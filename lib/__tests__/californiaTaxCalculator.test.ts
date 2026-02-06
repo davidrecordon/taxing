@@ -337,9 +337,9 @@ describe("calculateCaliforniaTax", () => {
     });
 
     it("handles top CA bracket (12.3%)", () => {
-      // Very high income to hit 12.3% bracket (starts at $742,953 for single)
+      // Very high income to hit 12.3% bracket (starts at $1,000,000 for single in 2026)
       const inputs = createDefaultInputs({
-        federalIncome: 800000,
+        federalIncome: 1100000,
         filingStatus: "single",
       });
 
@@ -647,14 +647,14 @@ describe("calculateCaliforniaTax", () => {
       // Standard deduction: $5,540
       // Taxable: $94,460
       //
-      // CA 2025 brackets (single):
-      // $0 - $11,079 @ 1% = $110.79
-      // $11,079 - $26,264 @ 2% = $15,185 × 0.02 = $303.70
-      // $26,264 - $41,452 @ 4% = $15,188 × 0.04 = $607.52
-      // $41,452 - $57,542 @ 6% = $16,090 × 0.06 = $965.40
-      // $57,542 - $72,724 @ 8% = $15,182 × 0.08 = $1,214.56
-      // $72,724 - $94,460 @ 9.3% = $21,736 × 0.093 = $2,021.45
-      // Total: $5,223.42
+      // CA 2026 brackets (single):
+      // $0 - $10,756 @ 1% = $107.56
+      // $10,756 - $25,499 @ 2% = $14,743 × 0.02 = $294.86
+      // $25,499 - $40,245 @ 4% = $14,746 × 0.04 = $589.84
+      // $40,245 - $55,866 @ 6% = $15,621 × 0.06 = $937.26
+      // $55,866 - $70,606 @ 8% = $14,740 × 0.08 = $1,179.20
+      // $70,606 - $94,460 @ 9.3% = $23,854 × 0.093 = $2,218.42
+      // Total: $5,327.14
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         filingStatus: "single",
@@ -669,7 +669,7 @@ describe("calculateCaliforniaTax", () => {
       );
 
       expect(result.taxableOrdinaryIncome).toBe(94460);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(5223.42, 0);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(5327.14, 0);
     });
 
     it("single filer $200k matches CA FTB tax table - exact calculation", () => {
@@ -677,14 +677,14 @@ describe("calculateCaliforniaTax", () => {
       // Standard deduction: $5,540
       // Taxable: $194,460
       //
-      // CA 2025 brackets (single):
-      // $0 - $11,079 @ 1% = $110.79
-      // $11,079 - $26,264 @ 2% = $303.70
-      // $26,264 - $41,452 @ 4% = $607.52
-      // $41,452 - $57,542 @ 6% = $965.40
-      // $57,542 - $72,724 @ 8% = $1,214.56
-      // $72,724 - $194,460 @ 9.3% = $121,736 × 0.093 = $11,321.45
-      // Total: $14,523.42
+      // CA 2026 brackets (single):
+      // $0 - $10,756 @ 1% = $107.56
+      // $10,756 - $25,499 @ 2% = $294.86
+      // $25,499 - $40,245 @ 4% = $589.84
+      // $40,245 - $55,866 @ 6% = $937.26
+      // $55,866 - $70,606 @ 8% = $1,179.20
+      // $70,606 - $194,460 @ 9.3% = $123,854 × 0.093 = $11,518.42
+      // Total: $14,627.14
       const inputs = createDefaultInputs({
         federalIncome: 200000,
         filingStatus: "single",
@@ -699,7 +699,7 @@ describe("calculateCaliforniaTax", () => {
       );
 
       expect(result.taxableOrdinaryIncome).toBe(194460);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(14523.42, 0);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(14627.14, 0);
     });
 
     it("MFJ filer $200k matches CA FTB tax table - exact calculation", () => {
@@ -707,14 +707,14 @@ describe("calculateCaliforniaTax", () => {
       // Standard deduction (MFJ): $11,080
       // Taxable: $188,920
       //
-      // CA 2025 brackets (MFJ):
-      // $0 - $22,158 @ 1% = $221.58
-      // $22,158 - $52,528 @ 2% = $30,370 × 0.02 = $607.40
-      // $52,528 - $82,904 @ 4% = $30,376 × 0.04 = $1,215.04
-      // $82,904 - $115,084 @ 6% = $32,180 × 0.06 = $1,930.80
-      // $115,084 - $145,448 @ 8% = $30,364 × 0.08 = $2,429.12
-      // $145,448 - $188,920 @ 9.3% = $43,472 × 0.093 = $4,042.90
-      // Total: $10,446.84
+      // CA 2026 brackets (MFJ):
+      // $0 - $21,512 @ 1% = $215.12
+      // $21,512 - $50,998 @ 2% = $29,486 × 0.02 = $589.72
+      // $50,998 - $80,490 @ 4% = $29,492 × 0.04 = $1,179.68
+      // $80,490 - $111,732 @ 6% = $31,242 × 0.06 = $1,874.52
+      // $111,732 - $141,212 @ 8% = $29,480 × 0.08 = $2,358.40
+      // $141,212 - $188,920 @ 9.3% = $47,708 × 0.093 = $4,436.84
+      // Total: $10,654.28
       const inputs = createDefaultInputs({
         federalIncome: 200000,
         filingStatus: "marriedFilingJointly",
@@ -729,7 +729,7 @@ describe("calculateCaliforniaTax", () => {
       );
 
       expect(result.taxableOrdinaryIncome).toBe(188920);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(10446.84, 0);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(10654.28, 0);
     });
 
     it("high income with mental health tax - exact calculation", () => {
@@ -737,20 +737,20 @@ describe("calculateCaliforniaTax", () => {
       // Standard deduction: $5,540
       // Taxable: $1,194,460
       //
-      // Base tax through all brackets up to 12.3%:
-      // $0 - $11,079 @ 1% = $110.79
-      // $11,079 - $26,264 @ 2% = $303.70
-      // $26,264 - $41,452 @ 4% = $607.52
-      // $41,452 - $57,542 @ 6% = $965.40
-      // $57,542 - $72,724 @ 8% = $1,214.56
-      // $72,724 - $371,479 @ 9.3% = $298,755 × 0.093 = $27,784.22
-      // $371,479 - $445,771 @ 10.3% = $74,292 × 0.103 = $7,652.08
-      // $445,771 - $742,953 @ 11.3% = $297,182 × 0.113 = $33,581.57
-      // $742,953 - $1,194,460 @ 12.3% = $451,507 × 0.123 = $55,535.36
-      // Subtotal: $127,755.20
+      // Base tax through all 2026 brackets up to 12.3%:
+      // $0 - $10,756 @ 1% = $107.56
+      // $10,756 - $25,499 @ 2% = $14,743 × 0.02 = $294.86
+      // $25,499 - $40,245 @ 4% = $14,746 × 0.04 = $589.84
+      // $40,245 - $55,866 @ 6% = $15,621 × 0.06 = $937.26
+      // $55,866 - $70,606 @ 8% = $14,740 × 0.08 = $1,179.20
+      // $70,606 - $375,002 @ 9.3% = $304,396 × 0.093 = $28,308.83
+      // $375,002 - $450,003 @ 10.3% = $75,001 × 0.103 = $7,725.10
+      // $450,003 - $1,000,000 @ 11.3% = $549,997 × 0.113 = $62,149.66
+      // $1,000,000 - $1,194,460 @ 12.3% = $194,460 × 0.123 = $23,918.58
+      // Subtotal: $125,210.89
       //
       // Mental health tax: ($1,194,460 - $1,000,000) × 1% = $1,944.60
-      // Total: $129,699.80
+      // Total: $127,155.49
       const inputs = createDefaultInputs({
         federalIncome: 1200000,
         filingStatus: "single",
@@ -765,9 +765,9 @@ describe("calculateCaliforniaTax", () => {
       );
 
       expect(result.taxableOrdinaryIncome).toBe(1194460);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(127755.2, 0);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(125210.89, 0);
       expect(result.caMentalHealthTax).toBeCloseTo(1944.6, 2);
-      expect(result.totalTax).toBeCloseTo(129699.8, 0);
+      expect(result.totalTax).toBeCloseTo(127155.49, 0);
     });
   });
 

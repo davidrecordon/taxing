@@ -16,12 +16,12 @@ import { SUPPORTED_YEARS, TaxYear } from "../config";
 describe("calculateFederalTax", () => {
   describe("basic bracket math", () => {
     it("calculates tax correctly for single filer with $100,000 W-2 income", () => {
-      // $100,000 income - $15,750 standard deduction = $84,250 taxable
+      // $100,000 income - $16,100 standard deduction = $83,900 taxable
       // Bracket breakdown:
-      // $11,925 @ 10% = $1,192.50
-      // $36,550 ($48,475 - $11,925) @ 12% = $4,386.00
-      // $35,775 ($84,250 - $48,475) @ 22% = $7,870.50
-      // Total ordinary income tax = $13,449
+      // $12,400 @ 10% = $1,240.00
+      // $38,000 ($50,400 - $12,400) @ 12% = $4,560.00
+      // $33,500 ($83,900 - $50,400) @ 22% = $7,370.00
+      // Total ordinary income tax = $13,170
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         filingStatus: "single",
@@ -37,18 +37,18 @@ describe("calculateFederalTax", () => {
         ficaData,
       );
 
-      expect(result.taxableOrdinaryIncome).toBe(84250);
-      expect(result.ordinaryIncomeTax).toBe(13449);
+      expect(result.taxableOrdinaryIncome).toBe(83900);
+      expect(result.ordinaryIncomeTax).toBe(13170);
     });
   });
 
   describe("FICA taxes", () => {
     it("caps Social Security tax at wage base and applies additional Medicare above threshold", () => {
       // $250,000 wages for single filer
-      // SS: $176,100 * 6.2% = $10,918.20 (capped at wage base)
+      // SS: $184,500 * 6.2% = $11,439.00 (capped at wage base)
       // Medicare base: $250,000 * 1.45% = $3,625
       // Additional Medicare: ($250,000 - $200,000) * 0.9% = $450
-      // Total FICA = $14,993.20
+      // Total FICA = $15,514.00
       const inputs = createDefaultInputs({
         federalIncome: 250000,
         filingStatus: "single",
@@ -65,18 +65,18 @@ describe("calculateFederalTax", () => {
       );
 
       expect(result.ficaBreakdown).toBeDefined();
-      expect(result.ficaBreakdown!.socialSecurityWages).toBe(176100);
-      expect(result.ficaBreakdown!.socialSecurityTax).toBeCloseTo(10918.2, 2);
+      expect(result.ficaBreakdown!.socialSecurityWages).toBe(184500);
+      expect(result.ficaBreakdown!.socialSecurityTax).toBeCloseTo(11439, 2);
       expect(result.ficaBreakdown!.medicareTax).toBeCloseTo(3625, 2);
       expect(result.ficaBreakdown!.additionalMedicareTax).toBeCloseTo(450, 2);
-      expect(result.ficaBreakdown!.totalFica).toBeCloseTo(14993.2, 2);
+      expect(result.ficaBreakdown!.totalFica).toBeCloseTo(15514, 2);
     });
   });
 
   describe("long-term capital gains", () => {
     it("applies preferential 0% rate for LTCG within bracket threshold", () => {
       // Single filer with $30,000 LTCG and no ordinary income
-      // LTCG bracket: $47,025 at 0%, so $30,000 is all at 0%
+      // LTCG bracket: $49,450 at 0%, so $30,000 is all at 0%
       const inputs = createDefaultInputs({
         longTermCapitalGains: 30000,
         filingStatus: "single",
@@ -97,7 +97,7 @@ describe("calculateFederalTax", () => {
 
     it("applies 15% rate for LTCG above 0% threshold", () => {
       // Single filer with $100,000 LTCG and no ordinary income
-      // LTCG: $48,350 at 0% = $0, $51,650 at 15% = $7,747.50
+      // LTCG: $49,450 at 0% = $0, $50,550 at 15% = $7,582.50
       const inputs = createDefaultInputs({
         longTermCapitalGains: 100000,
         filingStatus: "single",
@@ -113,18 +113,18 @@ describe("calculateFederalTax", () => {
       );
 
       expect(result.taxableLTCG).toBe(100000);
-      expect(result.ltcgTax).toBeCloseTo(7747.5, 2);
+      expect(result.ltcgTax).toBeCloseTo(7582.5, 2);
     });
   });
 
   describe("401k contributions", () => {
     it("reduces taxable ordinary income by 401k contributions", () => {
-      // $100,000 income - $23,500 (401k) - $15,750 (std deduction) = $60,750 taxable
+      // $100,000 income - $23,500 (401k) - $16,100 (std deduction) = $60,400 taxable
       // Bracket breakdown:
-      // $11,925 @ 10% = $1,192.50
-      // $36,550 @ 12% = $4,386.00
-      // $12,275 ($60,750 - $48,475) @ 22% = $2,700.50
-      // Total = $8,279
+      // $12,400 @ 10% = $1,240.00
+      // $38,000 @ 12% = $4,560.00
+      // $10,000 ($60,400 - $50,400) @ 22% = $2,200.00
+      // Total = $8,000
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         contributions401k: 23500,
@@ -141,19 +141,19 @@ describe("calculateFederalTax", () => {
         ficaData,
       );
 
-      expect(result.taxableOrdinaryIncome).toBe(60750);
-      expect(result.ordinaryIncomeTax).toBe(8279);
+      expect(result.taxableOrdinaryIncome).toBe(60400);
+      expect(result.ordinaryIncomeTax).toBe(8000);
     });
   });
 
   describe("pre-tax medical deductions", () => {
     it("reduces taxable ordinary income by pre-tax medical contributions", () => {
-      // $100,000 income - $10,000 (pre-tax medical) - $15,750 (std deduction) = $74,250 taxable
+      // $100,000 income - $10,000 (pre-tax medical) - $16,100 (std deduction) = $73,900 taxable
       // Bracket breakdown:
-      // $11,925 @ 10% = $1,192.50
-      // $36,550 @ 12% = $4,386.00
-      // $25,775 ($74,250 - $48,475) @ 22% = $5,670.50
-      // Total = $11,249
+      // $12,400 @ 10% = $1,240.00
+      // $38,000 @ 12% = $4,560.00
+      // $23,500 ($73,900 - $50,400) @ 22% = $5,170.00
+      // Total = $10,970
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         preTaxMedical: 10000,
@@ -170,18 +170,18 @@ describe("calculateFederalTax", () => {
         ficaData,
       );
 
-      expect(result.taxableOrdinaryIncome).toBe(74250);
-      expect(result.ordinaryIncomeTax).toBe(11249);
+      expect(result.taxableOrdinaryIncome).toBe(73900);
+      expect(result.ordinaryIncomeTax).toBe(10970);
       expect(result.preTaxMedical).toBe(10000);
     });
 
     it("combines with 401k contributions to reduce taxable income", () => {
-      // $100,000 income - $23,500 (401k) - $5,000 (pre-tax medical) - $15,750 (std deduction) = $55,750 taxable
+      // $100,000 income - $23,500 (401k) - $5,000 (pre-tax medical) - $16,100 (std deduction) = $55,400 taxable
       // Bracket breakdown:
-      // $11,925 @ 10% = $1,192.50
-      // $36,550 @ 12% = $4,386.00
-      // $7,275 ($55,750 - $48,475) @ 22% = $1,600.50
-      // Total = $7,179
+      // $12,400 @ 10% = $1,240.00
+      // $38,000 @ 12% = $4,560.00
+      // $5,000 ($55,400 - $50,400) @ 22% = $1,100.00
+      // Total = $6,900
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         contributions401k: 23500,
@@ -199,8 +199,8 @@ describe("calculateFederalTax", () => {
         ficaData,
       );
 
-      expect(result.taxableOrdinaryIncome).toBe(55750);
-      expect(result.ordinaryIncomeTax).toBe(7179);
+      expect(result.taxableOrdinaryIncome).toBe(55400);
+      expect(result.ordinaryIncomeTax).toBe(6900);
       expect(result.contributions401k).toBe(23500);
       expect(result.preTaxMedical).toBe(5000);
     });
@@ -301,8 +301,8 @@ describe("calculateFederalTax", () => {
       expect(result.grossIncome).toBe(100000);
       // The $10,000 loss becomes carryover, $3,000 offsets ordinary income
       expect(result.shortTermLossCarryoverOffset).toBe(3000);
-      // Taxable ordinary = $100k - $3k - $15.75k std = $81,250
-      expect(result.taxableOrdinaryIncome).toBe(81250);
+      // Taxable ordinary = $100k - $3k - $16.1k std = $80,900
+      expect(result.taxableOrdinaryIncome).toBe(80900);
     });
 
     it("combines negative STCG with prior year carryover", () => {
@@ -356,10 +356,10 @@ describe("calculateFederalTax", () => {
 
   describe("safe harbor calculations", () => {
     it("uses minimum of 90% current year and 110% prior year when prior year provided", () => {
-      // $100k income, tax is $13,449 + FICA
+      // $100k income, tax is $13,170 + FICA
       // FICA: $100k * 6.2% = $6,200 (SS) + $100k * 1.45% = $1,450 (Medicare) = $7,650
-      // Total tax = $13,449 + $7,650 = $21,099
-      // 90% of current year = $18,989.10
+      // Total tax = $13,170 + $7,650 = $20,820
+      // 90% of current year = $18,738
       // Prior year tax = $15,000, so 110% = $16,500
       // Safe harbor minimum should be $16,500 (the lesser of the two)
       const inputs = createDefaultInputs({
@@ -380,7 +380,7 @@ describe("calculateFederalTax", () => {
 
       expect(result.safeHarbor).toBeDefined();
       expect(result.safeHarbor!.currentYear90Percent).toBeCloseTo(
-        21099 * 0.9,
+        20820 * 0.9,
         2,
       );
       expect(result.safeHarbor!.priorYearSafeHarbor).toBe(16500);
@@ -415,7 +415,7 @@ describe("calculateFederalTax", () => {
       // ST loss first offsets $10,000 ST gains, leaving $5,000 carryover
       // Then $3,000 of remaining carryover offsets ordinary income
       // Gross ordinary = $50,000 + $10,000 - $10,000 - $3,000 = $47,000
-      // After std deduction: $47,000 - $15,750 = $31,250 taxable
+      // After std deduction: $47,000 - $16,100 = $30,900 taxable
       const inputs = createDefaultInputs({
         federalIncome: 50000,
         shortTermCapitalGains: 10000,
@@ -433,7 +433,7 @@ describe("calculateFederalTax", () => {
       );
 
       expect(result.shortTermLossCarryoverOffset).toBe(13000); // 10k ST + 3k ordinary
-      expect(result.taxableOrdinaryIncome).toBe(31250);
+      expect(result.taxableOrdinaryIncome).toBe(30900);
     });
 
     it("limits ordinary income offset to $1,500 for MFS", () => {
@@ -502,7 +502,7 @@ describe("calculateFederalTax", () => {
       expect(result.longTermLossCarryoverOffset).toBe(20000);
       expect(result.taxableLTCG).toBe(0);
       // Ordinary income should be unaffected
-      expect(result.taxableOrdinaryIncome).toBe(84250); // 100k - 15.75k std
+      expect(result.taxableOrdinaryIncome).toBe(83900); // 100k - 16.1k std
     });
 
     it("partially offsets LTCG when carryover is less than gains", () => {
@@ -550,10 +550,10 @@ describe("calculateFederalTax", () => {
       // ST loss: $15k offsets ST gains, $3k offsets ordinary income = $18k used
       expect(result.shortTermLossCarryoverOffset).toBe(18000);
       // LT loss: only offsets LTCG in taxed brackets (not 0% bracket)
-      // Taxable ordinary = $80k - $18k - $15.75k = $46.25k
-      // Room in 0% LTCG bracket = $48,350 - $46,250 = $2,100
-      // LTCG in taxed brackets = $25k - $2,100 = $22,900
-      // Carryover used = min($10k, $22,900) = $10k
+      // Taxable ordinary = $80k - $18k - $16.1k = $45.9k
+      // Room in 0% LTCG bracket = $49,450 - $45,900 = $3,550
+      // LTCG in taxed brackets = $25k - $3,550 = $21,450
+      // Carryover used = min($10k, $21,450) = $10k
       expect(result.longTermLossCarryoverOffset).toBe(10000);
       expect(result.taxableLTCG).toBe(15000); // 25k - 10k
     });
@@ -561,13 +561,13 @@ describe("calculateFederalTax", () => {
 
   describe("LTCG bracket stacking on ordinary income", () => {
     it("stacks LTCG on top of ordinary income for bracket calculation", () => {
-      // $40k taxable ordinary + $20k LTCG = $60k total
-      // 0% LTCG threshold for single = $48,350
-      // Room in 0% bracket = $48,350 - $40,000 = $8,350
-      // So $8,350 LTCG at 0%, $11,650 LTCG at 15%
-      // LTCG tax = $11,650 * 0.15 = $1,747.50
+      // $39,650 taxable ordinary + $20k LTCG = $59,650 total
+      // 0% LTCG threshold for single = $49,450
+      // Room in 0% bracket = $49,450 - $39,650 = $9,800
+      // So $9,800 LTCG at 0%, $10,200 LTCG at 15%
+      // LTCG tax = $10,200 * 0.15 = $1,530
       const inputs = createDefaultInputs({
-        federalIncome: 55750, // 55,750 - 15,750 std = $40k taxable ordinary
+        federalIncome: 55750, // 55,750 - 16,100 std = $39,650 taxable ordinary
         longTermCapitalGains: 20000,
         filingStatus: "single",
       });
@@ -581,24 +581,24 @@ describe("calculateFederalTax", () => {
         federalLimits,
       );
 
-      expect(result.taxableOrdinaryIncome).toBe(40000);
+      expect(result.taxableOrdinaryIncome).toBe(39650);
       expect(result.taxableLTCG).toBe(20000);
 
       // Verify LTCG is split across 0% and 15% brackets
       expect(result.ltcgBracketBreakdown).toHaveLength(2);
       expect(result.ltcgBracketBreakdown[0].rate).toBe(0);
-      expect(result.ltcgBracketBreakdown[0].incomeInBracket).toBe(8350);
+      expect(result.ltcgBracketBreakdown[0].incomeInBracket).toBe(9800);
       expect(result.ltcgBracketBreakdown[1].rate).toBe(0.15);
-      expect(result.ltcgBracketBreakdown[1].incomeInBracket).toBe(11650);
+      expect(result.ltcgBracketBreakdown[1].incomeInBracket).toBe(10200);
 
-      expect(result.ltcgTax).toBeCloseTo(11650 * 0.15, 2);
+      expect(result.ltcgTax).toBeCloseTo(10200 * 0.15, 2);
     });
 
     it("all LTCG at 15% when ordinary income fills 0% bracket", () => {
-      // $60k taxable ordinary (above $48,350 threshold) + $20k LTCG
+      // $59,650 taxable ordinary (above $49,450 threshold) + $20k LTCG
       // All LTCG taxed at 15%
       const inputs = createDefaultInputs({
-        federalIncome: 75750, // 75,750 - 15,750 = $60k taxable
+        federalIncome: 75750, // 75,750 - 16,100 = $59,650 taxable
         longTermCapitalGains: 20000,
         filingStatus: "single",
       });
@@ -612,7 +612,7 @@ describe("calculateFederalTax", () => {
         federalLimits,
       );
 
-      expect(result.taxableOrdinaryIncome).toBe(60000);
+      expect(result.taxableOrdinaryIncome).toBe(59650);
       expect(result.ltcgBracketBreakdown).toHaveLength(1);
       expect(result.ltcgBracketBreakdown[0].rate).toBe(0.15);
       expect(result.ltcgBracketBreakdown[0].incomeInBracket).toBe(20000);
@@ -620,7 +620,7 @@ describe("calculateFederalTax", () => {
     });
 
     it("all LTCG at 0% when no ordinary income", () => {
-      // $30k LTCG only, well under $47,025 threshold
+      // $30k LTCG only, well under $49,450 threshold
       const inputs = createDefaultInputs({
         longTermCapitalGains: 30000,
         filingStatus: "single",
@@ -648,8 +648,8 @@ describe("calculateFederalTax", () => {
       // Low ordinary income, LTCG entirely in 0% bracket
       // Carryover should be preserved, not wasted
       const inputs = createDefaultInputs({
-        federalIncome: 20000, // taxable = 20k - 15.75k = $4,250
-        longTermCapitalGains: 30000, // still under $48,350 threshold
+        federalIncome: 20000, // taxable = 20k - 16.1k = $3,900
+        longTermCapitalGains: 30000, // still under $49,450 threshold
         priorYearLongTermLossCarryover: 10000,
         filingStatus: "single",
       });
@@ -663,8 +663,8 @@ describe("calculateFederalTax", () => {
         federalLimits,
       );
 
-      expect(result.taxableOrdinaryIncome).toBe(4250);
-      // Room in 0% bracket = $48,350 - $4,250 = $44,100
+      expect(result.taxableOrdinaryIncome).toBe(3900);
+      // Room in 0% bracket = $49,450 - $3,900 = $45,550
       // All $30k LTCG fits in 0% bracket, so no carryover used
       expect(result.longTermLossCarryoverOffset).toBe(0);
       expect(result.longTermLossCarryoverUnused).toBe(10000);
@@ -675,7 +675,7 @@ describe("calculateFederalTax", () => {
     it("uses carryover only for LTCG that would be taxed", () => {
       // LTCG spans 0% and 15% brackets, only use carryover for 15% portion
       const inputs = createDefaultInputs({
-        federalIncome: 55750, // taxable = $40k
+        federalIncome: 55750, // taxable = $39,650
         longTermCapitalGains: 30000,
         priorYearLongTermLossCarryover: 25000,
         filingStatus: "single",
@@ -690,15 +690,15 @@ describe("calculateFederalTax", () => {
         federalLimits,
       );
 
-      // Room in 0% bracket = $48,350 - $40,000 = $8,350
-      // LTCG in taxed brackets = $30,000 - $8,350 = $21,650
-      // Carryover used = min($25,000, $21,650) = $21,650
-      // Unused carryover = $25,000 - $21,650 = $3,350
-      expect(result.longTermLossCarryoverOffset).toBe(21650);
-      expect(result.longTermLossCarryoverUnused).toBe(3350);
+      // Room in 0% bracket = $49,450 - $39,650 = $9,800
+      // LTCG in taxed brackets = $30,000 - $9,800 = $20,200
+      // Carryover used = min($25,000, $20,200) = $20,200
+      // Unused carryover = $25,000 - $20,200 = $4,800
+      expect(result.longTermLossCarryoverOffset).toBe(20200);
+      expect(result.longTermLossCarryoverUnused).toBe(4800);
 
-      // Taxable LTCG = $30k - $21,650 = $8,350 (exactly the 0% bracket portion)
-      expect(result.taxableLTCG).toBe(8350);
+      // Taxable LTCG = $30k - $20,200 = $9,800 (exactly the 0% bracket portion)
+      expect(result.taxableLTCG).toBe(9800);
       // All remaining LTCG is in 0% bracket, so no tax
       expect(result.ltcgTax).toBe(0);
     });
@@ -706,7 +706,7 @@ describe("calculateFederalTax", () => {
     it("uses full carryover when all LTCG above 0% bracket", () => {
       // High ordinary income fills 0% bracket entirely
       const inputs = createDefaultInputs({
-        federalIncome: 75750, // taxable = $60k (above $48,350)
+        federalIncome: 75750, // taxable = $59,650 (above $49,450)
         longTermCapitalGains: 50000,
         priorYearLongTermLossCarryover: 30000,
         filingStatus: "single",
@@ -729,11 +729,13 @@ describe("calculateFederalTax", () => {
     });
 
     it("handles edge case where carryover exactly equals taxed LTCG", () => {
-      // Carryover precisely matches LTCG in taxed brackets
+      // Room in 0% bracket = $49,450 - $39,650 = $9,800
+      // LTCG in taxed brackets = $20,000 - $9,800 = $10,200
+      // Carryover of $10,200 exactly offsets the taxed portion
       const inputs = createDefaultInputs({
-        federalIncome: 55750, // taxable = $40k
+        federalIncome: 55750, // taxable = $39,650
         longTermCapitalGains: 20000,
-        priorYearLongTermLossCarryover: 11650, // exactly matches taxed portion
+        priorYearLongTermLossCarryover: 10200, // exactly matches taxed portion
         filingStatus: "single",
       });
 
@@ -746,19 +748,17 @@ describe("calculateFederalTax", () => {
         federalLimits,
       );
 
-      // Room in 0% bracket = $48,350 - $40,000 = $8,350
-      // LTCG in taxed brackets = $20,000 - $8,350 = $11,650
-      expect(result.longTermLossCarryoverOffset).toBe(11650);
+      expect(result.longTermLossCarryoverOffset).toBe(10200);
       expect(result.longTermLossCarryoverUnused).toBe(0);
-      expect(result.taxableLTCG).toBe(8350);
+      expect(result.taxableLTCG).toBe(9800);
       expect(result.ltcgTax).toBe(0);
     });
   });
 
   describe("bracket boundary edge cases", () => {
     it("taxes income exactly at first bracket boundary correctly", () => {
-      // Taxable income exactly $11,925 (top of 10% bracket)
-      // Need gross = $11,925 + $15,750 std = $27,675
+      // Taxable income = $27,675 - $16,100 std = $11,575
+      // All at 10% = $1,157.50
       const inputs = createDefaultInputs({
         federalIncome: 27675,
         filingStatus: "single",
@@ -773,14 +773,15 @@ describe("calculateFederalTax", () => {
         federalLimits,
       );
 
-      expect(result.taxableOrdinaryIncome).toBe(11925);
-      expect(result.ordinaryIncomeTax).toBe(1192.5); // all at 10%
+      expect(result.taxableOrdinaryIncome).toBe(11575);
+      expect(result.ordinaryIncomeTax).toBe(1157.5); // all at 10%
     });
 
     it("taxes $1 over bracket boundary at higher rate", () => {
-      // Taxable income $11,926 - $1 in 12% bracket
+      // Taxable income = $28,501 - $16,100 = $12,401
+      // $12,400 @ 10% = $1,240, $1 @ 12% = $0.12
       const inputs = createDefaultInputs({
-        federalIncome: 27676,
+        federalIncome: 28501,
         filingStatus: "single",
       });
 
@@ -793,15 +794,15 @@ describe("calculateFederalTax", () => {
         federalLimits,
       );
 
-      expect(result.taxableOrdinaryIncome).toBe(11926);
-      // $11,925 @ 10% + $1 @ 12% = $1,192.50 + $0.12 = $1,192.62
-      expect(result.ordinaryIncomeTax).toBeCloseTo(1192.62, 2);
+      expect(result.taxableOrdinaryIncome).toBe(12401);
+      // $12,400 @ 10% + $1 @ 12% = $1,240.12
+      expect(result.ordinaryIncomeTax).toBeCloseTo(1240.12, 2);
     });
 
     it("handles top bracket (37%) with no upper limit", () => {
       // Very high income in top bracket
-      // Single: top bracket starts at $626,350
-      // Taxable = $700,000, so need gross = $715,750
+      // Single: top bracket starts at $640,600
+      // Taxable = $715,750 - $16,100 = $699,650
       const inputs = createDefaultInputs({
         federalIncome: 715750,
         filingStatus: "single",
@@ -817,17 +818,17 @@ describe("calculateFederalTax", () => {
         ficaData,
       );
 
-      expect(result.taxableOrdinaryIncome).toBe(700000);
+      expect(result.taxableOrdinaryIncome).toBe(699650);
       // Verify some income is taxed at 37%
       const topBracket = result.ordinaryIncomeBracketBreakdown.find(
         (b) => b.rate === 0.37,
       );
       expect(topBracket).toBeDefined();
-      expect(topBracket!.incomeInBracket).toBe(700000 - 626350); // $73,650
+      expect(topBracket!.incomeInBracket).toBe(699650 - 640600); // $59,050
     });
 
     it("handles zero taxable income correctly", () => {
-      // Income exactly equals standard deduction
+      // Income below standard deduction ($16,100)
       const inputs = createDefaultInputs({
         federalIncome: 15750,
         filingStatus: "single",
@@ -920,7 +921,7 @@ describe("calculateFederalTax", () => {
 
   describe("LTCG with 20% bracket", () => {
     it("applies 20% rate for very high LTCG", () => {
-      // Single: 20% bracket starts at $533,400
+      // Single: 20% bracket starts at $545,500
       const inputs = createDefaultInputs({
         longTermCapitalGains: 600000,
         filingStatus: "single",
@@ -940,7 +941,7 @@ describe("calculateFederalTax", () => {
         (b) => b.rate === 0.2,
       );
       expect(top20Bracket).toBeDefined();
-      expect(top20Bracket!.incomeInBracket).toBe(600000 - 533400);
+      expect(top20Bracket!.incomeInBracket).toBe(600000 - 545500);
     });
   });
 
@@ -1314,10 +1315,10 @@ describe("calculateFederalTax", () => {
 
     it("respects SS wage base cap when combined with W-2 wages", () => {
       // $100,000 W-2 wages + $100,000 SE income
-      // W-2 uses $100,000 of $176,100 SS cap, leaving $76,100 room
+      // W-2 uses $100,000 of $184,500 SS cap, leaving $84,500 room
       // SE net earnings = $92,350
-      // Only $76,100 subject to SS (capped)
-      // SS: $76,100 * 0.124 = $9,436.40
+      // Only $84,500 subject to SS (capped)
+      // SS: $84,500 * 0.124 = $10,478
       // Medicare: $92,350 * 0.029 = $2,678.15 (all earnings)
       const inputs = createDefaultInputs({
         federalIncome: 100000,
@@ -1337,7 +1338,7 @@ describe("calculateFederalTax", () => {
 
       expect(result.selfEmploymentTaxBreakdown).toBeDefined();
       expect(result.selfEmploymentTaxBreakdown!.socialSecurityTax).toBeCloseTo(
-        9436.4,
+        10478,
         2,
       );
       expect(result.selfEmploymentTaxBreakdown!.medicareTax).toBeCloseTo(
@@ -1348,7 +1349,7 @@ describe("calculateFederalTax", () => {
 
     it("deductible half reduces taxable income", () => {
       // $100,000 SE income with deductible half of ~$7,065
-      // Taxable = $100,000 - $7,065 - $15,750 std = $77,185 (before QBI)
+      // Taxable = $100,000 - $7,065 - $16,100 std = $76,835 (before QBI)
       const inputs = createDefaultInputs({
         selfEmploymentIncome: 100000,
         filingStatus: "single",
@@ -1366,7 +1367,7 @@ describe("calculateFederalTax", () => {
 
       // After SE deduction and standard deduction, but before QBI
       const expectedTaxableBeforeQbi =
-        100000 - result.selfEmploymentTaxBreakdown!.deductibleHalf - 15750;
+        100000 - result.selfEmploymentTaxBreakdown!.deductibleHalf - 16100;
       // After QBI (20% of SE income, limited to 20% of taxable)
       const expectedQbi = Math.min(
         100000 * 0.2,
@@ -1470,7 +1471,7 @@ describe("calculateFederalTax", () => {
         50000 -
         result.selfEmploymentTaxBreakdown!.deductibleHalf -
         23500 -
-        15750;
+        16100;
       const expectedQbi = Math.min(50000 * 0.2, taxableBeforeQbi * 0.2);
       expect(result.qbiDeduction!.finalDeduction).toBeCloseTo(expectedQbi, 0);
     });
@@ -1546,7 +1547,7 @@ describe("calculateFederalTax", () => {
       expect(resultWithSE.adjustedGrossIncome).toBeLessThan(
         100000 -
           resultWithSE.selfEmploymentTaxBreakdown!.deductibleHalf -
-          15750,
+          16100,
       );
     });
 
@@ -1582,17 +1583,17 @@ describe("calculateFederalTax", () => {
       // Gross income: $150,000 + $50,000 = $200,000
       //
       // Taxable ordinary income:
-      // $150,000 - $23,500 (401k) - $15,750 (std ded) = $110,750
+      // $150,000 - $23,500 (401k) - $16,100 (std ded) = $110,400
       //
-      // Ordinary income tax (2025 single brackets):
-      // $11,925 @ 10% = $1,192.50
-      // $36,550 ($48,475 - $11,925) @ 12% = $4,386.00
-      // $54,875 ($103,350 - $48,475) @ 22% = $12,072.50
-      // $7,400 ($110,750 - $103,350) @ 24% = $1,776.00
-      // Total ordinary tax = $19,427
+      // Ordinary income tax (2026 single brackets):
+      // $12,400 @ 10% = $1,240.00
+      // $38,000 ($50,400 - $12,400) @ 12% = $4,560.00
+      // $55,300 ($105,700 - $50,400) @ 22% = $12,166.00
+      // $4,700 ($110,400 - $105,700) @ 24% = $1,128.00
+      // Total ordinary tax = $19,094
       //
       // LTCG stacking:
-      // Ordinary fills $110,750 (well above $48,350 threshold)
+      // Ordinary fills $110,400 (well above $49,450 threshold)
       // All $50,000 LTCG taxed at 15%
       // LTCG tax = $50,000 × 0.15 = $7,500
       //
@@ -1605,7 +1606,7 @@ describe("calculateFederalTax", () => {
       // MAGI = $200,000, threshold = $200,000
       // Not over threshold = $0 NIIT
       //
-      // Total tax = $19,427 + $7,500 + $11,475 = $38,402
+      // Total tax = $19,094 + $7,500 + $11,475 = $38,069
       const inputs = createDefaultInputs({
         federalIncome: 150000,
         longTermCapitalGains: 50000,
@@ -1625,8 +1626,8 @@ describe("calculateFederalTax", () => {
 
       // Verify each component
       expect(result.grossIncome).toBe(200000);
-      expect(result.taxableOrdinaryIncome).toBe(110750);
-      expect(result.ordinaryIncomeTax).toBe(19427);
+      expect(result.taxableOrdinaryIncome).toBe(110400);
+      expect(result.ordinaryIncomeTax).toBe(19094);
 
       expect(result.taxableLTCG).toBe(50000);
       expect(result.ltcgTax).toBe(7500);
@@ -1639,7 +1640,7 @@ describe("calculateFederalTax", () => {
       expect(result.niitBreakdown).toBeUndefined();
 
       // Final total
-      expect(result.totalTax).toBe(38402);
+      expect(result.totalTax).toBe(38069);
     });
 
     it("calculates high-income return with NIIT - exact calculation", () => {
@@ -1650,32 +1651,32 @@ describe("calculateFederalTax", () => {
       //
       // Expected:
       // Gross income: $400,000
-      // Taxable ordinary: $300,000 - $15,750 = $284,250
+      // Taxable ordinary: $300,000 - $16,100 = $283,900
       //
-      // Ordinary income tax (2025 single brackets):
-      // $11,925 @ 10% = $1,192.50
-      // $36,550 @ 12% = $4,386.00
-      // $54,875 @ 22% = $12,072.50
-      // $93,950 @ 24% = $22,548.00
-      // $53,225 @ 32% = $17,032.00
-      // $33,725 @ 35% = $11,803.75
-      // Total ordinary tax = $69,034.75
+      // Ordinary income tax (2026 single brackets):
+      // $12,400 @ 10% = $1,240.00
+      // $38,000 @ 12% = $4,560.00
+      // $55,300 @ 22% = $12,166.00
+      // $96,075 @ 24% = $23,058.00
+      // $54,450 @ 32% = $17,424.00
+      // $27,675 @ 35% = $9,686.25
+      // Total ordinary tax = $68,134.25
       //
       // LTCG: All at 15% (ordinary exceeds 0% threshold)
       // LTCG tax = $100,000 × 0.15 = $15,000
       //
       // FICA:
-      // SS: $176,100 × 6.2% = $10,918.20 (capped at wage base)
+      // SS: $184,500 × 6.2% = $11,439 (capped at wage base)
       // Medicare: $300,000 × 1.45% = $4,350
       // Additional Medicare: ($300,000 - $200,000) × 0.9% = $900
-      // Total FICA = $16,168.20
+      // Total FICA = $16,689
       //
       // NIIT:
       // MAGI = $400,000, over threshold by $200,000
       // Net investment income = $100,000
       // NIIT = min($100,000, $200,000) × 3.8% = $3,800
       //
-      // Total tax = $69,034.75 + $15,000 + $16,168.20 + $3,800 = $104,002.95
+      // Total tax = $68,134.25 + $15,000 + $16,689 + $3,800 = $103,623.25
       const inputs = createDefaultInputs({
         federalIncome: 300000,
         longTermCapitalGains: 100000,
@@ -1693,21 +1694,21 @@ describe("calculateFederalTax", () => {
       );
 
       expect(result.grossIncome).toBe(400000);
-      expect(result.taxableOrdinaryIncome).toBe(284250);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(69034.75, 2);
+      expect(result.taxableOrdinaryIncome).toBe(283900);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(68134.25, 2);
 
       expect(result.taxableLTCG).toBe(100000);
       expect(result.ltcgTax).toBe(15000);
 
-      expect(result.ficaBreakdown!.socialSecurityWages).toBe(176100);
-      expect(result.ficaBreakdown!.socialSecurityTax).toBeCloseTo(10918.2, 2);
+      expect(result.ficaBreakdown!.socialSecurityWages).toBe(184500);
+      expect(result.ficaBreakdown!.socialSecurityTax).toBeCloseTo(11439, 2);
       expect(result.ficaBreakdown!.additionalMedicareTax).toBeCloseTo(900, 2);
-      expect(result.ficaBreakdown!.totalFica).toBeCloseTo(16168.2, 2);
+      expect(result.ficaBreakdown!.totalFica).toBeCloseTo(16689, 2);
 
       expect(result.niitBreakdown!.netInvestmentIncome).toBe(100000);
       expect(result.niitBreakdown!.tax).toBe(3800);
 
-      expect(result.totalTax).toBeCloseTo(104002.95, 2);
+      expect(result.totalTax).toBeCloseTo(103623.25, 2);
     });
 
     it("calculates SE income return with QBI - exact calculation", () => {
@@ -1721,13 +1722,13 @@ describe("calculateFederalTax", () => {
       //       = $11,451.40 + $2,678.15 = $14,129.55
       // Deductible half: $7,064.78
       //
-      // Taxable before QBI: $100,000 - $7,064.78 - $15,750 = $77,185.22
+      // Taxable before QBI: $100,000 - $7,064.78 - $16,100 = $76,835.22
       //
       // QBI tentative: $100,000 × 20% = $20,000
-      // 20% of taxable limit: $77,185.22 × 20% = $15,437.04
-      // Final QBI = min($20,000, $15,437.04) = $15,437.04
+      // 20% of taxable limit: $76,835.22 × 20% = $15,367.04
+      // Final QBI = min($20,000, $15,367.04) = $15,367.04
       //
-      // Taxable ordinary: $77,185.22 - $15,437.04 = $61,748.18
+      // Taxable ordinary: $76,835.22 - $15,367.04 = $61,468.18
       const inputs = createDefaultInputs({
         selfEmploymentIncome: 100000,
         filingStatus: "single",
@@ -1761,7 +1762,7 @@ describe("calculateFederalTax", () => {
       expect(result.qbiDeduction!.tentativeDeduction).toBe(20000);
       expect(result.qbiDeduction!.phaseoutApplied).toBe(false);
       // QBI limited by 20% of taxable income
-      expect(result.qbiDeduction!.finalDeduction).toBeCloseTo(15437, 0);
+      expect(result.qbiDeduction!.finalDeduction).toBeCloseTo(15367, 0);
     });
   });
 
@@ -1771,23 +1772,23 @@ describe("calculateFederalTax", () => {
       // Using $200,000 SE income to land in phaseout range
       //
       // SE net earnings: $200,000 × 0.9235 = $184,700
-      // SE SS: $176,100 × 0.124 = $21,836.40 (capped at wage base)
+      // SE SS: $184,500 × 0.124 = $22,878 (capped at wage base)
       // SE Medicare: $184,700 × 0.029 = $5,356.30
-      // Total SE tax: $27,192.70
-      // Deductible half: $13,596.35
+      // Total SE tax: $28,234.30
+      // Deductible half: $14,117.15
       //
-      // Taxable before QBI: $200,000 - $13,596.35 - $15,750 = $170,653.65
+      // Taxable before QBI: $200,000 - $14,117.15 - $16,100 = $169,782.85
       // This is UNDER the phaseout threshold of $191,950 - no phaseout!
       //
       // Let's use a higher income to land IN the phaseout range.
       // Using $300,000 SE income:
       // SE net earnings: $300,000 × 0.9235 = $277,050
-      // SE SS: $176,100 × 0.124 = $21,836.40 (capped)
+      // SE SS: $184,500 × 0.124 = $22,878 (capped)
       // SE Medicare: $277,050 × 0.029 = $8,034.45
-      // Total SE tax: $29,870.85
-      // Deductible half: $14,935.43
+      // Total SE tax: $30,912.45
+      // Deductible half: $15,456.23
       //
-      // Taxable before QBI: $300,000 - $14,935.43 - $15,750 = $269,314.57
+      // Taxable before QBI: $300,000 - $15,456.23 - $16,100 = $268,443.77
       // This is ABOVE the full phaseout threshold of $241,950
       // So QBI is fully phased out for high SE income
       const inputs = createDefaultInputs({
@@ -1815,24 +1816,21 @@ describe("calculateFederalTax", () => {
       // Using $50,000 SE + $175,000 W-2
       //
       // SE net: $50,000 × 0.9235 = $46,175
-      // W-2 uses $175,000 of SS cap (exceeds $176,100)
-      // So W-2 SS tax maxes out, SE gets no SS room
-      // SE SS: $0 (capped)
-      // Actually wait - W-2 at $175,000 leaves $176,100 - $175,000 = $1,100 room
-      // SE SS: $1,100 × 0.124 = $136.40
+      // W-2 uses $175,000 of $184,500 SS cap, leaving $9,500 room
+      // SE SS: $9,500 × 0.124 = $1,178
       // SE Medicare: $46,175 × 0.029 = $1,339.08
-      // Total SE tax: $1,475.48
-      // Deductible half: $737.74
+      // Total SE tax: $2,517.08
+      // Deductible half: $1,258.54
       //
-      // Taxable before QBI: $175,000 + $50,000 - $737.74 - $15,750 = $208,512.26
+      // Taxable before QBI: $175,000 + $50,000 - $1,258.54 - $16,100 = $207,641.46
       //
       // Phaseout calculation:
-      // Excess over $191,950: $208,562.26 - $191,950 = $16,612.26
-      // Phaseout ratio: $16,612.26 / $50,000 = 0.3322
-      // Reduction = 33.22%
+      // Excess over $191,950: $207,641.46 - $191,950 = $15,691.46
+      // Phaseout ratio: $15,691.46 / $50,000 = 0.3138
+      // Reduction = 31.38%
       //
       // Tentative QBI: $50,000 × 20% = $10,000
-      // Final QBI: $10,000 × (1 - 0.3322) = $6,678
+      // Final QBI: $10,000 × (1 - 0.3138) = $6,862
       const inputs = createDefaultInputs({
         federalIncome: 175000,
         selfEmploymentIncome: 50000,
@@ -1854,14 +1852,14 @@ describe("calculateFederalTax", () => {
       // Verify partial phaseout (not zero, not full)
       expect(result.qbiDeduction!.finalDeduction).toBeGreaterThan(0);
       expect(result.qbiDeduction!.finalDeduction).toBeLessThan(10000);
-      // Approximately $6,678 based on phaseout math
-      expect(result.qbiDeduction!.finalDeduction).toBeCloseTo(6678, -2);
+      // Approximately $6,862 based on phaseout math
+      expect(result.qbiDeduction!.finalDeduction).toBeCloseTo(6862, -2);
     });
 
     it("uses higher phaseout range for MFJ ($383,900 - $483,900)", () => {
       // MFJ with $300,000 SE income - under MFJ threshold
       // SE calculations same as before
-      // Taxable before QBI: $300,000 - $14,935.43 - $31,400 = $253,664.57
+      // Taxable before QBI: $300,000 - $15,456.23 - $32,200 = $252,343.77
       // MFJ threshold is $383,900, so NO phaseout
       const inputs = createDefaultInputs({
         selfEmploymentIncome: 300000,

@@ -5,9 +5,11 @@ import FilingStatusComparisonModal, {
   MFSScenarioResult,
 } from "../FilingStatusComparisonModal";
 import { TaxInputs } from "@/lib/types";
+import { TAX_YEAR } from "@/lib/config";
 
 describe("FilingStatusComparisonModal", () => {
   const defaultInputs: TaxInputs = {
+    taxYear: TAX_YEAR,
     federalIncome: 150000,
     stateIncome: 150000,
     shortTermCapitalGains: 10000,

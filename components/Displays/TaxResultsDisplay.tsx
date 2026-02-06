@@ -5,10 +5,12 @@ import {
   TaxState,
   TaxCalculationResult,
 } from "@/lib/types";
+import { TaxYear } from "@/lib/config";
 import FederalBreakdown from "./FederalBreakdown";
 
 interface StateBreakdownProps {
   result: TaxCalculationResult;
+  taxYear: TaxYear;
 }
 
 // Dynamic imports for state breakdown components - only loaded when needed
@@ -27,15 +29,16 @@ const stateBreakdownComponents: Record<
 
 interface Props {
   results: CalculationResults;
+  taxYear: TaxYear;
 }
 
-export default memo(function TaxResultsDisplay({ results }: Props) {
+export default memo(function TaxResultsDisplay({ results, taxYear }: Props) {
   const StateBreakdown = stateBreakdownComponents[results.selectedState];
 
   return (
     <div className="space-y-6">
-      <FederalBreakdown result={results.federal} />
-      <StateBreakdown result={results.state} />
+      <FederalBreakdown result={results.federal} taxYear={taxYear} />
+      <StateBreakdown result={results.state} taxYear={taxYear} />
     </div>
   );
 });

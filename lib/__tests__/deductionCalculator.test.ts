@@ -85,7 +85,7 @@ describe("calculateFederalDeductions", () => {
 
       expect(result.itemizedDeduction).toBe(5000);
       expect(result.deductionUsed).toBe("standard");
-      expect(result.deductionAmount).toBe(15750);
+      expect(result.deductionAmount).toBe(16100);
     });
   });
 
@@ -220,9 +220,9 @@ describe("calculateFederalDeductions boundary cases", () => {
   });
 
   it("itemized equals standard uses standard", () => {
-    // Single std deduction is $15,750
+    // Single std deduction is $16,100
     const inputs = createDefaultDeductionInputs({
-      charitableContributions: 15750,
+      charitableContributions: 16100,
     });
 
     const result = calculateFederalDeductions(
@@ -234,13 +234,13 @@ describe("calculateFederalDeductions boundary cases", () => {
     );
 
     // When equal, should use standard (itemized > standard is the condition)
-    expect(result.itemizedDeduction).toBe(15750);
+    expect(result.itemizedDeduction).toBe(16100);
     expect(result.deductionUsed).toBe("standard");
   });
 
   it("itemized $1 more than standard uses itemized", () => {
     const inputs = createDefaultDeductionInputs({
-      charitableContributions: 15751,
+      charitableContributions: 16101,
     });
 
     const result = calculateFederalDeductions(
@@ -252,7 +252,7 @@ describe("calculateFederalDeductions boundary cases", () => {
     );
 
     expect(result.deductionUsed).toBe("itemized");
-    expect(result.deductionAmount).toBe(15751);
+    expect(result.deductionAmount).toBe(16101);
   });
 
   it("mortgage balance exactly at limit uses full interest", () => {
@@ -286,14 +286,14 @@ describe("calculateFederalDeductions boundary cases", () => {
 
     expect(result.itemizedDeduction).toBe(0);
     expect(result.deductionUsed).toBe("standard");
-    expect(result.deductionAmount).toBe(15750);
+    expect(result.deductionAmount).toBe(16100);
   });
 });
 
 describe("calculateFederalDeductions MFJ", () => {
-  it("uses $31,500 standard deduction for MFJ", () => {
+  it("uses $32,200 standard deduction for MFJ", () => {
     const inputs = createDefaultDeductionInputs({
-      charitableContributions: 25000, // less than $31.5k std
+      charitableContributions: 25000, // less than $32.2k std
     });
 
     const result = calculateFederalDeductions(
@@ -304,9 +304,9 @@ describe("calculateFederalDeductions MFJ", () => {
       HIGH_AGI,
     );
 
-    expect(result.standardDeduction).toBe(31500);
+    expect(result.standardDeduction).toBe(32200);
     expect(result.deductionUsed).toBe("standard");
-    expect(result.deductionAmount).toBe(31500);
+    expect(result.deductionAmount).toBe(32200);
   });
 
   it("uses $10,000 SALT cap for MFJ when AGI >= $500k", () => {

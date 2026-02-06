@@ -1,3 +1,5 @@
+import { TaxYear } from "./config";
+
 export type FilingStatus =
   | "single"
   | "marriedFilingJointly"
@@ -233,6 +235,9 @@ export type MultiYearFica = Record<string, FicaData>;
 
 // User Input Types
 export interface TaxInputs {
+  // Tax year
+  taxYear: TaxYear;
+
   // Income fields
   federalIncome: number;
   stateIncome: number;

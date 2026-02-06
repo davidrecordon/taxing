@@ -51,11 +51,11 @@ describe("calculateColoradoTax", () => {
         ficaData,
       );
 
-      // Federal taxable income = $100k - $15,750 standard deduction = $84,250
-      // Colorado tax = $84,250 * 4.4% = $3,707
-      expect(result.taxableOrdinaryIncome).toBe(84250);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(3707, 0);
-      expect(result.totalTax).toBeCloseTo(3707, 0);
+      // Federal taxable income = $100k - $16,100 standard deduction = $83,900
+      // Colorado tax = $83,900 * 4.4% = $3,691.60
+      expect(result.taxableOrdinaryIncome).toBe(83900);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(3691.6, 0);
+      expect(result.totalTax).toBeCloseTo(3691.6, 0);
     });
 
     it("uses federal taxable income for all filing statuses", () => {
@@ -75,10 +75,10 @@ describe("calculateColoradoTax", () => {
         ficaData,
       );
 
-      // Federal taxable income = $100k - $31,500 standard deduction (MFJ) = $68,500
-      // Colorado tax = $68,500 * 4.4% = $3,014
-      expect(result.taxableOrdinaryIncome).toBe(68500);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(3014, 0);
+      // Federal taxable income = $100k - $32,200 standard deduction (MFJ) = $67,800
+      // Colorado tax = $67,800 * 4.4% = $2,983.20
+      expect(result.taxableOrdinaryIncome).toBe(67800);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(2983.2, 0);
     });
   });
 
@@ -102,8 +102,8 @@ describe("calculateColoradoTax", () => {
         ficaData,
       );
 
-      // Gross = $100k, less $15,750 std deduction = $84,250 federal taxable
-      expect(result.taxableOrdinaryIncome).toBe(84250);
+      // Gross = $100k, less $16,100 std deduction = $83,900 federal taxable
+      expect(result.taxableOrdinaryIncome).toBe(83900);
       expect(result.ltcgTax).toBe(0); // No separate LTCG treatment
     });
   });
@@ -159,8 +159,8 @@ describe("calculateColoradoTax", () => {
       );
 
       expect(result.totalPaid).toBe(3000);
-      // Tax = ~$3,707, paid $3,000, owed ~$707
-      expect(result.remainingOwed).toBeCloseTo(707, 0);
+      // Tax = ~$3,691.60, paid $3,000, owed ~$691.60
+      expect(result.remainingOwed).toBeCloseTo(691.6, 0);
       expect(result.refundDue).toBe(0);
     });
 
@@ -182,7 +182,7 @@ describe("calculateColoradoTax", () => {
         ficaData,
       );
 
-      // Tax = ~$1,540 (35k * 4.4%), paid $3,000
+      // Tax = ~$1,491.60 ($33,900 * 4.4%), paid $3,000
       expect(result.refundDue).toBeGreaterThan(0);
       expect(result.remainingOwed).toBe(0);
     });

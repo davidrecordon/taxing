@@ -732,13 +732,13 @@ describe("calculateNewYorkTax", () => {
       // Standard deduction: $8,000
       // Taxable: $92,000
       //
-      // NY 2025 brackets (single):
-      // $0 - $8,500 @ 4% = $340.00
-      // $8,500 - $11,700 @ 4.5% = $3,200 × 0.045 = $144.00
-      // $11,700 - $13,900 @ 5.25% = $2,200 × 0.0525 = $115.50
-      // $13,900 - $80,650 @ 5.5% = $66,750 × 0.055 = $3,671.25
-      // $80,650 - $92,000 @ 6% = $11,350 × 0.06 = $681.00
-      // Total: $4,951.75
+      // NY 2026 brackets (single):
+      // $0 - $8,500 @ 3.9% = $331.50
+      // $8,500 - $11,700 @ 4.4% = $3,200 × 0.044 = $140.80
+      // $11,700 - $13,900 @ 5.15% = $2,200 × 0.0515 = $113.30
+      // $13,900 - $80,650 @ 5.4% = $66,750 × 0.054 = $3,604.50
+      // $80,650 - $92,000 @ 5.9% = $11,350 × 0.059 = $669.65
+      // Total: $4,859.75
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         filingStatus: "single",
@@ -755,7 +755,7 @@ describe("calculateNewYorkTax", () => {
       );
 
       expect(result.taxableOrdinaryIncome).toBe(92000);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(4951.75, 0);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(4859.75, 0);
     });
 
     it("single filer $200k matches NY DTF tax table - exact calculation", () => {
@@ -763,13 +763,13 @@ describe("calculateNewYorkTax", () => {
       // Standard deduction: $8,000
       // Taxable: $192,000
       //
-      // NY 2025 brackets (single):
-      // $0 - $8,500 @ 4% = $340.00
-      // $8,500 - $11,700 @ 4.5% = $144.00
-      // $11,700 - $13,900 @ 5.25% = $115.50
-      // $13,900 - $80,650 @ 5.5% = $3,671.25
-      // $80,650 - $192,000 @ 6% = $111,350 × 0.06 = $6,681.00
-      // Total: $10,951.75
+      // NY 2026 brackets (single):
+      // $0 - $8,500 @ 3.9% = $331.50
+      // $8,500 - $11,700 @ 4.4% = $140.80
+      // $11,700 - $13,900 @ 5.15% = $113.30
+      // $13,900 - $80,650 @ 5.4% = $3,604.50
+      // $80,650 - $192,000 @ 5.9% = $111,350 × 0.059 = $6,569.65
+      // Total: $10,759.75
       const inputs = createDefaultInputs({
         federalIncome: 200000,
         filingStatus: "single",
@@ -786,7 +786,7 @@ describe("calculateNewYorkTax", () => {
       );
 
       expect(result.taxableOrdinaryIncome).toBe(192000);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(10951.75, 0);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(10759.75, 0);
     });
 
     it("NYC resident $100k matches combined NY + NYC tables - exact calculation", () => {
@@ -794,7 +794,7 @@ describe("calculateNewYorkTax", () => {
       // Standard deduction: $8,000
       // Taxable: $92,000
       //
-      // NY state tax: $4,951.75 (calculated above)
+      // NY state tax: $4,859.75 (calculated above)
       //
       // NYC tax (single, $92,000):
       // $0 - $12,000 @ 3.078% = $369.36
@@ -803,7 +803,7 @@ describe("calculateNewYorkTax", () => {
       // $50,000 - $92,000 @ 3.876% = $42,000 × 0.03876 = $1,627.92
       // Total NYC: $3,441.09
       //
-      // Combined: $4,951.75 + $3,441.09 = $8,392.84
+      // Combined: $4,859.75 + $3,441.09 = $8,300.84
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         filingStatus: "single",
@@ -821,9 +821,9 @@ describe("calculateNewYorkTax", () => {
       );
 
       expect(result.taxableOrdinaryIncome).toBe(92000);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(4951.75, 0);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(4859.75, 0);
       expect(result.nycTax).toBeCloseTo(3441.09, 0);
-      expect(result.totalTax).toBeCloseTo(8392.84, 0);
+      expect(result.totalTax).toBeCloseTo(8300.84, 0);
     });
 
     it("MFJ filer $200k matches NY DTF tax table - exact calculation", () => {
@@ -831,13 +831,13 @@ describe("calculateNewYorkTax", () => {
       // Standard deduction (MFJ): $16,050
       // Taxable: $183,950
       //
-      // NY 2025 brackets (MFJ):
-      // $0 - $17,150 @ 4% = $686.00
-      // $17,150 - $23,600 @ 4.5% = $6,450 × 0.045 = $290.25
-      // $23,600 - $27,900 @ 5.25% = $4,300 × 0.0525 = $225.75
-      // $27,900 - $161,550 @ 5.5% = $133,650 × 0.055 = $7,350.75
-      // $161,550 - $183,950 @ 6% = $22,400 × 0.06 = $1,344.00
-      // Total: $9,896.75
+      // NY 2026 brackets (MFJ):
+      // $0 - $17,150 @ 3.9% = $668.85
+      // $17,150 - $23,600 @ 4.4% = $6,450 × 0.044 = $283.80
+      // $23,600 - $27,900 @ 5.15% = $4,300 × 0.0515 = $221.45
+      // $27,900 - $161,550 @ 5.4% = $133,650 × 0.054 = $7,217.10
+      // $161,550 - $183,950 @ 5.9% = $22,400 × 0.059 = $1,321.60
+      // Total: $9,712.80
       const inputs = createDefaultInputs({
         federalIncome: 200000,
         filingStatus: "marriedFilingJointly",
@@ -854,7 +854,7 @@ describe("calculateNewYorkTax", () => {
       );
 
       expect(result.taxableOrdinaryIncome).toBe(183950);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(9896.75, 0);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(9712.80, 0);
     });
 
     it("high income single filer hits 6.85% bracket - exact calculation", () => {
@@ -862,14 +862,14 @@ describe("calculateNewYorkTax", () => {
       // Standard deduction: $8,000
       // Taxable: $292,000
       //
-      // NY 2025 brackets (single):
-      // $0 - $8,500 @ 4% = $340.00
-      // $8,500 - $11,700 @ 4.5% = $144.00
-      // $11,700 - $13,900 @ 5.25% = $115.50
-      // $13,900 - $80,650 @ 5.5% = $3,671.25
-      // $80,650 - $215,400 @ 6% = $134,750 × 0.06 = $8,085.00
+      // NY 2026 brackets (single):
+      // $0 - $8,500 @ 3.9% = $331.50
+      // $8,500 - $11,700 @ 4.4% = $140.80
+      // $11,700 - $13,900 @ 5.15% = $113.30
+      // $13,900 - $80,650 @ 5.4% = $3,604.50
+      // $80,650 - $215,400 @ 5.9% = $134,750 × 0.059 = $7,950.25
       // $215,400 - $292,000 @ 6.85% = $76,600 × 0.0685 = $5,247.10
-      // Total: $17,602.85
+      // Total: $17,387.45
       const inputs = createDefaultInputs({
         federalIncome: 300000,
         filingStatus: "single",
@@ -886,7 +886,7 @@ describe("calculateNewYorkTax", () => {
       );
 
       expect(result.taxableOrdinaryIncome).toBe(292000);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(17602.85, 0);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(17387.45, 0);
     });
   });
 

@@ -1,19 +1,23 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { TaxCalculationResult, CaliforniaLimitsData } from "@/lib/types";
 import { formatCurrency, formatPercent } from "@/lib/formatters";
 import { calculateEffectiveRates } from "@/lib/taxUtils";
-import { TAX_YEAR } from "@/lib/config";
+import { TaxYear } from "@/lib/config";
 import BracketTable from "../shared/BracketTable";
 import TaxSummarySection from "../shared/TaxSummarySection";
 import allCaliforniaLimits from "@/data/california-limits.json";
 
-const limits = allCaliforniaLimits[TAX_YEAR] as CaliforniaLimitsData;
-
 interface Props {
   result: TaxCalculationResult;
+  taxYear: TaxYear;
 }
 
-export default memo(function CaliforniaBreakdown({ result }: Props) {
+export default memo(function CaliforniaBreakdown({ result, taxYear }: Props) {
+  const limits = useMemo(
+    () => allCaliforniaLimits[taxYear] as CaliforniaLimitsData,
+    [taxYear],
+  );
+
   return (
     <div className="theme-card p-4">
       <h2 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 font-display">

@@ -450,10 +450,10 @@ Same as 2025 (brackets not inflation-adjusted).
 | Filing Status | Our Data | Official | Match |
 | ------------- | -------- | -------- | ----- |
 | Single        | $15,000  | $15,000  | Yes   |
-| MFJ           | $15,000  | $15,000  | Yes   |
+| MFJ           | $30,000  | TBD      | WAITING - using 2025 base |
 | MFS           | $15,000  | $15,000  | Yes   |
 
-**Note:** DC 2026 uses $15,000 standard deduction for ALL filing statuses.
+**Note:** DC 2026 MFJ standard deduction has NOT been published by DC OTR as of 2026-02-06. [D.C. Act 26-214](https://code.dccouncil.gov/us/dc/council/acts/26-214) sets the 2025 MFJ base at $30,000 with annual COLA adjustments for 2026+. Currently using the $30,000 base as a placeholder. Check the DC OTR website for the official 2026 D-40 forms when published.
 
 ---
 
@@ -470,7 +470,7 @@ Same as 2025 (brackets not inflation-adjusted).
 
 ## 2026 Data Status (as of 2026-02-04)
 
-All 2026 tax data has been verified against official sources:
+2026 tax data status:
 
 | Jurisdiction | Status | Source |
 | ------------ | ------ | ------ |
@@ -480,7 +480,7 @@ All 2026 tax data has been verified against official sources:
 | Illinois | Verified | IDOR FY 2026-15 bulletin |
 | Colorado | Verified | CO DOR (4.4% unchanged) |
 | Florida | N/A | No state income tax |
-| DC | Verified | DC OTR (brackets not inflation-adjusted) |
+| **DC** | **WAITING** | 2026 MFJ standard deduction not yet published by DC OTR; using 2025 base ($30,000) |
 | **Washington** | **WAITING** | 2026 exemption threshold not yet announced by WA DOR |
 
-**Only pending item:** Washington 2026 capital gains exemption threshold.
+**Pending items:** Washington 2026 capital gains exemption threshold, DC 2026 MFJ standard deduction (COLA-adjusted amount).

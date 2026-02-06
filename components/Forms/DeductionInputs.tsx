@@ -75,7 +75,7 @@ export default function DeductionInputs({
           onChange={(v) => onUpdate("contributions401k", v)}
           error={
             inputs.contributions401k > contribution401kLimit
-              ? `Exceeds 2025 limit of ${formatCurrency(contribution401kLimit)}.`
+              ? `Exceeds ${inputs.taxYear} limit of ${formatCurrency(contribution401kLimit)}.`
               : undefined
           }
         />

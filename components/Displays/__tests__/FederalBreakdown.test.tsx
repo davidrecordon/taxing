@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import FederalBreakdown from "../FederalBreakdown";
 import { TaxCalculationResult } from "@/lib/types";
+import { TAX_YEAR } from "@/lib/config";
 
 const createMockResult = (
   overrides: Partial<TaxCalculationResult> = {},
@@ -73,7 +74,7 @@ describe("FederalBreakdown", () => {
   describe("income section", () => {
     it("displays wage income", () => {
       const result = createMockResult({ wageIncome: 150000 });
-      render(<FederalBreakdown result={result} />);
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(screen.getByText("Wages & Other Income")).toBeInTheDocument();
       expect(screen.getByText("$150,000")).toBeInTheDocument();
@@ -84,7 +85,7 @@ describe("FederalBreakdown", () => {
         shortTermCapitalGains: 10000,
         grossIncome: 110000,
       });
-      render(<FederalBreakdown result={result} />);
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(screen.getByText("Short-Term Capital Gains")).toBeInTheDocument();
     });
@@ -94,14 +95,14 @@ describe("FederalBreakdown", () => {
         longTermCapitalGains: 20000,
         grossIncome: 120000,
       });
-      render(<FederalBreakdown result={result} />);
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(screen.getByText("Long-Term Capital Gains")).toBeInTheDocument();
     });
 
     it("shows gross income total", () => {
       const result = createMockResult({ grossIncome: 125000 });
-      render(<FederalBreakdown result={result} />);
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(screen.getByText("Gross Income")).toBeInTheDocument();
     });
@@ -110,7 +111,7 @@ describe("FederalBreakdown", () => {
   describe("deductions", () => {
     it("shows standard deduction when used", () => {
       const result = createMockResult();
-      render(<FederalBreakdown result={result} />);
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(screen.getByText("Less: Standard Deduction")).toBeInTheDocument();
     });
@@ -128,7 +129,7 @@ describe("FederalBreakdown", () => {
           charitableContributions: 5000,
         },
       });
-      render(<FederalBreakdown result={result} />);
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(screen.getByText("Less: Itemized Deduction")).toBeInTheDocument();
       expect(
@@ -138,7 +139,7 @@ describe("FederalBreakdown", () => {
 
     it("shows 401k contributions when present", () => {
       const result = createMockResult({ contributions401k: 23000 });
-      render(<FederalBreakdown result={result} />);
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(
         screen.getByText("Less: 401(k) Contributions"),
@@ -149,7 +150,7 @@ describe("FederalBreakdown", () => {
   describe("loss carryovers", () => {
     it("shows short-term carryover offset when present", () => {
       const result = createMockResult({ shortTermLossCarryoverOffset: 5000 });
-      render(<FederalBreakdown result={result} />);
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(
         screen.getByText("Less: Short-Term Carryover Offset"),
@@ -158,7 +159,7 @@ describe("FederalBreakdown", () => {
 
     it("shows long-term carryover offset when present", () => {
       const result = createMockResult({ longTermLossCarryoverOffset: 10000 });
-      render(<FederalBreakdown result={result} />);
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(
         screen.getByText("Less: Long-Term Carryover Offset"),
@@ -170,7 +171,7 @@ describe("FederalBreakdown", () => {
         shortTermLossCarryoverOffset: 5000,
         shortTermLossCarryoverUnused: 2000,
       });
-      render(<FederalBreakdown result={result} />);
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(screen.getByText(/Preserving.*ST carryover/)).toBeInTheDocument();
     });
@@ -179,7 +180,7 @@ describe("FederalBreakdown", () => {
   describe("FICA taxes", () => {
     it("displays FICA breakdown", () => {
       const result = createMockResult();
-      render(<FederalBreakdown result={result} />);
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(
         screen.getByText("FICA Taxes (Social Security & Medicare)"),
@@ -197,7 +198,7 @@ describe("FederalBreakdown", () => {
           totalFica: 14993.2,
         },
       });
-      render(<FederalBreakdown result={result} />);
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(screen.getByText(/Additional Medicare/)).toBeInTheDocument();
     });
@@ -206,7 +207,7 @@ describe("FederalBreakdown", () => {
   describe("bracket tables", () => {
     it("displays ordinary income bracket table", () => {
       const result = createMockResult();
-      render(<FederalBreakdown result={result} />);
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(
         screen.getByText("Ordinary Income Tax by Bracket"),
@@ -235,7 +236,7 @@ describe("FederalBreakdown", () => {
         ],
         ltcgTax: 446.25,
       });
-      render(<FederalBreakdown result={result} />);
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(
         screen.getByText("Long-Term Capital Gains Tax by Bracket"),
@@ -255,7 +256,7 @@ describe("FederalBreakdown", () => {
           remaining: 1500,
         },
       });
-      render(<FederalBreakdown result={result} />);
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(
         screen.getByText("Safe Harbor (Penalty Avoidance)"),
@@ -273,7 +274,7 @@ describe("FederalBreakdown", () => {
           remaining: 0,
         },
       });
-      render(<FederalBreakdown result={result} />);
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(screen.getByText(/Safe Harbor Met/)).toBeInTheDocument();
     });

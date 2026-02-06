@@ -15,8 +15,8 @@ import {
 describe("calculateIllinoisTax", () => {
   describe("flat rate calculation", () => {
     it("calculates tax at 4.95% flat rate", () => {
-      // $100,000 income - $2,850 personal exemption = $97,150 taxable
-      // Tax = $97,150 * 4.95% = $4,808.93 (rounded)
+      // $100,000 income - $2,925 personal exemption = $97,075 taxable
+      // Tax = $97,075 * 4.95% = $4,805.21 (rounded)
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         selectedState: "illinois",
@@ -31,13 +31,13 @@ describe("calculateIllinoisTax", () => {
         illinoisLimits,
       );
 
-      expect(result.taxableOrdinaryIncome).toBe(97150);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(4808.93, 0);
-      expect(result.totalTax).toBeCloseTo(4808.93, 0);
+      expect(result.taxableOrdinaryIncome).toBe(97075);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(4805.21, 0);
+      expect(result.totalTax).toBeCloseTo(4805.21, 0);
     });
 
     it("applies correct personal exemption for MFJ", () => {
-      // $100,000 income - $5,700 personal exemption (MFJ) = $94,300 taxable
+      // $100,000 income - $5,850 personal exemption (MFJ) = $94,150 taxable
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         selectedState: "illinois",
@@ -52,12 +52,12 @@ describe("calculateIllinoisTax", () => {
         illinoisLimits,
       );
 
-      expect(result.taxableOrdinaryIncome).toBe(94300);
-      expect(result.deductionBreakdown.deductionAmount).toBe(5700);
+      expect(result.taxableOrdinaryIncome).toBe(94150);
+      expect(result.deductionBreakdown.deductionAmount).toBe(5850);
     });
 
     it("applies correct personal exemption for MFS", () => {
-      // $100,000 income - $2,850 personal exemption (MFS) = $97,150 taxable
+      // $100,000 income - $2,925 personal exemption (MFS) = $97,075 taxable
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         selectedState: "illinois",
@@ -72,15 +72,15 @@ describe("calculateIllinoisTax", () => {
         illinoisLimits,
       );
 
-      expect(result.taxableOrdinaryIncome).toBe(97150);
-      expect(result.deductionBreakdown.deductionAmount).toBe(2850);
+      expect(result.taxableOrdinaryIncome).toBe(97075);
+      expect(result.deductionBreakdown.deductionAmount).toBe(2925);
     });
   });
 
   describe("capital gains treatment", () => {
     it("taxes all capital gains as ordinary income", () => {
       // $50,000 wages + $25,000 STCG + $25,000 LTCG = $100,000 gross
-      // - $2,850 exemption = $97,150 taxable
+      // - $2,925 exemption = $97,075 taxable
       const inputs = createDefaultInputs({
         federalIncome: 50000,
         shortTermCapitalGains: 25000,
@@ -98,7 +98,7 @@ describe("calculateIllinoisTax", () => {
       );
 
       expect(result.grossIncome).toBe(100000);
-      expect(result.taxableOrdinaryIncome).toBe(97150);
+      expect(result.taxableOrdinaryIncome).toBe(97075);
       expect(result.ltcgTax).toBe(0); // No separate LTCG treatment
     });
   });
@@ -123,8 +123,8 @@ describe("calculateIllinoisTax", () => {
       );
 
       expect(result.shortTermLossCarryoverOffset).toBe(3000);
-      // $100,000 - $3,000 carryover - $2,850 exemption = $94,150
-      expect(result.taxableOrdinaryIncome).toBe(94150);
+      // $100,000 - $3,000 carryover - $2,925 exemption = $94,075
+      expect(result.taxableOrdinaryIncome).toBe(94075);
     });
 
     it("applies long-term loss carryover correctly", () => {
@@ -147,8 +147,8 @@ describe("calculateIllinoisTax", () => {
       );
 
       expect(result.longTermLossCarryoverOffset).toBe(20000);
-      // $50,000 + $20,000 LTCG - $20,000 offset - $2,850 exemption = $47,150
-      expect(result.taxableOrdinaryIncome).toBe(47150);
+      // $50,000 + $20,000 LTCG - $20,000 offset - $2,925 exemption = $47,075
+      expect(result.taxableOrdinaryIncome).toBe(47075);
     });
   });
 
@@ -200,7 +200,7 @@ describe("calculateIllinoisTax", () => {
 
   describe("pre-tax deductions", () => {
     it("applies 401k and pre-tax medical deductions", () => {
-      // $100,000 wages - $10,000 401k - $5,000 medical - $2,850 exemption = $82,150
+      // $100,000 wages - $10,000 401k - $5,000 medical - $2,925 exemption = $82,075
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         contributions401k: 10000,
@@ -219,7 +219,7 @@ describe("calculateIllinoisTax", () => {
 
       expect(result.contributions401k).toBe(10000);
       expect(result.preTaxMedical).toBe(5000);
-      expect(result.taxableOrdinaryIncome).toBe(82150);
+      expect(result.taxableOrdinaryIncome).toBe(82075);
     });
   });
 
@@ -270,8 +270,8 @@ describe("calculateIllinoisTax", () => {
       );
 
       expect(result.totalPaid).toBe(4000);
-      // Tax = ~$4,809, paid $4,000, owed ~$809
-      expect(result.remainingOwed).toBeCloseTo(809, -1);
+      // Tax = ~$4,805, paid $4,000, owed ~$805
+      expect(result.remainingOwed).toBeCloseTo(805, -1);
       expect(result.refundDue).toBe(0);
     });
 
@@ -357,9 +357,9 @@ describe("calculateIllinoisTax", () => {
         ficaData,
       );
 
-      // Gross = $150k, less deductible SE tax (~$3,532), less exemption ($2,850)
-      // Taxable = $150k - $3,532 - $2,850 = $143,618
-      expect(result.taxableOrdinaryIncome).toBeCloseTo(143618, 0);
+      // Gross = $150k, less deductible SE tax (~$3,532), less exemption ($2,925)
+      // Taxable = $150k - $3,532.39 - $2,925 = $143,542.61
+      expect(result.taxableOrdinaryIncome).toBeCloseTo(143542.61, 0);
     });
 
     it("does not include SE fields when no SE income", () => {
@@ -404,7 +404,7 @@ describe("calculateIllinoisTax", () => {
 
     it("handles income less than personal exemption", () => {
       const inputs = createDefaultInputs({
-        federalIncome: 2000, // Less than $2,850 exemption
+        federalIncome: 2000, // Less than $2,925 exemption
         selectedState: "illinois",
         filingStatus: "single",
       });

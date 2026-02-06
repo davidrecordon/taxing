@@ -7,6 +7,9 @@ import {
   TaxState,
   CalculationResults,
   STATE_LABELS,
+  SharedLimitsData,
+  FederalLimitsData,
+  FicaData,
 } from "@/lib/types";
 import { calculateFederalTax } from "@/lib/federalTaxCalculator";
 import { calculateCaliforniaTax } from "@/lib/states/californiaTaxCalculator";
@@ -40,15 +43,10 @@ import allFicaData from "@/data/fica.json";
 import allSharedLimits from "@/data/limits.json";
 import allLtcgBrackets from "@/data/federal-ltcg-brackets.json";
 
-import { TAX_YEAR } from "@/lib/config";
-const federalBrackets = allFederalBrackets[TAX_YEAR];
-const federalDeductions = allFederalDeductions[TAX_YEAR];
-const federalLimits = allFederalLimits[TAX_YEAR];
-const ficaData = allFicaData[TAX_YEAR];
-const sharedLimits = allSharedLimits[TAX_YEAR];
-const ltcgBrackets = allLtcgBrackets[TAX_YEAR];
+import { TAX_YEAR, TaxYear } from "@/lib/config";
 
 const defaultInputs: TaxInputs = {
+  taxYear: TAX_YEAR,
   federalIncome: 0,
   stateIncome: 0,
   shortTermCapitalGains: 0,
@@ -76,6 +74,9 @@ const defaultInputs: TaxInputs = {
 function calculateStateTaxWithData(
   inputs: TaxInputs,
   stateData: StateData,
+  sharedLimits: SharedLimitsData,
+  federalLimits: FederalLimitsData,
+  ficaData: FicaData,
   federalTaxableIncome?: number,
 ) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -148,42 +149,59 @@ export default function TaxCalculator() {
   const [inputs, setInputs] = useState<TaxInputs>(defaultInputs);
   const [isFilingCompareOpen, setIsFilingCompareOpen] = useState(false);
   const [loadedStateData, setLoadedStateData] = useState<
-    Map<TaxState, StateData>
+    Map<string, StateData>
   >(new Map());
 
-  // Derive loading state from whether data exists for the selected state
-  const isLoadingState = !loadedStateData.has(inputs.selectedState);
+  const taxYear = inputs.taxYear;
 
-  // Load state data when selectedState changes
+  // Federal data keyed on taxYear
+  const federalData = useMemo(
+    () => ({
+      federalBrackets: allFederalBrackets[taxYear],
+      federalDeductions: allFederalDeductions[taxYear],
+      federalLimits: allFederalLimits[taxYear] as FederalLimitsData,
+      ficaData: allFicaData[taxYear] as FicaData,
+      ltcgBrackets: allLtcgBrackets[taxYear],
+      sharedLimits: allSharedLimits[taxYear] as SharedLimitsData,
+    }),
+    [taxYear],
+  );
+
+  // Derive loading state from whether data exists for the selected state+year
+  const stateDataKey = `${inputs.selectedState}-${taxYear}`;
+  const isLoadingState = !loadedStateData.has(stateDataKey);
+
+  // Load state data when selectedState or taxYear changes
   useEffect(() => {
     const selectedState = inputs.selectedState;
+    const key = `${selectedState}-${taxYear}`;
 
     // If already loaded, no need to fetch
-    if (loadedStateData.has(selectedState)) {
+    if (loadedStateData.has(key)) {
       return;
     }
 
-    loadStateData(selectedState).then((data) => {
+    loadStateData(selectedState, taxYear).then((data) => {
       setLoadedStateData((prev) => {
         const next = new Map(prev);
-        next.set(selectedState, data);
+        next.set(key, data);
         return next;
       });
     });
-  }, [inputs.selectedState, loadedStateData]);
+  }, [inputs.selectedState, taxYear, loadedStateData]);
 
   // Get the current state's data (may be undefined while loading)
-  const currentStateData = loadedStateData.get(inputs.selectedState);
+  const currentStateData = loadedStateData.get(stateDataKey);
 
   const results: CalculationResults = useMemo(() => {
     const federal = calculateFederalTax(
       inputs,
-      federalBrackets,
-      ltcgBrackets,
-      federalDeductions,
-      sharedLimits,
-      federalLimits,
-      ficaData,
+      federalData.federalBrackets,
+      federalData.ltcgBrackets,
+      federalData.federalDeductions,
+      federalData.sharedLimits,
+      federalData.federalLimits,
+      federalData.ficaData,
     );
 
     // If state data isn't loaded yet, return a placeholder state result
@@ -232,11 +250,14 @@ export default function TaxCalculator() {
     const state = calculateStateTaxWithData(
       inputs,
       currentStateData,
+      federalData.sharedLimits,
+      federalData.federalLimits,
+      federalData.ficaData,
       federalTaxableIncome,
     );
 
     return { federal, state, selectedState: inputs.selectedState };
-  }, [inputs, currentStateData]);
+  }, [inputs, currentStateData, federalData]);
 
   const updateInput = <K extends keyof TaxInputs>(
     field: K,
@@ -246,9 +267,12 @@ export default function TaxCalculator() {
   };
 
   // Preload state data on hover for better UX
-  const handleStateHover = useCallback((state: TaxState) => {
-    preloadStateData(state);
-  }, []);
+  const handleStateHover = useCallback(
+    (state: TaxState) => {
+      preloadStateData(state, taxYear);
+    },
+    [taxYear],
+  );
 
   // Calculate federal tax scenario with different charitable contributions
   const calculateCharitableScenario = useCallback(
@@ -259,12 +283,12 @@ export default function TaxCalculator() {
       };
       const scenarioResult = calculateFederalTax(
         modifiedInputs,
-        federalBrackets,
-        ltcgBrackets,
-        federalDeductions,
-        sharedLimits,
-        federalLimits,
-        ficaData,
+        federalData.federalBrackets,
+        federalData.ltcgBrackets,
+        federalData.federalDeductions,
+        federalData.sharedLimits,
+        federalData.federalLimits,
+        federalData.ficaData,
       );
       return {
         totalTax: scenarioResult.totalTax,
@@ -275,7 +299,7 @@ export default function TaxCalculator() {
             : 0,
       };
     },
-    [inputs],
+    [inputs, federalData],
   );
 
   // Extract federal results for the modal
@@ -294,7 +318,8 @@ export default function TaxCalculator() {
   // Helper to calculate state tax for a given set of inputs (used by MFJ/MFS scenarios)
   const calculateStateForInputs = useCallback(
     (stateInputs: TaxInputs) => {
-      const stateData = loadedStateData.get(stateInputs.selectedState);
+      const key = `${stateInputs.selectedState}-${taxYear}`;
+      const stateData = loadedStateData.get(key);
       if (!stateData) {
         // Return zero result if state data not loaded (shouldn't happen in practice)
         return {
@@ -333,20 +358,23 @@ export default function TaxCalculator() {
       }
       const federalResult = calculateFederalTax(
         stateInputs,
-        federalBrackets,
-        ltcgBrackets,
-        federalDeductions,
-        sharedLimits,
-        federalLimits,
-        ficaData,
+        federalData.federalBrackets,
+        federalData.ltcgBrackets,
+        federalData.federalDeductions,
+        federalData.sharedLimits,
+        federalData.federalLimits,
+        federalData.ficaData,
       );
       return calculateStateTaxWithData(
         stateInputs,
         stateData,
+        federalData.sharedLimits,
+        federalData.federalLimits,
+        federalData.ficaData,
         federalResult.taxableOrdinaryIncome + federalResult.taxableLTCG,
       );
     },
-    [loadedStateData],
+    [loadedStateData, taxYear, federalData],
   );
 
   // Calculate MFJ scenario results for filing status comparison
@@ -357,12 +385,12 @@ export default function TaxCalculator() {
     };
     const federal = calculateFederalTax(
       mfjInputs,
-      federalBrackets,
-      ltcgBrackets,
-      federalDeductions,
-      sharedLimits,
-      federalLimits,
-      ficaData,
+      federalData.federalBrackets,
+      federalData.ltcgBrackets,
+      federalData.federalDeductions,
+      federalData.sharedLimits,
+      federalData.federalLimits,
+      federalData.ficaData,
     );
     const state = calculateStateForInputs(mfjInputs);
     return {
@@ -370,7 +398,7 @@ export default function TaxCalculator() {
       stateTax: state.totalTax,
       totalTax: federal.totalTax + state.totalTax,
     };
-  }, [inputs, calculateStateForInputs]);
+  }, [inputs, calculateStateForInputs, federalData]);
 
   // Calculate MFS scenario with spouse splits
   const calculateMFSScenario = useCallback(
@@ -455,22 +483,22 @@ export default function TaxCalculator() {
       // Calculate each spouse's taxes
       const spouse1Federal = calculateFederalTax(
         spouse1Inputs,
-        federalBrackets,
-        ltcgBrackets,
-        federalDeductions,
-        sharedLimits,
-        federalLimits,
-        ficaData,
+        federalData.federalBrackets,
+        federalData.ltcgBrackets,
+        federalData.federalDeductions,
+        federalData.sharedLimits,
+        federalData.federalLimits,
+        federalData.ficaData,
       );
       const spouse1State = calculateStateForInputs(spouse1Inputs);
       const spouse2Federal = calculateFederalTax(
         spouse2Inputs,
-        federalBrackets,
-        ltcgBrackets,
-        federalDeductions,
-        sharedLimits,
-        federalLimits,
-        ficaData,
+        federalData.federalBrackets,
+        federalData.ltcgBrackets,
+        federalData.federalDeductions,
+        federalData.sharedLimits,
+        federalData.federalLimits,
+        federalData.ficaData,
       );
       const spouse2State = calculateStateForInputs(spouse2Inputs);
 
@@ -496,7 +524,7 @@ export default function TaxCalculator() {
         },
       };
     },
-    [inputs, calculateStateForInputs],
+    [inputs, calculateStateForInputs, federalData],
   );
 
   const stateLabel = STATE_LABELS[inputs.selectedState];
@@ -506,7 +534,7 @@ export default function TaxCalculator() {
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-text-primary font-display">
-            2025 Estimated Tax Calculator
+            {taxYear} Estimated Tax Calculator
           </h1>
           <p className="text-text-secondary mt-2">
             Federal & {stateLabel} Tax Estimation
@@ -519,12 +547,16 @@ export default function TaxCalculator() {
           <ConfigurationSection
             filingStatus={inputs.filingStatus}
             selectedState={inputs.selectedState}
+            taxYear={taxYear}
             isNYCResident={inputs.isNYCResident}
             onFilingStatusChange={(status: FilingStatus) =>
               updateInput("filingStatus", status)
             }
             onStateChange={(state: TaxState) =>
               updateInput("selectedState", state)
+            }
+            onTaxYearChange={(year: TaxYear) =>
+              updateInput("taxYear", year)
             }
             onNYCResidentChange={(isNYC: boolean) =>
               updateInput("isNYCResident", isNYC)
@@ -589,8 +621,8 @@ export default function TaxCalculator() {
             <DeductionInputs
               inputs={inputs}
               onUpdate={updateInput}
-              sharedLimits={sharedLimits}
-              federalLimits={federalLimits}
+              sharedLimits={federalData.sharedLimits}
+              federalLimits={federalData.federalLimits}
               federalAgi={results.federal.adjustedGrossIncome}
               federalResults={federalResultsForModal}
               calculateCharitableScenario={calculateCharitableScenario}
@@ -600,7 +632,7 @@ export default function TaxCalculator() {
           </div>
 
           <ErrorBoundary>
-            <TaxResultsDisplay results={results} />
+            <TaxResultsDisplay results={results} taxYear={taxYear} />
           </ErrorBoundary>
         </div>
       </div>

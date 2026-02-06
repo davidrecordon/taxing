@@ -1,18 +1,22 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { TaxCalculationResult, ColoradoLimitsData } from "@/lib/types";
 import { formatCurrency, formatPercent } from "@/lib/formatters";
-import { TAX_YEAR } from "@/lib/config";
+import { TaxYear } from "@/lib/config";
 import BracketTable from "../shared/BracketTable";
 import TaxSummarySection from "../shared/TaxSummarySection";
 import allColoradoLimits from "@/data/colorado-limits.json";
 
-const limits = allColoradoLimits[TAX_YEAR] as ColoradoLimitsData;
-
 interface Props {
   result: TaxCalculationResult;
+  taxYear: TaxYear;
 }
 
-export default memo(function ColoradoBreakdown({ result }: Props) {
+export default memo(function ColoradoBreakdown({ result, taxYear }: Props) {
+  const limits = useMemo(
+    () => allColoradoLimits[taxYear] as ColoradoLimitsData,
+    [taxYear],
+  );
+
   return (
     <div className="theme-card p-4">
       <h2 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 font-display">

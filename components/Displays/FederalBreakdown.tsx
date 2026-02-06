@@ -1,21 +1,28 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { TaxCalculationResult, FederalLimitsData, FicaData } from "@/lib/types";
 import { formatCurrency, formatPercent } from "@/lib/formatters";
 import { calculateEffectiveRates } from "@/lib/taxUtils";
-import { TAX_YEAR } from "@/lib/config";
+import { TaxYear } from "@/lib/config";
 import BracketTable from "../shared/BracketTable";
 import TaxSummarySection from "../shared/TaxSummarySection";
 import allFederalLimits from "@/data/federal-limits.json";
 import allFicaData from "@/data/fica.json";
 
-const federalLimits = allFederalLimits[TAX_YEAR] as FederalLimitsData;
-const ficaData = allFicaData[TAX_YEAR] as FicaData;
-
 interface Props {
   result: TaxCalculationResult;
+  taxYear: TaxYear;
 }
 
-export default memo(function FederalBreakdown({ result }: Props) {
+export default memo(function FederalBreakdown({ result, taxYear }: Props) {
+  const federalLimits = useMemo(
+    () => allFederalLimits[taxYear] as FederalLimitsData,
+    [taxYear],
+  );
+  const ficaData = useMemo(
+    () => allFicaData[taxYear] as FicaData,
+    [taxYear],
+  );
+
   return (
     <div className="theme-card p-4">
       <h2 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 font-display">

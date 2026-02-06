@@ -45,7 +45,7 @@ export function calculateFederalDeductions(
     inputs.stateEstimatedPaid +
     inputs.propertyTaxesPaid;
 
-  // SALT cap is AGI-dependent for 2025:
+  // SALT cap is AGI-dependent:
   // - AGI < $500k: elevated limits ($40k MFJ, $20k Single/MFS)
   // - AGI >= $500k: standard limits ($10k default, $5k MFS)
   const saltLimit =
