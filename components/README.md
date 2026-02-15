@@ -62,7 +62,7 @@ Tests are colocated with components in `__tests__/` subdirectories:
 - `UI/__tests__/` - UI component tests
 - `shared/__tests__/` - Shared component tests
 
-Run tests with `npm test`.
+Run tests with `bun test`.
 
 ## Adding a New State Display
 

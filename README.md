@@ -29,19 +29,19 @@ A web-based tax estimation tool for calculating Federal and state income taxes. 
 
 ```bash
 # Install dependencies
-npm install
+bun install
 
 # Run development server
-npm run dev
+bun run dev
 
 # Run tests
-npm test
+bun test
 
 # Run linter
-npm run lint
+bun run lint
 
 # Build for production
-npm run build
+bun run build
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to view the calculator.
@@ -53,9 +53,9 @@ The project uses [Vitest](https://vitest.dev/) with [React Testing Library](http
 ### Running Tests
 
 ```bash
-npm test              # Run all tests in watch mode
-npm run test:run      # Run tests once (CI mode)
-npm run test:coverage # Run with coverage report
+bun test              # Run all tests in watch mode
+bun run test:run      # Run tests once (CI mode)
+bun run test:coverage # Run with coverage report
 ```
 
 ### Test Structure
@@ -131,6 +131,7 @@ See `lib/__tests__/README.md` for more context on (non-UI) tests.
 
 ## Tech Stack
 
+- [Bun](https://bun.sh/) - JavaScript runtime and package manager
 - [Next.js](https://nextjs.org/) - React framework
 - [TypeScript](https://www.typescriptlang.org/) - Type safety
 - [Tailwind CSS](https://tailwindcss.com/) - Styling

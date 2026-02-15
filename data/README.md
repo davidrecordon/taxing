@@ -326,7 +326,7 @@ Cross-cutting limits that apply to all jurisdictions.
 3. Update values based on IRS/FTB/DOR announcements (see Data Sources below)
 4. Verify all values against official sources and update `VERIFICATION.md`
 5. Update `TAX_YEAR` in `lib/config.ts` when ready to switch
-6. Run tests to verify: `npm test`
+6. Run tests to verify: `bun test`
 
 ## Adding a New State
 
