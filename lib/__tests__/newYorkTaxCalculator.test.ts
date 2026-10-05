@@ -857,6 +857,37 @@ describe("calculateNewYorkTax", () => {
       expect(result.ordinaryIncomeTax).toBeCloseTo(9712.80, 0);
     });
 
+    it("MFS filer $208k uses the single schedule - exact calculation", () => {
+      // Gross: $208,000
+      // Standard deduction (MFS): $8,000
+      // Taxable: $200,000
+      //
+      // NY 2026 brackets (single and MFS):
+      // $0 - $8,500 @ 3.9% = $331.50
+      // $8,500 - $11,700 @ 4.4% = $140.80
+      // $11,700 - $13,900 @ 5.15% = $113.30
+      // $13,900 - $80,650 @ 5.4% = $3,604.50
+      // $80,650 - $200,000 @ 5.9% = $119,350 × 0.059 = $7,041.65
+      // Total: $11,231.75
+      const inputs = createDefaultInputs({
+        federalIncome: 208000,
+        filingStatus: "marriedFilingSeparately",
+      });
+
+      const result = calculateNewYorkTax(
+        inputs,
+        newYorkBrackets,
+        nycBrackets,
+        newYorkDeductions,
+        sharedLimits,
+        federalLimits,
+        newYorkLimits,
+      );
+
+      expect(result.taxableOrdinaryIncome).toBe(200000);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(11231.75, 0);
+    });
+
     it("high income single filer hits 6.85% bracket - exact calculation", () => {
       // Gross: $300,000
       // Standard deduction: $8,000

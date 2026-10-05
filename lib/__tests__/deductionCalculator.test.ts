@@ -394,7 +394,7 @@ describe("calculateCaliforniaDeductions", () => {
     // Only mortgage interest + charitable = $15,000
     expect(result.saltDeduction).toBe(0);
     expect(result.itemizedDeduction).toBe(15000);
-    // $15,000 > $5,540 standard, so itemized
+    // $15,000 > $5,900 standard, so itemized
     expect(result.deductionUsed).toBe("itemized");
   });
 
@@ -439,9 +439,9 @@ describe("calculateCaliforniaDeductions edge cases", () => {
     expect(result.mortgageInterest).toBe(40000);
   });
 
-  it("uses CA standard deduction of $5,540 for single", () => {
+  it("uses CA standard deduction of $5,900 for single", () => {
     const inputs = createDefaultDeductionInputs({
-      charitableContributions: 3000, // less than $5,540
+      charitableContributions: 3000, // less than $5,900
     });
 
     const result = calculateCaliforniaDeductions(
@@ -451,14 +451,14 @@ describe("calculateCaliforniaDeductions edge cases", () => {
       californiaLimits,
     );
 
-    expect(result.standardDeduction).toBe(5540);
+    expect(result.standardDeduction).toBe(5900);
     expect(result.deductionUsed).toBe("standard");
-    expect(result.deductionAmount).toBe(5540);
+    expect(result.deductionAmount).toBe(5900);
   });
 
-  it("uses CA standard deduction of $11,080 for MFJ", () => {
+  it("uses CA standard deduction of $11,800 for MFJ", () => {
     const inputs = createDefaultDeductionInputs({
-      charitableContributions: 8000, // less than $11,080
+      charitableContributions: 8000, // less than $11,800
     });
 
     const result = calculateCaliforniaDeductions(
@@ -468,7 +468,7 @@ describe("calculateCaliforniaDeductions edge cases", () => {
       californiaLimits,
     );
 
-    expect(result.standardDeduction).toBe(11080);
+    expect(result.standardDeduction).toBe(11800);
     expect(result.deductionUsed).toBe("standard");
   });
 
@@ -524,7 +524,7 @@ describe("calculateCaliforniaDeductions edge cases", () => {
     // Only charitable counts
     expect(result.itemizedDeduction).toBe(3000);
     expect(result.saltDeduction).toBe(0);
-    // $3k < $5,540 std, use standard
+    // $3k < $5,900 std, use standard
     expect(result.deductionUsed).toBe("standard");
   });
 });

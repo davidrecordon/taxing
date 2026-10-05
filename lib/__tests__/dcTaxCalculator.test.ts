@@ -54,14 +54,14 @@ describe("calculateDCTax", () => {
         ficaData,
       );
 
-      // $100k - $15k standard deduction = $85k taxable
+      // $100k - $16,100 standard deduction = $83,900 taxable
       // First $10k @ 4% = $400
       // $10k - $40k (30k) @ 6% = $1,800
       // $40k - $60k (20k) @ 6.5% = $1,300
-      // $60k - $85k (25k) @ 8.5% = $2,125
-      // Total = $5,625
-      expect(result.taxableOrdinaryIncome).toBe(85000);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(5625, 0);
+      // $60k - $83.9k (23.9k) @ 8.5% = $2,031.50
+      // Total = $5,531.50
+      expect(result.taxableOrdinaryIncome).toBe(83900);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(5531.5, 0);
     });
 
     it("calculates tax for high income in top bracket", () => {
@@ -81,17 +81,17 @@ describe("calculateDCTax", () => {
         ficaData,
       );
 
-      // $2M - $15k deduction = $1,985,000 taxable
+      // $2M - $16,100 deduction = $1,983,900 taxable
       // First $10k @ 4% = $400
       // $10k - $40k @ 6% = $1,800
       // $40k - $60k @ 6.5% = $1,300
       // $60k - $250k @ 8.5% = $16,150
       // $250k - $500k @ 9.25% = $23,125
       // $500k - $1M @ 9.75% = $48,750
-      // $1M - $1.985M @ 10.75% = $105,887.50
-      // Total = ~$197,412.50
-      expect(result.taxableOrdinaryIncome).toBe(1985000);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(197412.5, 0);
+      // $1M - $1.9839M @ 10.75% = $105,769.25
+      // Total = ~$197,294.25
+      expect(result.taxableOrdinaryIncome).toBe(1983900);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(197294.25, 0);
     });
   });
 
@@ -129,10 +129,10 @@ describe("calculateDCTax", () => {
         ficaData,
       );
 
-      // Single: $100k - $15k = $85k taxable
-      // MFJ: $100k - $30k = $70k taxable
-      expect(singleResult.taxableOrdinaryIncome).toBe(85000);
-      expect(mfjResult.taxableOrdinaryIncome).toBe(70000);
+      // Single: $100k - $16,100 = $83,900 taxable
+      // MFJ: $100k - $32,200 = $67,800 taxable
+      expect(singleResult.taxableOrdinaryIncome).toBe(83900);
+      expect(mfjResult.taxableOrdinaryIncome).toBe(67800);
 
       // MFJ has higher deduction, so lower tax
       expect(mfjResult.totalTax).toBeLessThan(singleResult.totalTax);
@@ -155,9 +155,9 @@ describe("calculateDCTax", () => {
         ficaData,
       );
 
-      // $50k - $15k MFS standard deduction = $35k taxable
-      expect(result.taxableOrdinaryIncome).toBe(35000);
-      expect(result.deductionBreakdown.standardDeduction).toBe(15000);
+      // $50k - $16,100 MFS standard deduction = $33,900 taxable
+      expect(result.taxableOrdinaryIncome).toBe(33900);
+      expect(result.deductionBreakdown.standardDeduction).toBe(16100);
     });
   });
 
@@ -180,9 +180,9 @@ describe("calculateDCTax", () => {
         ficaData,
       );
 
-      // $100k gross - $15k deduction = $85k taxable
+      // $100k gross - $16,100 deduction = $83,900 taxable
       expect(result.grossIncome).toBe(100000);
-      expect(result.taxableOrdinaryIncome).toBe(85000);
+      expect(result.taxableOrdinaryIncome).toBe(83900);
       expect(result.ltcgTax).toBe(0); // No separate LTCG treatment
     });
 
@@ -205,9 +205,9 @@ describe("calculateDCTax", () => {
         ficaData,
       );
 
-      // Gross = $120k, less $10k LTCG offset, less $15k deduction = $95k taxable
+      // Gross = $120k, less $10k LTCG offset, less $16,100 deduction = $93,900 taxable
       expect(result.longTermLossCarryoverOffset).toBe(10000);
-      expect(result.taxableOrdinaryIncome).toBe(95000);
+      expect(result.taxableOrdinaryIncome).toBe(93900);
     });
   });
 
@@ -285,8 +285,8 @@ describe("calculateDCTax", () => {
       );
 
       expect(result.totalPaid).toBe(4000);
-      // Tax = ~$5,625, paid $4,000, owed ~$1,625
-      expect(result.remainingOwed).toBeCloseTo(1625, 0);
+      // Tax = ~$5,531.50, paid $4,000, owed ~$1,531.50
+      expect(result.remainingOwed).toBeCloseTo(1531.5, 0);
       expect(result.refundDue).toBe(0);
     });
 
@@ -335,7 +335,7 @@ describe("calculateDCTax", () => {
         ficaData,
       );
 
-      // Itemized = $30k > $15k standard
+      // Itemized = $30k > $16,100 standard
       expect(result.deductionBreakdown.deductionUsed).toBe("itemized");
       expect(result.deductionBreakdown.deductionAmount).toBe(30000);
       expect(result.taxableOrdinaryIncome).toBe(170000);
@@ -440,10 +440,10 @@ describe.each(SUPPORTED_YEARS)(
         data.ficaData,
       );
 
-      // DC standard deduction (unchanged for 2025/2026)
+      // DC standard deduction varies by year
       const expectedStdDeduction = {
         "2025": 15000,
-        "2026": 15000,
+        "2026": 16100,
       };
 
       expect(result.deductionBreakdown.standardDeduction).toBe(
@@ -468,14 +468,19 @@ describe.each(SUPPORTED_YEARS)(
         data.ficaData,
       );
 
-      // $100k - $15k standard deduction = $85k taxable
-      // Tax calculation same for both years (brackets unchanged)
+      // Brackets are unchanged; the standard deduction differs by year
+      // 2025: $100k - $15,000 = $85,000 taxable
+      // 2026: $100k - $16,100 = $83,900 taxable
+      const expectedTaxableIncome = {
+        "2025": 85000,
+        "2026": 83900,
+      };
       const expectedTax = {
         "2025": 5625,
-        "2026": 5625,
+        "2026": 5531.5,
       };
 
-      expect(result.taxableOrdinaryIncome).toBe(85000);
+      expect(result.taxableOrdinaryIncome).toBe(expectedTaxableIncome[year]);
       expect(result.ordinaryIncomeTax).toBeCloseTo(expectedTax[year], 0);
     });
 
@@ -499,7 +504,7 @@ describe.each(SUPPORTED_YEARS)(
       // DC MFJ standard deduction
       const expectedStdDeduction = {
         "2025": 30000,
-        "2026": 30000, // Using 2025 base pending official COLA-adjusted amount
+        "2026": 32200,
       };
 
       expect(result.deductionBreakdown.standardDeduction).toBe(

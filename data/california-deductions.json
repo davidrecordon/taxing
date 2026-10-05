@@ -1,16 +1,16 @@
 {
   "2025": {
     "standardDeduction": {
-      "single": 5540,
-      "marriedFilingJointly": 11080,
-      "marriedFilingSeparately": 5540
+      "single": 5706,
+      "marriedFilingJointly": 11412,
+      "marriedFilingSeparately": 5706
     }
   },
   "2026": {
     "standardDeduction": {
-      "single": 5540,
-      "marriedFilingJointly": 11080,
-      "marriedFilingSeparately": 5540
+      "single": 5900,
+      "marriedFilingJointly": 11800,
+      "marriedFilingSeparately": 5900
     }
   }
 }

@@ -40,6 +40,36 @@ describe("calculateFederalTax", () => {
       expect(result.taxableOrdinaryIncome).toBe(83900);
       expect(result.ordinaryIncomeTax).toBe(13170);
     });
+
+    it("calculates tax correctly through every bracket for married filing jointly with $1,000,000 W-2 income", () => {
+      // $1,000,000 income - $32,200 standard deduction = $967,800 taxable
+      // Bracket breakdown:
+      // $24,800 @ 10% = $2,480.00
+      // $76,000 ($100,800 - $24,800) @ 12% = $9,120.00
+      // $110,600 ($211,400 - $100,800) @ 22% = $24,332.00
+      // $192,150 ($403,550 - $211,400) @ 24% = $46,116.00
+      // $108,900 ($512,450 - $403,550) @ 32% = $34,848.00
+      // $256,250 ($768,700 - $512,450) @ 35% = $89,687.50
+      // $199,100 ($967,800 - $768,700) @ 37% = $73,667.00
+      // Total ordinary income tax = $280,250.50
+      const inputs = createDefaultInputs({
+        federalIncome: 1000000,
+        filingStatus: "marriedFilingJointly",
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData,
+      );
+
+      expect(result.taxableOrdinaryIncome).toBe(967800);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(280250.5, 2);
+    });
   });
 
   describe("FICA taxes", () => {

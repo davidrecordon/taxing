@@ -1,6 +1,6 @@
 # Tax Data Verification
 
-Last verified: 2026-02-04
+Last verified: 2026-10-05
 
 This document verifies that all tax data in the JSON files matches official government sources.
 
@@ -83,13 +83,15 @@ This document verifies that all tax data in the JSON files matches official gove
 | ------- | ----------------- | ----------------- | ----------------- | ----- |
 | 10%     | $0-$12,400        | $0-$24,800        | $0-$12,400        | Yes   |
 | 12%     | $12,400-$50,400   | $24,800-$100,800  | $12,400-$50,400   | Yes   |
-| 22%     | $50,400-$105,700  | $100,800-$201,050 | $50,400-$105,700  | Yes   |
-| 24%     | $105,700-$201,775 | $201,050-$403,500 | $105,700-$201,775 | Yes   |
-| 32%     | $201,775-$256,225 | $403,500-$512,300 | $201,775-$256,225 | Yes   |
-| 35%     | $256,225-$640,600 | $512,300-$768,600 | $256,225-$384,350 | Yes   |
-| 37%     | $640,600+         | $768,600+         | $384,350+         | Yes   |
+| 22%     | $50,400-$105,700  | $100,800-$211,400 | $50,400-$105,700  | Yes   |
+| 24%     | $105,700-$201,775 | $211,400-$403,550 | $105,700-$201,775 | Yes   |
+| 32%     | $201,775-$256,225 | $403,550-$512,450 | $201,775-$256,225 | Yes   |
+| 35%     | $256,225-$640,600 | $512,450-$768,700 | $256,225-$384,350 | Yes   |
+| 37%     | $640,600+         | $768,700+         | $384,350+         | Yes   |
 
 **Note:** The One Big Beautiful Bill Act provided 4% inflation adjustment for the bottom two brackets and 2.3% for higher brackets.
+
+**Correction (2026-10-05):** The MFJ thresholds for the 24%, 32%, 35%, and 37% brackets were previously recorded as $201,050, $403,500, $512,300, and $768,600. They were corrected to $211,400, $403,550, $512,450, and $768,700 after re-verifying against the IRS release and the Tax Foundation table.
 
 ### Standard Deductions
 
@@ -137,12 +139,15 @@ This document verifies that all tax data in the JSON files matches official gove
 
 ### Standard Deductions
 
-**Source:** [FTB Form 540 Instructions](https://www.ftb.ca.gov/forms/2025/)
+**Source:** [FTB Tax News, October 2026 ("2026 Indexing")](https://www.ftb.ca.gov/about-ftb/newsroom/tax-news/index.html), which lists the 2025 amounts alongside 2026
 
 | Filing Status | Our Data | Official | Match |
 | ------------- | -------- | -------- | ----- |
-| Single        | $5,540   | $5,540   | Yes   |
-| MFJ           | $11,080  | $11,080  | Yes   |
+| Single        | $5,706   | $5,706   | Yes   |
+| MFJ           | $11,412  | $11,412  | Yes   |
+| MFS           | $5,706   | $5,706   | Yes   |
+
+**Correction (2026-10-05):** Previously recorded as $5,540/$11,080, which are the 2024 amounts.
 
 ### Mental Health Services Tax
 
@@ -172,6 +177,8 @@ This document verifies that all tax data in the JSON files matches official gove
 | 9.65% | $1,077,550-$5,000,000  | $2,155,350-$5,000,000  | Yes   |
 | 10.3% | $5,000,000-$25,000,000 | $5,000,000-$25,000,000 | Yes   |
 | 10.9% | $25,000,000+           | $25,000,000+           | Yes   |
+
+**Note:** Married filing separately uses the single schedule ([IT-201 instructions, 2025](https://www.tax.ny.gov/forms/html-instructions/2025/it/it201i-2025.htm)). **Correction (2026-10-05):** our MFS data previously ended the 6% bracket at $161,550 instead of $215,400, for both 2025 and 2026.
 
 ### Standard Deductions
 
@@ -317,28 +324,33 @@ This document verifies that all tax data in the JSON files matches official gove
 
 ### Tax Brackets
 
-**Source:** [FTB 2026 Tax Rate Schedules](https://www.ftb.ca.gov/forms/2026/2026-540-tax-rate-schedules.pdf) (projected)
+**Source:** [FTB Tax News, October 2026 ("2026 Indexing")](https://www.ftb.ca.gov/about-ftb/newsroom/tax-news/index.html). The 2026 Form 540 tax rate schedules PDF is not published until late December.
 
-| Rate  | Single              | MFJ                 | Match |
-| ----- | ------------------- | ------------------- | ----- |
-| 1%    | $0-$10,756          | $0-$21,512          | Yes   |
-| 2%    | $10,756-$25,499     | $21,512-$50,998     | Yes   |
-| 4%    | $25,499-$40,245     | $50,998-$80,490     | Yes   |
-| 6%    | $40,245-$55,866     | $80,490-$111,732    | Yes   |
-| 8%    | $55,866-$70,606     | $111,732-$141,212   | Yes   |
-| 9.3%  | $70,606-$375,002    | $141,212-$750,004   | Yes   |
-| 10.3% | $375,002-$450,003   | $750,004-$900,006   | Yes   |
-| 11.3% | $450,003-$1,000,000 | $900,006-$1,000,000 | Yes   |
-| 12.3% | $1,000,000+         | $1,000,000+         | Yes   |
+| Rate  | Single / MFS      | MFJ                 | Match |
+| ----- | ----------------- | ------------------- | ----- |
+| 1%    | $0-$11,456        | $0-$22,912          | Yes   |
+| 2%    | $11,456-$27,157   | $22,912-$54,314     | Yes   |
+| 4%    | $27,157-$42,861   | $54,314-$85,722     | Yes   |
+| 6%    | $42,861-$59,498   | $85,722-$118,996    | Yes   |
+| 8%    | $59,498-$75,197   | $118,996-$150,394   | Yes   |
+| 9.3%  | $75,197-$384,109  | $150,394-$768,218   | Yes   |
+| 10.3% | $384,109-$460,927 | $768,218-$921,854   | Yes   |
+| 11.3% | $460,927-$768,213 | $921,854-$1,536,426 | Yes   |
+| 12.3% | $768,213+         | $1,536,426+         | Yes   |
+
+**Note:** FTB indexed 2026 amounts by 3.4% (California CPI, June 2025 to June 2026). Every threshold above equals the 2025 threshold times 1.034, rounded.
 
 ### Standard Deductions
 
+**Source:** [FTB Tax News, October 2026 ("2026 Indexing")](https://www.ftb.ca.gov/about-ftb/newsroom/tax-news/index.html)
+
 | Filing Status | Our Data | Official | Match |
 | ------------- | -------- | -------- | ----- |
-| Single        | $5,540   | $5,540   | Yes   |
-| MFJ           | $11,080  | $11,080  | Yes   |
+| Single        | $5,900   | $5,900   | Yes   |
+| MFJ           | $11,800  | $11,800  | Yes   |
+| MFS           | $5,900   | $5,900   | Yes   |
 
-**Note:** California 2026 brackets reflect inflation adjustments. Mental health tax remains 1% over $1M.
+**Correction (2026-10-05):** The brackets previously recorded here were not official values (the low brackets were the 2024 thresholds and the upper brackets matched no FTB schedule), and the standard deductions were the 2024 amounts. Replaced with the indexed amounts FTB announced in October 2026. Mental health tax remains 1% over $1M.
 
 ---
 
@@ -346,7 +358,7 @@ This document verifies that all tax data in the JSON files matches official gove
 
 ### Tax Brackets
 
-**Source:** [NY DTF Withholding Tax Rate Changes](https://www.tax.ny.gov/bus/wt/rate.htm)
+**Source:** [NY DTF Withholding Tax Rate Changes](https://www.tax.ny.gov/bus/wt/rate.htm), [IT-2105-I (2026) tax rate schedules](https://www.tax.ny.gov/pdf/current_forms/it/it2105i.pdf)
 
 NY enacted 0.1% rate reductions for the bottom 5 brackets effective 2026:
 
@@ -386,7 +398,7 @@ NY enacted 0.1% rate reductions for the bottom 5 brackets effective 2026:
 | Surtax Rate      | 9.9%       | 9.9%       | Yes                      |
 | Surtax Threshold | $1,000,000 | $1,000,000 | Yes                      |
 
-**Note:** The 2026 exemption threshold has NOT been announced by WA DOR as of 2026-02-04. Currently using the 2025 value ($278,000) as a placeholder. The exemption is adjusted annually for inflation per RCW 82.87.150. Check the WA DOR website for the official 2026 amount when published.
+**Note:** The 2026 exemption threshold has NOT been announced by WA DOR as of 2026-10-05. Currently using the 2025 value ($278,000) as a placeholder. The exemption is adjusted annually for inflation per RCW 82.87.150. Check the WA DOR website for the official 2026 amount when published.
 
 ---
 
@@ -447,8 +459,24 @@ Same as 2025 (brackets not inflation-adjusted).
 
 ### Standard Deductions
 
+**Source:** [OTR 2026 D-40ES booklet](https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2026_D40ES_Book_wLinks04012026.pdf) (rev. 03/2026), estimated tax worksheet line 2b
+
 | Filing Status | Our Data | Official | Match |
 | ------------- | -------- | -------- | ----- |
+| Single        | $16,100  | $16,100  | Yes   |
+| MFJ           | $32,200  | $32,200  | Yes   |
+| MFS           | $16,100  | $16,100  | Yes   |
+
+**Note:** Updated 2026-10-05 from the $15,000/$30,000 placeholders (the 2025 amounts). OTR's booklet is the only official source found; some third-party calculators show $15,700/$31,400. Re-check against the 2026 D-40 instructions when published.
+
+------------- | -------- | -------- | -------------------------- |
+| Single        | $15,000  | TBD      | WAITING - using 2025 value |
+| MFJ           | $30,000  | TBD      | WAITING - using 2025 value |
+| MFS           | $15,000  | TBD      | WAITING - using 2025 value |
+
+**Note:** The 2026 amounts are unresolved as of 2026-10-05, and the $15,000/$30,000 placeholders are almost certainly too low. [D.C. Act 26-214](https://code.dccouncil.gov/us/dc/council/acts/26-214) sets the 2025 base at $15,000/$30,000 with annual COLA adjustments for 2026+. The [OTR 2026 D-40ES booklet](https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2026_D40ES_Book_wLinks04012026.pdf) (rev. 03/2026) worksheet uses $16,100 single/MFS and $32,200 MFJ, while some third-party calculators show $15,700/$31,400. No second official source confirms either, so the data was left unchanged. Check the 2026 D-40 instructions when published.
+
+------------- | -------- | -------- | ----- |
 | Single        | $15,000  | $15,000  | Yes   |
 | MFJ           | $30,000  | TBD      | WAITING - using 2025 base |
 | MFS           | $15,000  | $15,000  | Yes   |
@@ -468,19 +496,29 @@ Same as 2025 (brackets not inflation-adjusted).
 
 ---
 
-## 2026 Data Status (as of 2026-02-04)
+## 2026 Data Status (as of 2026-10-05)
 
 2026 tax data status:
 
-| Jurisdiction | Status | Source |
-| ------------ | ------ | ------ |
-| Federal | Verified | IRS Rev. Proc. 2025-32 |
-| California | Verified | FTB 2026 withholding schedules |
-| New York | Verified | NY DTF (0.1% rate reductions applied) |
-| Illinois | Verified | IDOR FY 2026-15 bulletin |
-| Colorado | Verified | CO DOR (4.4% unchanged) |
-| Florida | N/A | No state income tax |
-| **DC** | **WAITING** | 2026 MFJ standard deduction not yet published by DC OTR; using 2025 base ($30,000) |
-| **Washington** | **WAITING** | 2026 exemption threshold not yet announced by WA DOR |
+| Jurisdiction   | Status      | Source                                                                            |
+| -------------- | ----------- | --------------------------------------------------------------------------------- |
+| Federal        | Verified    | IRS Rev. Proc. 2025-32                                                            |
+| California     | Verified    | FTB Tax News, October 2026 (2026 indexing)                                        |
+| New York       | Verified    | NY DTF IT-2105-I (0.1% rate reductions applied)                                   |
+| Illinois       | Verified    | IDOR FY 2026-15 bulletin                                                          |
+| Colorado       | Verified    | CO DOR (4.4% unchanged)                                                           |
+| Florida        | N/A         | No state income tax                                                               |
+| DC             | Verified    | OTR 2026 D-40ES booklet (standard deductions); brackets unchanged                 |
+| **Washington** | **WAITING** | 2026 exemption threshold not yet announced by WA DOR; using 2025 value ($278,000) |
 
-**Pending items:** Washington 2026 capital gains exemption threshold, DC 2026 MFJ standard deduction (COLA-adjusted amount).
+**Pending items:** Washington 2026 capital gains exemption threshold.
+
+---
+
+## Discrepancies Fixed (2026-10-05)
+
+1. **Federal 2026 MFJ brackets:** four thresholds corrected (see Federal 2026 above). Source: IRS Rev. Proc. 2025-32, Tax Foundation.
+2. **California 2026 brackets and standard deductions:** replaced with the FTB-indexed amounts.
+3. **California 2025 standard deductions:** $5,540/$11,080 corrected to $5,706/$11,412.
+4. **New York MFS brackets (2025 and 2026):** 6% (5.9% in 2026) bracket now ends at $215,400, matching the single schedule.
+5. **DC 2026 standard deductions:** $15,000/$30,000 placeholders replaced with $16,100/$32,200 from the OTR 2026 D-40ES booklet.
