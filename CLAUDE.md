@@ -23,7 +23,7 @@ lib/                   # Calculation logic (see lib/README.md)
 ```bash
 bun run dev        # Start Next.js dev server (localhost:3000)
 bun run build      # Production build
-bun test           # Run tests
+bun run test:run   # Run tests once (Vitest)
 bun run lint       # Run ESLint
 ```
 
@@ -70,7 +70,7 @@ Follow the guide in `README.md` under "Adding a New State". The pattern is well-
 
 1. Update the relevant calculator in `lib/` or `lib/states/`
 2. Update or add tests in `lib/__tests__/`
-3. Run `bun test` to verify
+3. Run `bun run test:run` to verify
 
 ### Updating Tax Data
 
@@ -79,7 +79,7 @@ When updating tax brackets, deductions, or limits in `data/`:
 1. Always verify values against official government sources (IRS, FTB, DOR, etc.)
 2. Update `data/VERIFICATION.md` with the source URL and verification date
 3. Update affected tests with correct expected values
-4. Run `bun test` and `bun run build` to verify all tests pass
+4. Run `bun run test:run` and `bun run build` to verify all tests pass
 
 ## Before Committing
 
@@ -87,7 +87,7 @@ Always run linters and tests before committing changes:
 
 ```bash
 bun run lint       # ESLint
-bun test           # Vitest
+bun run test:run   # Vitest
 bun run build      # Production build
 ```
 

@@ -5,7 +5,7 @@ Unit tests for all tax calculation logic. These tests verify mathematical correc
 ## Running Tests
 
 ```bash
-bun test                # Watch mode
+bun run test            # Watch mode
 bun run test:run        # Single run (CI)
 bun run test:coverage   # With coverage report
 ```
@@ -147,8 +147,8 @@ describe("calculateSomeTax", () => {
 
 When tax data in `data/*.json` changes:
 
-1. Run `bun test` to identify failing tests
+1. Run `bun run test:run` to identify failing tests
 2. Verify the new expected values against official sources
 3. Update test expectations to match verified correct values
 4. Update `data/VERIFICATION.md` if needed
-5. Run `bun test` again to confirm all pass
+5. Run `bun run test:run` again to confirm all pass

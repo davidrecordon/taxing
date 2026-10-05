@@ -35,7 +35,7 @@ bun install
 bun run dev
 
 # Run tests
-bun test
+bun run test
 
 # Run linter
 bun run lint
@@ -53,7 +53,7 @@ The project uses [Vitest](https://vitest.dev/) with [React Testing Library](http
 ### Running Tests
 
 ```bash
-bun test              # Run all tests in watch mode
+bun run test          # Run all tests in watch mode
 bun run test:run      # Run tests once (CI mode)
 bun run test:coverage # Run with coverage report
 ```
