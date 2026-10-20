@@ -158,6 +158,20 @@ This document verifies that all tax data in the JSON files matches official gove
 
 **Notes:** Neither rule applies for 2025 (rate 0 and numerator 0 in the data). The overall limitation threshold is the start of the 37% bracket and is read from `federal-brackets.json`, not stored separately. It is applied after every other limit, to AGI less the QBI deduction, and the QBI deduction is computed without regard to it. The statute says 2/37; the 2026 Form 1040-ES and Pub. 505 worksheets use 5.4%, a difference of about $0.54 per $1,000. Not modelled: the non-itemizer charitable deduction ($1,000, $2,000 joint, cash gifts only), and the percentage-of-AGI limits on charitable gifts.
 
+### Self-Employment Income: QBI Base and Additional Medicare Tax
+
+**Sources:** [Instructions for Form 8995](https://www.irs.gov/instructions/i8995) ("Determining Your Qualified Business Income"); [Instructions for Form 8959](https://www.irs.gov/instructions/i8959), Part II. Verified 2026-10-20.
+
+| Rule | Calculator | Official |
+| ---- | ---------- | -------- |
+| Qualified business income | Business income less the deductible half of self-employment tax | Items attributable to the business are taken into account, including the "deductible part of self-employment tax" |
+| Additional Medicare tax on self-employment income | 0.9% of net earnings (92.35% of business income) over the threshold | 0.9% of self-employment income from Schedule SE over the threshold |
+| Threshold | $200,000, $250,000 joint, $125,000 separate, less wages, not below zero | Same; "reduced (but not below zero) by the total amount of Medicare wages" |
+
+**Notes:** The Additional Medicare tax on self-employment earnings is part of total tax, the amount owed and the safe harbor, because nobody withholds it; the same tax on wages is assumed to be withheld and is shown for information only. It is not part of the deductible half of self-employment tax. Known approximations: the QBI deduction phases out to zero above the threshold, which is right for a specified service business and for a business with no employees or qualified property, and understates the deduction for a business with either; the self-employed health insurance and retirement plan deductions, which would also reduce qualified business income, are not inputs; for a joint return the Social Security wage base and the Additional Medicare threshold are applied to the couple's combined wages and business income as if one person earned them.
+
+**Correction (2026-10-20):** The calculator previously took 20% of gross business income for the QBI deduction, and did not charge the Additional Medicare tax on self-employment earnings.
+
 ---
 
 ## California (2025)

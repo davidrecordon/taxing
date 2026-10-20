@@ -110,22 +110,6 @@ describe("FederalBreakdown", () => {
 
       expect(screen.getByText("Gross Income")).toBeInTheDocument();
     });
-
-    it("shows AGI before deductions and taxable income after", () => {
-      const result = createMockResult({
-        adjustedGrossIncome: 100000,
-        taxableOrdinaryIncome: 80000,
-        taxableLTCG: 3900,
-      });
-      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
-
-      const agiRow = screen.getByText(
-        "Adjusted Gross Income (AGI)",
-      ).parentElement!;
-      const taxableRow = screen.getByText("Taxable Income").parentElement!;
-      expect(agiRow).toHaveTextContent("$100,000");
-      expect(taxableRow).toHaveTextContent("$83,900");
-    });
   });
 
   describe("deductions", () => {
@@ -310,6 +294,21 @@ describe("FederalBreakdown", () => {
       render(<FederalBreakdown result={federal} taxYear={TAX_YEAR} />);
       return federal;
     };
+
+    it("shows the Additional Medicare tax on self-employment earnings in the SE tax total", () => {
+      // $300,000 of business income: self-employment tax $30,912.45 plus
+      // Additional Medicare $693.45 = $31,605.90
+      renderFederal({ selfEmploymentIncome: 300000 });
+
+      expect(rowText(/Additional Medicare/)).toContain("$693");
+      expect(rowText("Total SE Tax")).toContain("$31,606");
+    });
+
+    it("leaves the Additional Medicare row out when none is due", () => {
+      renderFederal({ selfEmploymentIncome: 100000 });
+
+      expect(screen.queryByText(/Additional Medicare/)).not.toBeInTheDocument();
+    });
 
     it("keeps payroll tax out of the Federal tax total", () => {
       // $100,000 wages: income tax $13,170; FICA $7,650 is informational

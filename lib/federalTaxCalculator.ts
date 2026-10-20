@@ -64,6 +64,7 @@ function calculateFicaTaxes(
 function calculateSelfEmploymentTax(
   netProfit: number,
   wageIncome: number,
+  filingStatus: FilingStatus,
   ficaData: FicaData,
 ): SelfEmploymentTaxBreakdown {
   const seData = ficaData.selfEmployment;
@@ -85,7 +86,19 @@ function calculateSelfEmploymentTax(
   const totalSETax = socialSecurityTax + medicareTax;
   const deductibleHalf = totalSETax * seData.deductiblePortion;
 
+  // Additional Medicare: 0.9% of net earnings over the threshold, which is
+  // first used up by wages (Form 8959 Part II). Nobody withholds it, and it
+  // is not part of the deductible half.
+  const additionalMedicareThreshold = Math.max(
+    0,
+    ficaData.medicareAdditional.thresholds[filingStatus] - wageIncome,
+  );
+  const additionalMedicareTax =
+    Math.max(0, netEarnings - additionalMedicareThreshold) *
+    ficaData.medicareAdditional.rate;
+
   return {
+    additionalMedicareTax,
     deductibleHalf,
     medicareTax,
     netEarnings,
@@ -95,7 +108,7 @@ function calculateSelfEmploymentTax(
 }
 
 function calculateQbiDeduction(
-  selfEmploymentIncome: number,
+  qualifiedBusinessIncome: number,
   taxableOrdinaryIncomeBeforeQbi: number,
   taxableIncomeBeforeQbi: number,
   filingStatus: FilingStatus,
@@ -103,7 +116,7 @@ function calculateQbiDeduction(
 ): QbiDeduction {
   // The 20% income limit excludes income taxed at long-term capital gains
   // rates, but the phaseout threshold is tested against total taxable income
-  const tentativeDeduction = selfEmploymentIncome * limits.qbiDeduction.rate;
+  const tentativeDeduction = qualifiedBusinessIncome * limits.qbiDeduction.rate;
   const taxableIncomeLimit =
     taxableOrdinaryIncomeBeforeQbi * limits.qbiDeduction.rate;
 
@@ -122,7 +135,7 @@ function calculateQbiDeduction(
   return {
     finalDeduction: Math.max(0, finalDeduction),
     phaseoutApplied,
-    qualifiedBusinessIncome: selfEmploymentIncome,
+    qualifiedBusinessIncome,
     taxableIncomeLimit,
     tentativeDeduction,
   };
@@ -178,6 +191,7 @@ export function calculateFederalTax(
       ? calculateSelfEmploymentTax(
           selfEmploymentIncome,
           inputs.federalIncome,
+          filingStatus,
           ficaData,
         )
       : undefined;
@@ -230,14 +244,17 @@ export function calculateFederalTax(
   };
 
   // QBI is 20% of qualified business income, limited to 20% of taxable
-  // ordinary income, and phases out based on total taxable income
+  // ordinary income, and phases out based on total taxable income. Qualified
+  // business income is the business income less the deductions that go with
+  // it, here the deductible half of self-employment tax.
+  const qualifiedBusinessIncome = selfEmploymentIncome - deductibleSETax;
   const qbiDeductionFor = (taxable: {
     ordinary: number;
     preferential: number;
   }) =>
     selfEmploymentIncome > 0 && taxable.ordinary > 0
       ? calculateQbiDeduction(
-          selfEmploymentIncome,
+          qualifiedBusinessIncome,
           taxable.ordinary,
           taxable.ordinary + taxable.preferential,
           filingStatus,
@@ -330,9 +347,12 @@ export function calculateFederalTax(
       : undefined;
 
   // Step 8: Sum up the taxes settled on the return. Payroll tax on wages is
-  // excluded, including the Additional Medicare tax, which is assumed to be
-  // withheld by the employer.
-  const seTax = selfEmploymentTaxBreakdown?.totalSETax ?? 0;
+  // excluded, including the Additional Medicare tax on wages, which is
+  // assumed to be withheld by the employer. Self-employment tax, and the
+  // Additional Medicare tax on self-employment earnings, are not withheld.
+  const seTax =
+    (selfEmploymentTaxBreakdown?.totalSETax ?? 0) +
+    (selfEmploymentTaxBreakdown?.additionalMedicareTax ?? 0);
   const totalTax = ordinaryTax.total + ltcgTax.total + seTax + niitTax;
 
   // Step 9: Calculate remaining owed using shared utility

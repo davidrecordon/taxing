@@ -325,10 +325,26 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
                 {formatCurrency(result.selfEmploymentTaxBreakdown.medicareTax)}
               </span>
             </div>
+            {result.selfEmploymentTaxBreakdown.additionalMedicareTax > 0 && (
+              <div className="flex justify-between text-text-secondary">
+                <span>
+                  Additional Medicare (
+                  {formatPercent(ficaData.medicareAdditional.rate)})
+                </span>
+                <span className="font-mono text-text-primary">
+                  {formatCurrency(
+                    result.selfEmploymentTaxBreakdown.additionalMedicareTax,
+                  )}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between font-medium pt-1 border-t border-warning text-text-primary">
               <span>Total SE Tax</span>
               <span className="font-mono">
-                {formatCurrency(result.selfEmploymentTaxBreakdown.totalSETax)}
+                {formatCurrency(
+                  result.selfEmploymentTaxBreakdown.totalSETax +
+                    result.selfEmploymentTaxBreakdown.additionalMedicareTax,
+                )}
               </span>
             </div>
           </div>

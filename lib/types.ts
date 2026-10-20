@@ -491,11 +491,12 @@ export interface QbiDeduction {
 }
 
 export interface SelfEmploymentTaxBreakdown {
+  additionalMedicareTax: number; // 0.9% of net earnings over the threshold left after wages
   deductibleHalf: number;
   medicareTax: number;
   netEarnings: number;
   socialSecurityTax: number;
-  totalSETax: number;
+  totalSETax: number; // Social Security plus Medicare; excludes Additional Medicare
 }
 
 // Colorado additions to and subtractions from federal taxable income
