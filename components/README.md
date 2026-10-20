@@ -60,6 +60,7 @@ TaxCalculator.tsx
 
 Tests are colocated with components in `__tests__/` subdirectories:
 
+- `__tests__/` - The whole calculator, from typing into the form to a result on screen
 - `Forms/__tests__/` - Form interaction tests
 - `Displays/__tests__/` - Display rendering tests
 - `Modals/__tests__/` - Modal dialog tests
