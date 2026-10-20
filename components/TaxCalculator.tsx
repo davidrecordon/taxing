@@ -222,7 +222,6 @@ function calculateStateTaxWithData(
         nycBrackets,
         deductions,
         sharedLimits,
-        federalLimits,
         limits,
         ficaData,
       );

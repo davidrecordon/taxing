@@ -233,6 +233,27 @@ This document verifies that all tax data in the JSON files matches official gove
 | Single        | $8,000   | $8,000   | Yes   |
 | MFJ           | $16,050  | $16,050  | Yes   |
 
+### Itemized Deductions
+
+**Source:** [2025 IT-196 Instructions](https://www.tax.ny.gov/pdf/current_forms/it/it196i.pdf) (lines 5 to 15, line 41, and the line 46 Worksheets 3 and 4), [DTF Itemized deductions (2025)](https://www.tax.ny.gov/pit/file/itemized-deductions-2025.htm), [Tax Law section 615](https://www.nysenate.gov/legislation/laws/TAX/615)
+
+| Item                                                   | Our Data    | Official    | Match |
+| ------------------------------------------------------ | ----------- | ----------- | ----- |
+| Real estate tax deductible, no SALT cap                | Yes         | Yes         | Yes   |
+| State and local income tax deductible                  | No          | No          | Yes   |
+| Mortgage balance limit                                 | $1,000,000  | $1,000,000  | Yes   |
+| Mortgage balance limit (MFS)                           | $500,000    | $500,000    | Yes   |
+| Adjustment base (Single/MFS)                           | $100,000    | $100,000    | Yes   |
+| Adjustment base (MFJ)                                  | $200,000    | $200,000    | Yes   |
+| First tier: share removed, phased in over $50,000      | 25%         | 25%         | Yes   |
+| Second tier: phases from 25% to 50% over $50,000 above | $475,000    | $475,000    | Yes   |
+| Charitable only (50% of gifts) above NY AGI of         | $1,000,000  | $1,000,000  | Yes   |
+| Charitable only (25% of gifts) above NY AGI of         | $10,000,000 | $10,000,000 | Yes   |
+
+**Notes:** The adjustment amounts are statutory (Tax Law 615(f) and (g)) and not indexed, so 2026 uses the same values; the 2026 IT-196 is not yet published. New York itemized deductions use the federal rules as they stood before 2018, so the 2025 federal law changes (0.5% charitable floor, 2/37 limit) are not applied. Not modelled: the older federal overall limitation that IT-196 line 40 still applies above about $340,700 of federal AGI (3% of the excess, at most 80% of deductions; 2025 thresholds $340,700 single, $408,850 joint, $204,400 separate), home equity interest, and the rule that both spouses filing separately must make the same choice.
+
+**Correction (2026-10-19):** The calculator previously dropped property tax from New York itemized deductions, used the federal $750,000 mortgage limit, and applied no income-based adjustment.
+
 ---
 
 ## Washington (2025)

@@ -156,6 +156,29 @@ export interface WashingtonLimitsData {
 
 // New York-specific limits
 export interface NewYorkLimitsData {
+  // New York itemized deduction adjustment (Form IT-196 lines 46-47), based
+  // on New York AGI. Each tier removes `rate` of the deductions, phased in over
+  // `phaseInRange`: the first above `base`, the second above
+  // `secondTierThreshold`. Above the charitable-only thresholds the deduction
+  // is limited to a share of charitable contributions.
+  itemizedDeductionAdjustment: {
+    base: {
+      marriedFilingJointly: number;
+      marriedFilingSeparately: number;
+      single: number;
+    };
+    charitableOnlyHighRate: number;
+    charitableOnlyHighThreshold: number;
+    charitableOnlyRate: number;
+    charitableOnlyThreshold: number;
+    phaseInRange: number;
+    rate: number;
+    secondTierThreshold: number;
+  };
+  mortgageBalanceLimit: {
+    default: number;
+    marriedFilingSeparately: number;
+  };
   safeHarbor: {
     currentYearPercent: number;
     highIncomePercent: number;

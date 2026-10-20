@@ -5,6 +5,7 @@ import {
   CaliforniaLimitsData,
   DCLimitsData,
   DeductionsData,
+  NewYorkLimitsData,
 } from "./types";
 
 interface DeductionInputs {
@@ -179,31 +180,42 @@ export function calculateCaliforniaDeductions(
   };
 }
 
-// New York does NOT allow SALT deduction (can't deduct state tax from state tax)
-// NY follows federal mortgage interest limits
+// New York itemized deductions follow the federal rules as they stood before
+// 2018: property tax is deductible in full (no SALT cap), state income tax is
+// not, and the mortgage limit is $1M ($500k MFS). Higher incomes lose part of
+// the total under the New York itemized deduction adjustment. New York does
+// not follow the 2025 federal law changes.
 export function calculateNewYorkDeductions(
   inputs: DeductionInputs,
   filingStatus: FilingStatus,
   newYorkDeductions: DeductionsData,
-  federalLimits: FederalLimitsData,
+  newYorkLimits: NewYorkLimitsData,
+  agi: number,
 ): DeductionBreakdown {
   const standardDeduction = newYorkDeductions.standardDeduction[filingStatus];
 
-  // NY follows federal mortgage balance limits
   const mortgageBalanceLimit =
     filingStatus === "marriedFilingSeparately"
-      ? federalLimits.mortgageBalanceLimit.marriedFilingSeparately
-      : federalLimits.mortgageBalanceLimit.default;
-
+      ? newYorkLimits.mortgageBalanceLimit.marriedFilingSeparately
+      : newYorkLimits.mortgageBalanceLimit.default;
   const deductibleMortgageInterest = calculateDeductibleMortgageInterest(
     inputs.mortgageInterestPaid,
     inputs.mortgageBalance,
     mortgageBalanceLimit,
   );
 
-  // New York itemized deductions (no SALT)
-  const itemizedDeduction =
-    deductibleMortgageInterest + inputs.charitableContributions;
+  const beforeLimit =
+    inputs.propertyTaxesPaid +
+    deductibleMortgageInterest +
+    inputs.charitableContributions;
+
+  const itemizedDeduction = applyNewYorkItemizedAdjustment(
+    beforeLimit,
+    inputs.charitableContributions,
+    filingStatus,
+    newYorkLimits,
+    agi,
+  );
 
   const useItemized = itemizedDeduction > standardDeduction;
 
@@ -212,11 +224,51 @@ export function calculateNewYorkDeductions(
     itemizedDeduction,
     deductionUsed: useItemized ? "itemized" : "standard",
     deductionAmount: useItemized ? itemizedDeduction : standardDeduction,
-    saltDeduction: 0, // NY doesn't allow SALT
+    saltDeduction: 0, // State income tax is not deductible
     saltCapped: false,
     mortgageInterest: useItemized ? deductibleMortgageInterest : 0,
     charitableContributions: useItemized ? inputs.charitableContributions : 0,
+    propertyTax: useItemized ? inputs.propertyTaxesPaid : 0,
+    highIncomeReduction: useItemized ? beforeLimit - itemizedDeduction : 0,
   };
+}
+
+// The worksheets round each phase-in ratio to four decimal places
+function roundToFourDecimals(value: number): number {
+  return Math.round(value * 10000) / 10000;
+}
+
+/**
+ * New York itemized deduction adjustment (Form IT-196 lines 46-47 and
+ * Worksheets 3 and 4). Returns the deduction allowed after the adjustment.
+ */
+function applyNewYorkItemizedAdjustment(
+  itemizedDeductions: number,
+  charitableContributions: number,
+  filingStatus: FilingStatus,
+  newYorkLimits: NewYorkLimitsData,
+  agi: number,
+): number {
+  const adjustment = newYorkLimits.itemizedDeductionAdjustment;
+
+  // Above $1M only a share of charitable contributions is allowed
+  if (agi > adjustment.charitableOnlyHighThreshold) {
+    return charitableContributions * adjustment.charitableOnlyHighRate;
+  }
+  if (agi > adjustment.charitableOnlyThreshold) {
+    return charitableContributions * adjustment.charitableOnlyRate;
+  }
+
+  const phaseIn = (start: number) =>
+    roundToFourDecimals(
+      Math.min(Math.max(0, agi - start), adjustment.phaseInRange) /
+        adjustment.phaseInRange,
+    );
+  const reductionRate =
+    adjustment.rate * phaseIn(adjustment.base[filingStatus]) +
+    adjustment.rate * phaseIn(adjustment.secondTierThreshold);
+
+  return itemizedDeductions * (1 - reductionRate);
 }
 
 // DC starts from the federal itemized deductions, removes state income tax,

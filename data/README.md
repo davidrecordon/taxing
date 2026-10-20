@@ -156,6 +156,17 @@ New York-specific limits and thresholds.
 
 ```typescript
 {
+  itemizedDeductionAdjustment: {     // IT-196 lines 46-47, based on NY AGI
+    base: { marriedFilingJointly: number, marriedFilingSeparately: number, single: number },
+    charitableOnlyHighRate: number,
+    charitableOnlyHighThreshold: number,
+    charitableOnlyRate: number,
+    charitableOnlyThreshold: number,
+    phaseInRange: number,
+    rate: number,
+    secondTierThreshold: number
+  },
+  mortgageBalanceLimit: { default: number, marriedFilingSeparately: number },
   safeHarbor: {
     currentYearPercent: number,      // 90% of current year
     priorYearPercent: number,        // 100% of prior year (default)

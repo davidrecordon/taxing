@@ -7,7 +7,6 @@ import {
   newYorkDeductions,
   newYorkLimits,
   sharedLimits,
-  federalLimits,
   ficaData,
   createDefaultInputs,
   loadTestDataForYear,
@@ -30,7 +29,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -54,7 +52,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -79,7 +76,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -100,7 +96,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -123,7 +118,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -146,7 +140,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -169,7 +162,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -191,7 +183,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -214,7 +205,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -236,7 +226,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -257,7 +246,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -280,7 +268,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -301,7 +288,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -323,7 +309,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -347,7 +332,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -370,7 +354,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -395,7 +378,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -423,7 +405,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -448,7 +429,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -470,7 +450,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -496,7 +475,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -519,7 +497,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -539,7 +516,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -558,7 +534,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -579,7 +554,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -601,7 +575,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -625,7 +598,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
         ficaData,
       );
@@ -647,7 +619,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
         ficaData,
       );
@@ -669,7 +640,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
         ficaData,
       );
@@ -691,7 +661,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
         ficaData,
       );
@@ -714,7 +683,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
         ficaData,
       );
@@ -750,7 +718,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -781,7 +748,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -816,7 +782,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -849,7 +814,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -880,7 +844,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -912,7 +875,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -935,7 +897,6 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
@@ -957,15 +918,17 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
+      // $20,000 mortgage + charitable, less the 25% adjustment for NY AGI
+      // over $150,000 (single)
       expect(result.deductionBreakdown.deductionUsed).toBe("itemized");
-      expect(result.deductionBreakdown.deductionAmount).toBe(20000); // mortgage + charitable
+      expect(result.deductionBreakdown.highIncomeReduction).toBe(5000);
+      expect(result.deductionBreakdown.deductionAmount).toBe(15000);
     });
 
-    it("NY does not allow SALT deduction", () => {
+    it("deducts property tax but not state income tax", () => {
       const inputs = createDefaultInputs({
         federalIncome: 200000,
         filingStatus: "single",
@@ -979,12 +942,14 @@ describe("calculateNewYorkTax", () => {
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
-        federalLimits,
         newYorkLimits,
       );
 
-      // SALT should be 0 for NY (can't deduct state tax from state tax)
+      // State income tax is not deductible; property tax is, with no cap.
+      // $20,000 less the 25% adjustment = $15,000
       expect(result.deductionBreakdown.saltDeduction).toBe(0);
+      expect(result.deductionBreakdown.propertyTax).toBe(20000);
+      expect(result.deductionBreakdown.deductionAmount).toBe(15000);
     });
   });
 });
@@ -1011,7 +976,6 @@ describe.each(SUPPORTED_YEARS)(
         data.nycBrackets,
         data.newYorkDeductions,
         data.sharedLimits,
-        data.federalLimits,
         data.newYorkLimits,
       );
 
@@ -1038,7 +1002,6 @@ describe.each(SUPPORTED_YEARS)(
         data.nycBrackets,
         data.newYorkDeductions,
         data.sharedLimits,
-        data.federalLimits,
         data.newYorkLimits,
       );
 
@@ -1064,7 +1027,6 @@ describe.each(SUPPORTED_YEARS)(
         data.nycBrackets,
         data.newYorkDeductions,
         data.sharedLimits,
-        data.federalLimits,
         data.newYorkLimits,
       );
 

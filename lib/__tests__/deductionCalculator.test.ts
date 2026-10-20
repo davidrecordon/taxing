@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   calculateCaliforniaDeductions,
   calculateFederalDeductions,
+  calculateNewYorkDeductions,
   calculateSaltLimit,
 } from "../deductionCalculator";
 import { DeductionsData, FederalLimitsData } from "../types";
@@ -11,6 +12,8 @@ import {
   federalLimits,
   californiaLimits,
   loadTestDataForYear,
+  newYorkDeductions,
+  newYorkLimits,
 } from "./testData";
 
 interface DeductionInputs {
@@ -622,6 +625,165 @@ describe("calculateCaliforniaDeductions high-income limitation", () => {
 
     expect(result.itemizedDeduction).toBeCloseTo(2400, 2);
     expect(result.deductionUsed).toBe("standard");
+  });
+});
+
+describe("calculateNewYorkDeductions", () => {
+  const deduct = (
+    overrides: Partial<DeductionInputs>,
+    filingStatus: Parameters<typeof calculateNewYorkDeductions>[1],
+    agi: number,
+  ) =>
+    calculateNewYorkDeductions(
+      createDefaultDeductionInputs(overrides),
+      filingStatus,
+      newYorkDeductions,
+      newYorkLimits,
+      agi,
+    );
+
+  it("deducts property tax in full with no adjustment at or below $100,000", () => {
+    const result = deduct(
+      {
+        propertyTaxesPaid: 12000,
+        mortgageInterestPaid: 9000,
+        mortgageBalance: 300000,
+        charitableContributions: 2000,
+        stateTaxWithheld: 5000,
+      },
+      "single",
+      90000,
+    );
+
+    expect(result.itemizedDeduction).toBe(23000);
+    expect(result.highIncomeReduction).toBe(0);
+    expect(result.saltDeduction).toBe(0);
+  });
+
+  it("uses a $1M mortgage limit ($500k married filing separately)", () => {
+    const single = deduct(
+      { mortgageInterestPaid: 50000, mortgageBalance: 1000000 },
+      "single",
+      95000,
+    );
+    const separate = deduct(
+      { mortgageInterestPaid: 50000, mortgageBalance: 1000000 },
+      "marriedFilingSeparately",
+      95000,
+    );
+
+    expect(single.mortgageInterest).toBe(50000);
+    expect(separate.mortgageInterest).toBe(25000);
+  });
+
+  it("phases in the 25% adjustment over $50,000 above the base", () => {
+    // Single, NY AGI $120,000: $20,000 over the $100,000 base = 0.4 of the
+    // phase-in, so 10% of $25,000 is removed
+    const result = deduct(
+      {
+        propertyTaxesPaid: 10000,
+        mortgageInterestPaid: 12000,
+        charitableContributions: 3000,
+      },
+      "single",
+      120000,
+    );
+
+    expect(result.highIncomeReduction).toBeCloseTo(2500, 2);
+    expect(result.itemizedDeduction).toBeCloseTo(22500, 2);
+  });
+
+  it("removes 25% once the first tier is fully phased in", () => {
+    // Single, NY AGI $150,000: 25% of $25,000 = $6,250
+    const result = deduct(
+      {
+        propertyTaxesPaid: 10000,
+        mortgageInterestPaid: 12000,
+        charitableContributions: 3000,
+      },
+      "single",
+      150000,
+    );
+
+    expect(result.itemizedDeduction).toBe(18750);
+  });
+
+  it("uses a $200,000 base for married filing jointly", () => {
+    const inputs = {
+      propertyTaxesPaid: 20000,
+      mortgageInterestPaid: 24000,
+      charitableContributions: 10000,
+    };
+
+    // No adjustment at $200,000; 25% of $54,000 = $13,500 at $300,000
+    expect(
+      deduct(inputs, "marriedFilingJointly", 200000).itemizedDeduction,
+    ).toBe(54000);
+    expect(
+      deduct(inputs, "marriedFilingJointly", 300000).itemizedDeduction,
+    ).toBe(40500);
+  });
+
+  it("phases from 25% to 50% between $475,000 and $525,000", () => {
+    // NY AGI $500,000: 25% + 25% x 0.5 = 37.5% of $40,000 = $15,000
+    const result = deduct(
+      { propertyTaxesPaid: 20000, charitableContributions: 20000 },
+      "single",
+      500000,
+    );
+
+    expect(result.itemizedDeduction).toBe(25000);
+  });
+
+  it("removes 50% above $525,000", () => {
+    const result = deduct(
+      {
+        propertyTaxesPaid: 30000,
+        mortgageInterestPaid: 36000,
+        charitableContributions: 20000,
+      },
+      "marriedFilingJointly",
+      600000,
+    );
+
+    expect(result.itemizedDeduction).toBe(43000);
+  });
+
+  it("allows only 50% of charitable contributions above $1,000,000", () => {
+    const result = deduct(
+      {
+        propertyTaxesPaid: 40000,
+        mortgageInterestPaid: 36000,
+        charitableContributions: 100000,
+      },
+      "marriedFilingJointly",
+      1500000,
+    );
+
+    expect(result.itemizedDeduction).toBe(50000);
+    expect(result.highIncomeReduction).toBe(126000);
+  });
+
+  it("allows only 25% of charitable contributions above $10,000,000", () => {
+    const result = deduct(
+      { propertyTaxesPaid: 40000, charitableContributions: 100000 },
+      "marriedFilingJointly",
+      12000000,
+    );
+
+    expect(result.itemizedDeduction).toBe(25000);
+  });
+
+  it("falls back to the standard deduction when the adjusted amount is lower", () => {
+    // 50% of $20,000 = $10,000, below the $16,050 joint standard deduction
+    const result = deduct(
+      { propertyTaxesPaid: 40000, charitableContributions: 20000 },
+      "marriedFilingJointly",
+      1500000,
+    );
+
+    expect(result.deductionUsed).toBe("standard");
+    expect(result.deductionAmount).toBe(16050);
   });
 });
 

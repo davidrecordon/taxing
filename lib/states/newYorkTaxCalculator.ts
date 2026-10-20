@@ -4,7 +4,6 @@ import {
   TaxBracketsData,
   DeductionsData,
   SharedLimitsData,
-  FederalLimitsData,
   NewYorkLimitsData,
   BracketBreakdown,
   FicaData,
@@ -34,7 +33,6 @@ export function calculateNewYorkTax(
   nycBrackets: TaxBracketsData,
   newYorkDeductions: DeductionsData,
   sharedLimits: SharedLimitsData,
-  federalLimits: FederalLimitsData,
   newYorkLimits: NewYorkLimitsData,
   ficaData?: FicaData,
 ): TaxCalculationResult {
@@ -57,22 +55,7 @@ export function calculateNewYorkTax(
     shortTermLossCarryoverUnused,
   } = calculateStateGrossIncome(inputs, stateIncome, sharedLimits);
 
-  // Step 2: Calculate deductions
-  const deductionBreakdown = calculateNewYorkDeductions(
-    {
-      propertyTaxesPaid: inputs.propertyTaxesPaid,
-      mortgageInterestPaid: inputs.mortgageInterestPaid,
-      mortgageBalance: inputs.mortgageBalance,
-      charitableContributions: inputs.charitableContributions,
-      stateTaxWithheld: inputs.stateTaxWithheld,
-      stateEstimatedPaid: inputs.stateEstimatedPaid,
-    },
-    filingStatus,
-    newYorkDeductions,
-    federalLimits,
-  );
-
-  // Step 3: Calculate AGI
+  // Step 2: Calculate AGI
   // NY conforms to federal above-the-line deductions including deductible SE tax
   const deductibleSETax = ficaData
     ? calculateDeductibleSETax(
@@ -88,6 +71,22 @@ export function calculateNewYorkTax(
     shortTermLossCarryoverOffset -
     longTermLossCarryoverOffset -
     preTaxDeductions;
+
+  // Step 3: Calculate deductions
+  const deductionBreakdown = calculateNewYorkDeductions(
+    {
+      propertyTaxesPaid: inputs.propertyTaxesPaid,
+      mortgageInterestPaid: inputs.mortgageInterestPaid,
+      mortgageBalance: inputs.mortgageBalance,
+      charitableContributions: inputs.charitableContributions,
+      stateTaxWithheld: inputs.stateTaxWithheld,
+      stateEstimatedPaid: inputs.stateEstimatedPaid,
+    },
+    filingStatus,
+    newYorkDeductions,
+    newYorkLimits,
+    adjustedGrossIncome,
+  );
 
   // Step 4: Calculate taxable income
   const taxableOrdinaryIncome = Math.max(
