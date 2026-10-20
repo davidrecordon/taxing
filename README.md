@@ -2,16 +2,16 @@
 
 **Live:** https://estimate.tax/
 
-A web-based tax estimation tool for calculating Federal and state income taxes. Supports California, Colorado, District of Columbia, Florida, Illinois, New York (including NYC local tax), and Washington. The calculator helps individuals estimate their tax liability, including support for various income types, deductions, and FICA taxes. Currently configured for the 2025 tax year.
+A web-based tax estimation tool for calculating Federal and state income taxes. Supports California, Colorado, District of Columbia, Florida, Illinois, New York (including NYC local tax), and Washington. The calculator helps individuals estimate their tax liability, including support for various income types, deductions, and FICA taxes. Supports the 2025 and 2026 tax years; 2026 is the default.
 
 ## Features
 
 - **Multi-State Support**:
   - **California**: Full income tax with mental health services tax for high earners
-  - **Colorado**: Flat 4.4% income tax using federal taxable income
+  - **Colorado**: Flat 4.4% income tax on federal taxable income, with the state deduction addbacks
   - **District of Columbia**: Progressive income tax (4%-10.75%)
   - **Florida**: No state income tax
-  - **Illinois**: Flat-rate income tax with personal exemptions
+  - **Illinois**: Flat-rate income tax with personal exemptions and the property tax credit
   - **New York**: State income tax with optional NYC local tax for city residents
   - **Washington**: Capital gains tax only (no wage income tax)
 - **Filing Statuses**: Single, Married Filing Jointly, Married Filing Separately
@@ -19,7 +19,9 @@ A web-based tax estimation tool for calculating Federal and state income taxes. 
 - **Deductions**: Automatic standard vs. itemized comparison
   - SALT (State and Local Taxes) with the AGI-based cap phasedown
   - Mortgage interest with balance-based limits
-  - Charitable contributions
+  - Charitable contributions, including the 2026 floor of 0.5% of AGI
+  - The 2026 limit on itemized deductions for top-bracket filers
+  - State itemized deductions for California, New York and DC: property tax without the federal cap, state mortgage limits, and each state's income-based reduction
   - 401(k) pre-tax contributions
 - **FICA Taxes**: Social Security and Medicare on wages, shown for information and kept out of the tax owed since employers withhold them
 - **Safe Harbor**: Estimated payment calculations to avoid underpayment penalties
@@ -68,6 +70,8 @@ bun run test:coverage # Run with coverage report
   - Form input behavior
   - Display rendering
   - User interactions
+
+Tax data and the rules behind it are checked against official sources; see [`data/VERIFICATION.md`](data/VERIFICATION.md) for sources, known approximations and values still waiting on publication.
 
 ## Adding a New State
 

@@ -10,8 +10,9 @@ lib/
   types.ts               # TypeScript type definitions
   formatters.ts          # Currency/percentage formatting utilities
   taxUtils.ts            # Shared calculation utilities
-  deductionCalculator.ts # Deduction logic (standard vs itemized)
+  deductionCalculator.ts # Federal and state deduction logic (standard vs itemized)
   federalTaxCalculator.ts # Federal income tax calculations
+  stateData.ts           # Lazy loading of state tax data by state and year
   states/
     stateCalcUtils.ts         # Shared state calculator utilities
     californiaTaxCalculator.ts
@@ -34,15 +35,16 @@ TaxInputs (user form data)
     │     ├─ Net capital gains, losses, and carryovers (Schedule D)
     │     ├─ Apply pre-tax deductions (401k, medical)
     │     ├─ Calculate AGI (before the standard or itemized deduction)
-    │     ├─ Determine deduction (standard vs itemized)
+    │     ├─ Determine deduction (standard vs itemized), with the 2026
+    │     │  charitable floor and overall itemized limitation
     │     ├─ Calculate tax by bracket
     │     ├─ Add LTCG / qualified dividend tax, SE tax, and NIIT
     │     ├─ Calculate FICA on wages (informational, not in the total)
     │     └─ Calculate safe harbor
     │
-    └─► {state}TaxCalculator.ts
-          ├─ Apply state-specific income adjustments
-          ├─ Apply state deductions/exemptions
+    └─► {state}TaxCalculator.ts (DC and Colorado also take the federal result)
+          ├─ Calculate state income and AGI (calculateStateIncome)
+          ├─ Apply state deductions/exemptions, addbacks and credits
           ├─ Calculate tax (progressive or flat)
           └─ Calculate state safe harbor
 ```
@@ -62,8 +64,8 @@ Central type definitions including:
 
 Shared utilities:
 
-- `calculateTaxByBracket()` - Progressive tax calculation
-- `calculateIncomeInBrackets()` - Bracket breakdown
+- `calculateTaxByBrackets()` - Progressive tax calculation with a bracket breakdown
+- `calculateLTCGTaxWithStacking()` - Long-term rates stacked on ordinary income
 - `calculateEffectiveRates()` - Effective rate calculations
 - `netCapitalGains()` - Schedule D netting of gains, losses, and carryovers (used by federal and state calculators). Known approximation: at very low incomes the carryover to next year can be understated by up to the annual deduction limit; see the function comment.
 - `splitDividends()` - Qualified vs non-qualified dividend split
@@ -71,12 +73,19 @@ Shared utilities:
 
 ### deductionCalculator.ts
 
-Handles federal deduction logic:
+Federal deductions:
 
-- Standard vs itemized comparison
-- SALT cap application (`calculateSaltLimit()`: cap phases down above an AGI threshold, to a floor)
-- Mortgage interest limits
-- Charitable contribution limits
+- `calculateFederalDeductions()` - Standard vs itemized comparison, SALT cap, mortgage interest limit, and the 2026 charitable floor
+- `calculateSaltLimit()` - SALT cap, phasing down above an AGI threshold to a floor
+- `applyFederalItemizedLimit()` - The 2026 overall limitation for top-bracket filers
+
+State deductions, where property tax is deductible outside the SALT cap and state income tax is not:
+
+- `calculateCaliforniaDeductions()` - 6% / 80% high-income limitation
+- `calculateNewYorkDeductions()` - New York itemized deduction adjustment tiers
+- `calculateDCDeductions()` - 5% limitation; follows the federal standard-or-itemized choice
+
+Percentage-of-AGI limits on charitable contributions are not modelled.
 
 ### states/stateCalcUtils.ts
 
@@ -91,5 +100,5 @@ Shared state calculator utilities:
 1. Create `lib/states/{state}TaxCalculator.ts`
 2. Import data from `data/{state}-*.json` files
 3. Implement the calculation function returning `TaxCalculationResult`
-4. Use `stateCalcUtils.ts` for payment summary and safe harbor
+4. Use `stateCalcUtils.ts` for state income and AGI, payment summary and safe harbor
 5. Add tests in `lib/__tests__/{state}TaxCalculator.test.ts`

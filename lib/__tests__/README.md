@@ -12,21 +12,19 @@ bun run test:coverage   # With coverage report
 
 ## Test Files
 
-| File                              | Tests | Description                                                |
-| --------------------------------- | ----- | ---------------------------------------------------------- |
-| `federalTaxCalculator.test.ts`    | 65    | Federal income tax, FICA, LTCG, NIIT, self-employment, QBI |
-| `californiaTaxCalculator.test.ts` | 35    | CA state tax, mental health surtax, safe harbor            |
-| `coloradoTaxCalculator.test.ts`   | 8     | CO flat tax, federal taxable income basis                  |
-| `dcTaxCalculator.test.ts`         | 15    | DC progressive tax, same brackets all statuses             |
-| `floridaTaxCalculator.test.ts`    | 9     | FL no income tax, zero calculations                        |
-| `illinoisTaxCalculator.test.ts`   | 25    | IL flat tax, personal exemptions, property tax credit      |
-| `newYorkTaxCalculator.test.ts`    | 39    | NY state tax, NYC local tax, high-income safe harbor       |
-| `washingtonTaxCalculator.test.ts` | 22    | WA capital gains tax, exemption, surtax                    |
-| `deductionCalculator.test.ts`     | 31    | Standard vs itemized, SALT cap, mortgage proration         |
-| `taxUtils.test.ts`                | 19    | Effective rate calculations, LTCG stacking                 |
-| `formatters.test.ts`              | 10    | Currency and percentage formatting                         |
-
-**Total: 343 tests**
+| File                              | Description                                                             |
+| --------------------------------- | ----------------------------------------------------------------------- |
+| `federalTaxCalculator.test.ts`    | Federal income tax, FICA, LTCG, NIIT, self-employment, QBI, AGI         |
+| `californiaTaxCalculator.test.ts` | CA state tax, mental health surtax, itemized deductions, safe harbor    |
+| `coloradoTaxCalculator.test.ts`   | CO flat tax, federal taxable income basis, addbacks and subtraction     |
+| `dcTaxCalculator.test.ts`         | DC progressive tax, itemized deductions, matching the federal deduction |
+| `floridaTaxCalculator.test.ts`    | FL no income tax, zero calculations                                     |
+| `illinoisTaxCalculator.test.ts`   | IL flat tax, personal exemptions, income limit, property tax credit     |
+| `newYorkTaxCalculator.test.ts`    | NY state tax, NYC local tax, high-income safe harbor                    |
+| `washingtonTaxCalculator.test.ts` | WA capital gains tax, exemption, surtax                                 |
+| `deductionCalculator.test.ts`     | Federal and state deductions: SALT cap, mortgage limits, income limits  |
+| `taxUtils.test.ts`                | Effective rates, LTCG stacking, capital loss netting, dividends         |
+| `formatters.test.ts`              | Currency and percentage formatting                                      |
 
 ## Shared Test Utilities
 
@@ -71,9 +69,12 @@ Each calculator test file follows a consistent structure:
 - **long-term capital gains** - 0%/15%/20% bracket stacking
 - **401k contributions** - Pre-tax deduction from AGI
 - **pre-tax medical deductions** - Reduces taxable income
+- **adjusted gross income** - AGI before the standard or itemized deduction
+- **FICA and the tax owed** - FICA on wages is informational, not part of the total
+- **2026 itemized deduction limits** - Charitable floor and the overall limitation
 - **negative LTCG/STCG** - Current year loss handling
 - **interest and dividends** - Qualified vs ordinary rates, NIIT, no FICA, no carryover offset
-- **safe harbor calculations** - 90% current / 100% prior year
+- **safe harbor calculations** - 90% current / 110% prior year
 - **loss carryover edge cases** - ST, LT, and combined carryovers
 - **LTCG bracket stacking** - Gains stacked on ordinary income
 - **bracket boundary edge cases** - Exact threshold testing
@@ -105,6 +106,8 @@ Each state calculator tests:
 - **MFS edge cases** - Half limits for married filing separately
 - **boundary cases** - Exact threshold testing
 - **AGI-dependent SALT cap** - Full cap, 30% phasedown above the threshold, floor, by tax year
+- **charitable floor and overall limitation** - 2026 federal limits on itemized deductions
+- **California, New York and DC deductions** - Property tax without the cap, state mortgage limits, each state's income-based reduction
 
 ### Utilities
 

@@ -605,29 +605,15 @@ Same as 2025 (brackets not inflation-adjusted).
 
 ### Standard Deductions
 
-**Source:** [OTR 2026 D-40ES booklet](https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2026_D40ES_Book_wLinks04012026.pdf) (rev. 03/2026), estimated tax worksheet line 2b
+**Source:** [OTR 2026 D-40ES booklet](https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2026_D40ES_Book_wLinks04012026.pdf) (rev. 03/2026), estimated tax worksheet line 2b; [D.C. Act 26-416](https://code.dccouncil.gov/us/dc/council/acts/26-416) (August 2026)
 
-| Filing Status | Our Data | Official | Match |
-| ------------- | -------- | -------- | ----- |
-| Single        | $16,100  | $16,100  | Yes   |
-| MFJ           | $32,200  | $32,200  | Yes   |
-| MFS           | $16,100  | $16,100  | Yes   |
+| Filing Status | Our Data | Official   | Match                    |
+| ------------- | -------- | ---------- | ------------------------ |
+| Single        | $16,100  | Unresolved | WAITING - see note below |
+| MFJ           | $32,200  | Unresolved | WAITING - see note below |
+| MFS           | $16,100  | Unresolved | WAITING - see note below |
 
-**Note:** Updated 2026-10-05 from the $15,000/$30,000 placeholders (the 2025 amounts). OTR's booklet is the only official source found; some third-party calculators show $15,700/$31,400. Re-check against the 2026 D-40 instructions when published.
-
-------------- | -------- | -------- | -------------------------- |
-| Single | $15,000 | TBD | WAITING - using 2025 value |
-| MFJ | $30,000 | TBD | WAITING - using 2025 value |
-| MFS | $15,000 | TBD | WAITING - using 2025 value |
-
-**Note:** The 2026 amounts are unresolved as of 2026-10-05, and the $15,000/$30,000 placeholders are almost certainly too low. [D.C. Act 26-214](https://code.dccouncil.gov/us/dc/council/acts/26-214) sets the 2025 base at $15,000/$30,000 with annual COLA adjustments for 2026+. The [OTR 2026 D-40ES booklet](https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2026_D40ES_Book_wLinks04012026.pdf) (rev. 03/2026) worksheet uses $16,100 single/MFS and $32,200 MFJ, while some third-party calculators show $15,700/$31,400. No second official source confirms either, so the data was left unchanged. Check the 2026 D-40 instructions when published.
-
-------------- | -------- | -------- | ----- |
-| Single | $15,000 | $15,000 | Yes |
-| MFJ | $30,000 | TBD | WAITING - using 2025 base |
-| MFS | $15,000 | $15,000 | Yes |
-
-**Note:** DC 2026 MFJ standard deduction has NOT been published by DC OTR as of 2026-02-06. [D.C. Act 26-214](https://code.dccouncil.gov/us/dc/council/acts/26-214) sets the 2025 MFJ base at $30,000 with annual COLA adjustments for 2026+. Currently using the $30,000 base as a placeholder. Check the DC OTR website for the official 2026 D-40 forms when published.
+**Note:** The data uses the amounts printed in the March 2026 D-40ES worksheet, which equal the federal 2026 standard deduction. D.C. Act 26-416, passed afterwards, sets the DC standard deduction for 2026 through 2029 at $15,000 ($30,000 joint) increased by an annual cost-of-living adjustment, so the final 2026 amounts are probably lower than the data. OTR has not published the indexed 2026 figures, and the permanent version of the act could not be read to confirm it is in force. Re-check against the 2026 D-40 instructions when published.
 
 ---
 
@@ -642,22 +628,27 @@ Same as 2025 (brackets not inflation-adjusted).
 
 ---
 
-## 2026 Data Status (as of 2026-10-05)
+## 2026 Data Status (as of 2026-10-19)
 
 2026 tax data status:
 
-| Jurisdiction   | Status      | Source                                                                            |
-| -------------- | ----------- | --------------------------------------------------------------------------------- |
-| Federal        | Verified    | IRS Rev. Proc. 2025-32                                                            |
-| California     | Verified    | FTB Tax News, October 2026 (2026 indexing)                                        |
-| New York       | Verified    | NY DTF IT-2105-I (0.1% rate reductions applied)                                   |
-| Illinois       | Verified    | IDOR FY 2026-15 bulletin                                                          |
-| Colorado       | Verified    | CO DOR (4.4% unchanged)                                                           |
-| Florida        | N/A         | No state income tax                                                               |
-| DC             | Verified    | OTR 2026 D-40ES booklet (standard deductions); brackets unchanged                 |
-| **Washington** | **WAITING** | 2026 exemption threshold not yet announced by WA DOR; using 2025 value ($278,000) |
+| Jurisdiction   | Status      | Source                                                                                                                                             |
+| -------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Federal        | Verified    | IRS Rev. Proc. 2025-32                                                                                                                             |
+| **California** | **WAITING** | Rates and standard deductions verified (FTB Tax News, October 2026); itemized deduction limitation thresholds not yet published, using 2025 values |
+| New York       | Verified    | NY DTF IT-2105-I (0.1% rate reductions applied)                                                                                                    |
+| Illinois       | Verified    | IDOR FY 2026-15 bulletin                                                                                                                           |
+| Colorado       | Verified    | CO DOR (4.4% unchanged)                                                                                                                            |
+| Florida        | N/A         | No state income tax                                                                                                                                |
+| **DC**         | **WAITING** | Brackets unchanged; 2026 standard deduction unresolved (see District of Columbia 2026)                                                             |
+| **Washington** | **WAITING** | 2026 exemption threshold not yet announced by WA DOR; using 2025 value ($278,000)                                                                  |
 
-**Pending items:** Washington 2026 capital gains exemption threshold.
+**Pending items:**
+
+- Washington 2026 capital gains standard deduction (and the 9.9% tier in `washington-brackets.json`, which starts at the deduction plus $1,000,000).
+- California 2026 itemized deduction limitation thresholds (Schedule CA (540) instructions, expected late December 2026).
+- DC 2026 standard deduction amounts.
+- New York 2026 Form IT-196 and instructions (rules are statutory; forms not yet published).
 
 ---
 
@@ -668,3 +659,14 @@ Same as 2025 (brackets not inflation-adjusted).
 3. **California 2025 standard deductions:** $5,540/$11,080 corrected to $5,706/$11,412.
 4. **New York MFS brackets (2025 and 2026):** 6% (5.9% in 2026) bracket now ends at $215,400, matching the single schedule.
 5. **DC 2026 standard deductions:** $15,000/$30,000 placeholders replaced with $16,100/$32,200 from the OTR 2026 D-40ES booklet.
+
+---
+
+## Discrepancies Fixed (2026-10-19)
+
+1. **Federal QBI thresholds and SALT cap (2025 and 2026):** thresholds were the 2024 amounts; the SALT cap is now one amount for all filers with a 30% phasedown, halved for married filing separately after the phasedown.
+2. **Federal itemized deductions (2026):** added the 0.5% charitable floor and the 2/37 overall limitation.
+3. **California, New York and DC itemized deductions:** property tax is now deductible without a cap, each jurisdiction's income-based limitation is applied, and state mortgage limits are used. DC follows the federal choice of standard or itemized.
+4. **Colorado:** added the state income tax addback, the high-income deduction addback and the non-itemizer charitable subtraction.
+5. **Illinois:** the personal exemption is disallowed above the income limit, and the 5% property tax credit is applied.
+6. **Washington:** the 9.9% tier now starts after the standard deduction.

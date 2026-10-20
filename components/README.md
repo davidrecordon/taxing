@@ -14,7 +14,7 @@ components/
   Forms/                 # Input form components
     ConfigurationSection.tsx  # Filing status and state selection
     DeductionInputs.tsx       # Deductions (property tax, mortgage, charitable, 401k)
-    IncomeInputs.tsx          # Income fields (wages, capital gains)
+    IncomeInputs.tsx          # Income fields (wages, interest, dividends, capital gains)
     PriorYearInputs.tsx       # Prior year tax and loss carryovers
     WithholdingInputs.tsx     # Tax withholding and estimated payments
   Modals/                # Modal dialogs
@@ -37,6 +37,7 @@ components/
     AnalyticsWrapper.tsx   # Analytics integration wrapper
     CurrencyInput.tsx      # Formatted currency input field
     ErrorBoundary.tsx      # React error boundary
+    ThemeSelector.tsx      # Light/dark theme toggle
 ```
 
 ## Data Flow
@@ -61,10 +62,11 @@ Tests are colocated with components in `__tests__/` subdirectories:
 
 - `Forms/__tests__/` - Form interaction tests
 - `Displays/__tests__/` - Display rendering tests
+- `Modals/__tests__/` - Modal dialog tests
 - `UI/__tests__/` - UI component tests
 - `shared/__tests__/` - Shared component tests
 
-Run tests with `bun test`.
+Run tests with `bun run test:run` (plain `bun test` uses Bun's own runner, which has no DOM for the component tests).
 
 ## Adding a New State Display
 
