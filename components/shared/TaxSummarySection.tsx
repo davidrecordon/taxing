@@ -65,7 +65,7 @@ export default memo(function TaxSummarySection({
               {formatCurrency(remainingOwed)}
             </span>
           </>
-        ) : totalTax > 0 ? (
+        ) : refundDue > 0 ? (
           <>
             <span className="text-text-primary">Estimated Refund</span>
             <span className="text-positive font-mono">

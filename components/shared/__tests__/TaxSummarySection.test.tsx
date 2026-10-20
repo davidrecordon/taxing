@@ -53,6 +53,21 @@ describe("TaxSummarySection", () => {
   });
 
   describe("no tax scenario", () => {
+    it("shows a refund when payments were made but no tax is due", () => {
+      render(
+        <TaxSummarySection
+          totalTax={0}
+          withheld={1500}
+          estimatedPaid={0}
+          remainingOwed={0}
+          refundDue={1500}
+          taxLabel="Florida"
+        />,
+      );
+      expect(screen.getByText("Estimated Refund")).toBeInTheDocument();
+      expect(screen.queryByText("No Tax Due")).not.toBeInTheDocument();
+    });
+
     it("shows no tax due message", () => {
       render(
         <TaxSummarySection
