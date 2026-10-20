@@ -58,8 +58,8 @@ Federal-specific limits and thresholds.
 ```typescript
 {
   saltLimit: {
-    floor: { default: number, marriedFilingSeparately: number },
-    limit: { default: number, marriedFilingSeparately: number },
+    floor: number,
+    limit: number,
     phasedownRate: number,
     phasedownThreshold: { default: number, marriedFilingSeparately: number }
   },

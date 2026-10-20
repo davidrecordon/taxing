@@ -642,11 +642,12 @@ describe("calculateFederalDeductions AGI-dependent SALT cap", () => {
       expect(saltDeductionAt("single", 650000).saltDeduction).toBe(10000);
     });
 
-    it("starts the MFS phasedown at half the threshold", () => {
+    it("starts the MFS phasedown at half the threshold and halves the result", () => {
       // $262,500 - $252,500 = $10,000 over, x 30% = $3,000 reduction
+      // ($40,400 - $3,000) / 2 = $18,700
       expect(
         saltDeductionAt("marriedFilingSeparately", 262500).saltDeduction,
-      ).toBe(17200);
+      ).toBe(18700);
     });
   });
 
@@ -660,6 +661,14 @@ describe("calculateFederalDeductions AGI-dependent SALT cap", () => {
       expect(
         calculateSaltLimit("marriedFilingSeparately", limits2025, 200000),
       ).toBe(20000);
+      // MFS: ($40,000 - 30% x $50,000 over $250,000) / 2
+      expect(
+        calculateSaltLimit("marriedFilingSeparately", limits2025, 300000),
+      ).toBe(12500);
+      // MFS reaches the $5,000 floor at $350,000
+      expect(
+        calculateSaltLimit("marriedFilingSeparately", limits2025, 350000),
+      ).toBe(5000);
       expect(
         calculateSaltLimit("marriedFilingSeparately", limits2025, 700000),
       ).toBe(5000);

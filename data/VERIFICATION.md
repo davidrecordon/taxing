@@ -82,6 +82,8 @@ This document verifies that all tax data in the JSON files matches official gove
 
 **Correction (2026-10-19):** The QBI thresholds were previously recorded as $191,950 and $383,900 (the 2024 amounts). The SALT cap was previously recorded as $40,000 for MFJ and $20,000 for Single, dropping straight to $10,000 at $500,000 of AGI. The One Big Beautiful Bill Act sets one cap for all filers (half for MFS) and reduces it by 30% of modified AGI over the threshold, down to a $10,000 floor.
 
+**Correction (2026-10-19, MFS):** For married filing separately the full cap is reduced by 30% of modified AGI over half the threshold, floored at $10,000, and then halved (2025 Schedule A State and Local Tax Deduction Worksheet, lines 5 to 10). The first version of this change halved the cap and floor before applying the 30% reduction, which phased the MFS cap down twice as fast as the law does.
+
 ---
 
 ## Federal (2026)

@@ -30,14 +30,8 @@
       "priorYearPercent": 1.1
     },
     "saltLimit": {
-      "floor": {
-        "default": 10000,
-        "marriedFilingSeparately": 5000
-      },
-      "limit": {
-        "default": 40000,
-        "marriedFilingSeparately": 20000
-      },
+      "floor": 10000,
+      "limit": 40000,
       "phasedownRate": 0.3,
       "phasedownThreshold": {
         "default": 500000,
@@ -76,14 +70,8 @@
       "priorYearPercent": 1.1
     },
     "saltLimit": {
-      "floor": {
-        "default": 10000,
-        "marriedFilingSeparately": 5000
-      },
-      "limit": {
-        "default": 40400,
-        "marriedFilingSeparately": 20200
-      },
+      "floor": 10000,
+      "limit": 40400,
       "phasedownRate": 0.3,
       "phasedownThreshold": {
         "default": 505000,
