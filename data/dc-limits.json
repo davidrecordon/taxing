@@ -1,11 +1,25 @@
 {
   "2025": {
+    "itemizedDeductionLimit": {
+      "rate": 0.05,
+      "threshold": {
+        "default": 200000,
+        "marriedFilingSeparately": 100000
+      }
+    },
     "safeHarbor": {
       "currentYearPercent": 0.9,
       "priorYearPercent": 1.1
     }
   },
   "2026": {
+    "itemizedDeductionLimit": {
+      "rate": 0.05,
+      "threshold": {
+        "default": 200000,
+        "marriedFilingSeparately": 100000
+      }
+    },
     "safeHarbor": {
       "currentYearPercent": 0.9,
       "priorYearPercent": 1.1

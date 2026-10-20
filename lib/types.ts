@@ -197,6 +197,14 @@ export interface FloridaLimitsData {
 
 // DC-specific limits
 export interface DCLimitsData {
+  // Itemized deductions are reduced by `rate` of DC AGI over the threshold
+  itemizedDeductionLimit: {
+    rate: number;
+    threshold: {
+      default: number;
+      marriedFilingSeparately: number;
+    };
+  };
   safeHarbor: {
     currentYearPercent: number;
     priorYearPercent: number;
@@ -331,6 +339,7 @@ export interface DeductionBreakdown {
   charitableContributions: number;
   propertyTax?: number; // State returns: property tax deducted outside any SALT cap
   highIncomeReduction?: number; // Itemized deductions lost to a high-income limit
+  followsFederalChoice?: boolean; // Standard vs itemized is set by the federal return
 }
 
 export interface FicaBreakdown {

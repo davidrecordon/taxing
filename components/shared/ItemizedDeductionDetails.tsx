@@ -52,8 +52,9 @@ export default memo(function ItemizedDeductionDetails({
         )}
       </div>
       <p className="text-xs mt-1 text-text-muted">
-        (Standard deduction would be{" "}
-        {formatCurrency(deductionBreakdown.standardDeduction)}).
+        {deductionBreakdown.followsFederalChoice
+          ? "(Itemizing is required here because the Federal return itemizes.)"
+          : `(Standard deduction would be ${formatCurrency(deductionBreakdown.standardDeduction)}).`}
       </p>
     </div>
   );

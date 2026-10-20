@@ -294,6 +294,10 @@ District of Columbia-specific limits and thresholds.
 
 ```typescript
 {
+  itemizedDeductionLimit: {
+    rate: number,                // 5% of DC AGI over the threshold
+    threshold: { default: number, marriedFilingSeparately: number }
+  },
   safeHarbor: {
     currentYearPercent: number,  // 90% of current year tax
     priorYearPercent: number     // 110% of prior year tax

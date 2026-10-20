@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll } from "vitest";
+import { calculateFederalTax } from "../federalTaxCalculator";
 import { calculateDCTax } from "../states/dcTaxCalculator";
 import { SUPPORTED_YEARS, TaxYear } from "../config";
 import {
@@ -6,7 +7,10 @@ import {
   dcDeductions,
   dcLimits,
   sharedLimits,
+  federalBrackets,
+  federalDeductions,
   federalLimits,
+  ltcgBrackets,
   ficaData,
   createDefaultInputs,
   loadTestDataForYear,
@@ -341,10 +345,10 @@ describe("calculateDCTax", () => {
       expect(result.taxableOrdinaryIncome).toBe(170000);
     });
 
-    it("does not include SALT in itemized deductions", () => {
+    it("deducts property tax but not DC income tax", () => {
       const inputs = createDefaultInputs({
         federalIncome: 200000,
-        propertyTaxesPaid: 15000,
+        propertyTaxesPaid: 20000,
         stateTaxWithheld: 10000,
         selectedState: "dc",
         filingStatus: "single",
@@ -360,10 +364,144 @@ describe("calculateDCTax", () => {
         ficaData,
       );
 
-      // DC doesn't allow SALT deduction
+      // Property tax is allowed in full; DC income tax is not deductible
       expect(result.deductionBreakdown.saltDeduction).toBe(0);
-      // Should use standard deduction since no other itemized
-      expect(result.deductionBreakdown.deductionUsed).toBe("standard");
+      expect(result.deductionBreakdown.propertyTax).toBe(20000);
+      expect(result.deductionBreakdown.deductionUsed).toBe("itemized");
+      expect(result.deductionBreakdown.deductionAmount).toBe(20000);
+    });
+
+    it("reduces itemized deductions by 5% of AGI over $200,000", () => {
+      // $37,000 of deductions less 5% x ($300,000 - $200,000) = $32,000
+      const inputs = createDefaultInputs({
+        federalIncome: 300000,
+        propertyTaxesPaid: 12000,
+        mortgageInterestPaid: 20000,
+        charitableContributions: 5000,
+        selectedState: "dc",
+        filingStatus: "single",
+      });
+
+      const result = calculateDCTax(
+        inputs,
+        dcBrackets,
+        dcDeductions,
+        sharedLimits,
+        federalLimits,
+        dcLimits,
+        ficaData,
+      );
+
+      expect(result.adjustedGrossIncome).toBe(300000);
+      expect(result.deductionBreakdown.highIncomeReduction).toBe(5000);
+      expect(result.deductionBreakdown.deductionAmount).toBe(32000);
+    });
+
+    it("uses a $100,000 threshold for married filing separately", () => {
+      // $30,000 of deductions less 5% x ($180,000 - $100,000) = $26,000
+      const inputs = createDefaultInputs({
+        federalIncome: 180000,
+        propertyTaxesPaid: 10000,
+        mortgageInterestPaid: 15000,
+        charitableContributions: 5000,
+        selectedState: "dc",
+        filingStatus: "marriedFilingSeparately",
+      });
+
+      const result = calculateDCTax(
+        inputs,
+        dcBrackets,
+        dcDeductions,
+        sharedLimits,
+        federalLimits,
+        dcLimits,
+        ficaData,
+      );
+
+      expect(result.deductionBreakdown.deductionAmount).toBe(26000);
+    });
+  });
+
+  describe("matching the federal deduction type", () => {
+    const calculateWithFederal = (
+      overrides: Parameters<typeof createDefaultInputs>[0],
+    ) => {
+      const inputs = createDefaultInputs({
+        selectedState: "dc",
+        filingStatus: "single",
+        ...overrides,
+      });
+      const federal = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData,
+      );
+      const dc = calculateDCTax(
+        inputs,
+        dcBrackets,
+        dcDeductions,
+        sharedLimits,
+        federalLimits,
+        dcLimits,
+        ficaData,
+        federal.deductionBreakdown,
+      );
+      return { dc, federal };
+    };
+
+    it("itemizes for DC when the federal return itemizes, even below the DC standard deduction", () => {
+      // Federal itemized: $9,500 DC tax + $6,000 property tax + $5,000
+      // mortgage interest + $1,000 charity = $21,500 > $16,100 standard.
+      // DC itemized: $6,000 + $5,000 + $1,000 = $12,000 < $16,100 standard,
+      // but DC must itemize because the federal return does.
+      const { dc, federal } = calculateWithFederal({
+        federalIncome: 150000,
+        stateTaxWithheld: 9500,
+        propertyTaxesPaid: 6000,
+        mortgageInterestPaid: 5000,
+        charitableContributions: 1000,
+      });
+
+      expect(federal.deductionBreakdown.deductionUsed).toBe("itemized");
+      expect(dc.deductionBreakdown.deductionUsed).toBe("itemized");
+      expect(dc.deductionBreakdown.deductionAmount).toBe(12000);
+      expect(dc.deductionBreakdown.followsFederalChoice).toBe(true);
+    });
+
+    it("takes the DC standard deduction when the federal return does", () => {
+      // Federal itemized: $2,000 + $8,000 + $4,000 = $14,000 < $16,100
+      const { dc, federal } = calculateWithFederal({
+        federalIncome: 100000,
+        stateTaxWithheld: 2000,
+        propertyTaxesPaid: 8000,
+        mortgageInterestPaid: 4000,
+      });
+
+      expect(federal.deductionBreakdown.deductionUsed).toBe("standard");
+      expect(dc.deductionBreakdown.deductionUsed).toBe("standard");
+      expect(dc.deductionBreakdown.deductionAmount).toBe(
+        dc.deductionBreakdown.standardDeduction,
+      );
+    });
+
+    it("applies the 5% reduction when following the federal choice", () => {
+      // AGI $600,000: federal SALT cap is $11,900, itemized $51,900.
+      // DC: $25,000 + $15,000 = $40,000 less 5% x $400,000 = $20,000
+      const { dc, federal } = calculateWithFederal({
+        federalIncome: 600000,
+        stateTaxWithheld: 45000,
+        mortgageInterestPaid: 25000,
+        charitableContributions: 15000,
+        filingStatus: "marriedFilingJointly",
+      });
+
+      expect(federal.deductionBreakdown.deductionUsed).toBe("itemized");
+      expect(dc.deductionBreakdown.highIncomeReduction).toBe(20000);
+      expect(dc.deductionBreakdown.deductionAmount).toBe(20000);
     });
   });
 

@@ -163,7 +163,7 @@ function calculateStateTaxWithData(
   sharedLimits: SharedLimitsData,
   federalLimits: FederalLimitsData,
   ficaData: FicaData,
-  federalTaxableIncome?: number,
+  federal: TaxCalculationResult,
 ) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const brackets = stateData.brackets as any;
@@ -190,7 +190,7 @@ function calculateStateTaxWithData(
         brackets,
         sharedLimits,
         limits,
-        federalTaxableIncome ?? 0,
+        federal.taxableOrdinaryIncome + federal.taxableLTCG,
         ficaData,
       );
     case "dc":
@@ -202,6 +202,7 @@ function calculateStateTaxWithData(
         federalLimits,
         limits,
         ficaData,
+        federal.deductionBreakdown,
       );
     case "florida":
       return calculateFloridaTax(inputs);
@@ -306,15 +307,13 @@ export default function TaxCalculator() {
       };
     }
 
-    const federalTaxableIncome =
-      federal.taxableOrdinaryIncome + federal.taxableLTCG;
     const state = calculateStateTaxWithData(
       inputs,
       currentStateData,
       federalData.sharedLimits,
       federalData.federalLimits,
       federalData.ficaData,
-      federalTaxableIncome,
+      federal,
     );
 
     return { federal, state, selectedState: inputs.selectedState };
@@ -384,7 +383,7 @@ export default function TaxCalculator() {
         federalData.sharedLimits,
         federalData.federalLimits,
         federalData.ficaData,
-        federalResult.taxableOrdinaryIncome + federalResult.taxableLTCG,
+        federalResult,
       );
     },
     [loadedStateData, taxYear, federalData, calculateFederal],

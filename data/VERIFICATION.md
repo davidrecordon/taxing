@@ -351,6 +351,23 @@ This document verifies that all tax data in the JSON files matches official gove
 | MFJ           | $30,000  | $30,000  | Yes   |
 | MFS           | $15,000  | $15,000  | Yes   |
 
+### Itemized Deductions
+
+**Source:** [2025 D-40 booklet](https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2025_D40_Book_082026_v1.pdf) (Line 17 and Line 18 instructions, Calculation F), [D.C. Act 26-416](https://code.dccouncil.gov/us/dc/council/acts/26-416), [D.C. Code 47-1803.03](https://code.dccouncil.gov/us/dc/council/code/sections/47-1803.03)
+
+| Item                                      | Our Data | Official | Match |
+| ----------------------------------------- | -------- | -------- | ----- |
+| Real property tax deductible, no SALT cap | Yes      | Yes      | Yes   |
+| State and local income tax deductible     | No       | No       | Yes   |
+| Same deduction type as the federal return | Yes      | Yes      | Yes   |
+| High-income limit: rate on excess DC AGI  | 5%       | 5%       | Yes   |
+| High-income limit threshold               | $200,000 | $200,000 | Yes   |
+| High-income limit threshold (MFS)         | $100,000 | $100,000 | Yes   |
+
+**Notes:** Mortgage interest and charitable contributions follow the federal Schedule A amounts. The limitation thresholds are fixed in statute and not indexed, so 2026 uses the same values. For 2026 the federal 0.5% charitable floor flows through with the federal charitable amount; whether DC's 2026 Calculation F starts after the federal 2/37 limitation is not yet published, and the calculator does not apply that limitation to DC. DC does not allow the federal non-itemizer charitable deduction.
+
+**Correction (2026-10-19):** The calculator previously dropped property tax from DC itemized deductions, applied no high-income limitation, and chose the larger of the standard and itemized deduction regardless of the federal return.
+
 ### Safe Harbor
 
 **Source:** [DC OTR Underpayment of Estimated Tax](https://otr.cfo.dc.gov/page/underpayment-estimated-tax-interest)

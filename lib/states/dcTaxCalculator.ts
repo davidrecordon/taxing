@@ -2,6 +2,7 @@ import {
   TaxInputs,
   TaxCalculationResult,
   TaxBracketsData,
+  DeductionBreakdown,
   DeductionsData,
   SharedLimitsData,
   FederalLimitsData,
@@ -35,6 +36,7 @@ export function calculateDCTax(
   federalLimits: FederalLimitsData,
   dcLimits: DCLimitsData,
   ficaData?: FicaData,
+  federalDeduction?: DeductionBreakdown,
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
 
@@ -54,22 +56,7 @@ export function calculateDCTax(
     shortTermLossCarryoverUnused,
   } = calculateStateGrossIncome(inputs, stateIncome, sharedLimits);
 
-  // Step 2: Calculate deductions
-  const deductionBreakdown = calculateDCDeductions(
-    {
-      propertyTaxesPaid: inputs.propertyTaxesPaid,
-      mortgageInterestPaid: inputs.mortgageInterestPaid,
-      mortgageBalance: inputs.mortgageBalance,
-      charitableContributions: inputs.charitableContributions,
-      stateTaxWithheld: inputs.stateTaxWithheld,
-      stateEstimatedPaid: inputs.stateEstimatedPaid,
-    },
-    filingStatus,
-    dcDeductions,
-    federalLimits,
-  );
-
-  // Step 3: Calculate AGI
+  // Step 2: Calculate AGI
   // DC conforms to federal above-the-line deductions including deductible SE tax
   const deductibleSETax = ficaData
     ? calculateDeductibleSETax(
@@ -85,6 +72,24 @@ export function calculateDCTax(
     shortTermLossCarryoverOffset -
     longTermLossCarryoverOffset -
     preTaxDeductions;
+
+  // Step 3: Calculate deductions
+  const deductionBreakdown = calculateDCDeductions(
+    {
+      propertyTaxesPaid: inputs.propertyTaxesPaid,
+      mortgageInterestPaid: inputs.mortgageInterestPaid,
+      mortgageBalance: inputs.mortgageBalance,
+      charitableContributions: inputs.charitableContributions,
+      stateTaxWithheld: inputs.stateTaxWithheld,
+      stateEstimatedPaid: inputs.stateEstimatedPaid,
+    },
+    filingStatus,
+    dcDeductions,
+    federalLimits,
+    dcLimits,
+    adjustedGrossIncome,
+    federalDeduction,
+  );
 
   // Step 4: Calculate taxable income
   const taxableOrdinaryIncome = Math.max(

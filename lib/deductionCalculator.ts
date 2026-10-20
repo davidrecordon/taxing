@@ -3,6 +3,7 @@ import {
   DeductionBreakdown,
   FederalLimitsData,
   CaliforniaLimitsData,
+  DCLimitsData,
   DeductionsData,
 } from "./types";
 
@@ -218,42 +219,72 @@ export function calculateNewYorkDeductions(
   };
 }
 
-// DC does NOT allow SALT deduction (can't deduct DC tax from DC tax)
-// DC follows federal mortgage interest limits
+// DC starts from the federal itemized deductions, removes state income tax,
+// allows property tax in full (no SALT cap), and reduces the result for high
+// incomes (D-40 Calculation F). The taxpayer must take the same type of
+// deduction as on the federal return, so pass the federal breakdown whenever
+// it is available; without it the larger deduction is used.
 export function calculateDCDeductions(
   inputs: DeductionInputs,
   filingStatus: FilingStatus,
   dcDeductions: DeductionsData,
   federalLimits: FederalLimitsData,
+  dcLimits: DCLimitsData,
+  agi: number,
+  federalDeduction?: DeductionBreakdown,
 ): DeductionBreakdown {
   const standardDeduction = dcDeductions.standardDeduction[filingStatus];
+  const federalItemized = federalDeduction?.deductionUsed === "itemized";
 
-  // DC follows federal mortgage balance limits
+  // DC follows the federal mortgage interest and charitable amounts
   const mortgageBalanceLimit =
     filingStatus === "marriedFilingSeparately"
       ? federalLimits.mortgageBalanceLimit.marriedFilingSeparately
       : federalLimits.mortgageBalanceLimit.default;
+  const deductibleMortgageInterest = federalItemized
+    ? federalDeduction.mortgageInterest
+    : calculateDeductibleMortgageInterest(
+        inputs.mortgageInterestPaid,
+        inputs.mortgageBalance,
+        mortgageBalanceLimit,
+      );
+  const charitableContributions = federalItemized
+    ? federalDeduction.charitableContributions
+    : inputs.charitableContributions;
 
-  const deductibleMortgageInterest = calculateDeductibleMortgageInterest(
-    inputs.mortgageInterestPaid,
-    inputs.mortgageBalance,
-    mortgageBalanceLimit,
+  const beforeLimit =
+    inputs.propertyTaxesPaid +
+    deductibleMortgageInterest +
+    charitableContributions;
+
+  // High-income limitation: 5% of DC AGI over the threshold, with no cap
+  const limit = dcLimits.itemizedDeductionLimit;
+  const highIncomeReduction = calculateHighIncomeReduction(
+    beforeLimit,
+    agi,
+    filingStatus === "marriedFilingSeparately"
+      ? limit.threshold.marriedFilingSeparately
+      : limit.threshold.default,
+    limit.rate,
+    1,
   );
+  const itemizedDeduction = beforeLimit - highIncomeReduction;
 
-  // DC itemized deductions (no SALT)
-  const itemizedDeduction =
-    deductibleMortgageInterest + inputs.charitableContributions;
-
-  const useItemized = itemizedDeduction > standardDeduction;
+  const useItemized = federalDeduction
+    ? federalItemized
+    : itemizedDeduction > standardDeduction;
 
   return {
     standardDeduction,
     itemizedDeduction,
     deductionUsed: useItemized ? "itemized" : "standard",
     deductionAmount: useItemized ? itemizedDeduction : standardDeduction,
-    saltDeduction: 0, // DC doesn't allow SALT
+    saltDeduction: 0, // State income tax is not deductible
     saltCapped: false,
     mortgageInterest: useItemized ? deductibleMortgageInterest : 0,
-    charitableContributions: useItemized ? inputs.charitableContributions : 0,
+    charitableContributions: useItemized ? charitableContributions : 0,
+    propertyTax: useItemized ? inputs.propertyTaxesPaid : 0,
+    highIncomeReduction: useItemized ? highIncomeReduction : 0,
+    followsFederalChoice: federalDeduction !== undefined,
   };
 }
