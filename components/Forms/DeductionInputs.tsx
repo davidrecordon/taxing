@@ -84,7 +84,7 @@ export default function DeductionInputs({
       </h3>
 
       <CurrencyInput
-        label="Property / Local Taxes Paid"
+        label="Property Taxes Paid"
         value={inputs.propertyTaxesPaid}
         onChange={(v) => onUpdate("propertyTaxesPaid", v)}
         warning={getSaltWarning()}
