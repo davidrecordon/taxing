@@ -18,12 +18,101 @@
       "default": 1000000,
       "marriedFilingSeparately": 500000
     },
+    "nycSchoolTaxCredit": {
+      "fixedAmount": {
+        "default": 63,
+        "marriedFilingJointly": 125
+      },
+      "fixedAmountIncomeLimit": 250000,
+      "rateReduction": {
+        "baseAmount": {
+          "default": 21,
+          "marriedFilingJointly": 37
+        },
+        "baseRate": 0.00171,
+        "excessRate": 0.00228,
+        "incomeLimit": 500000,
+        "threshold": {
+          "default": 12000,
+          "marriedFilingJointly": 21600
+        }
+      }
+    },
     "safeHarbor": {
       "currentYearPercent": 0.9,
       "highIncomePercent": 1.1,
       "highIncomeThreshold": 150000,
       "highIncomeThresholdMFS": 75000,
       "priorYearPercent": 1.0
+    },
+    "taxBenefitRecapture": {
+      "agiThreshold": 107650,
+      "firstTierRate": {
+        "marriedFilingJointly": 0.055,
+        "marriedFilingSeparately": 0.06,
+        "single": 0.06
+      },
+      "phaseInRange": 50000,
+      "tiers": {
+        "marriedFilingJointly": [
+          {
+            "incrementalBenefit": 807,
+            "minTaxableIncome": 161550,
+            "recaptureBase": 333
+          },
+          {
+            "incrementalBenefit": 2747,
+            "minTaxableIncome": 323200,
+            "recaptureBase": 1140
+          },
+          {
+            "incrementalBenefit": 60350,
+            "minTaxableIncome": 2155350,
+            "recaptureBase": 3887
+          },
+          {
+            "incrementalBenefit": 32500,
+            "minTaxableIncome": 5000000,
+            "recaptureBase": 64237
+          }
+        ],
+        "marriedFilingSeparately": [
+          {
+            "incrementalBenefit": 1831,
+            "minTaxableIncome": 215400,
+            "recaptureBase": 568
+          },
+          {
+            "incrementalBenefit": 30172,
+            "minTaxableIncome": 1077550,
+            "recaptureBase": 2399
+          },
+          {
+            "incrementalBenefit": 32500,
+            "minTaxableIncome": 5000000,
+            "recaptureBase": 32571
+          }
+        ],
+        "single": [
+          {
+            "incrementalBenefit": 1831,
+            "minTaxableIncome": 215400,
+            "recaptureBase": 568
+          },
+          {
+            "incrementalBenefit": 30172,
+            "minTaxableIncome": 1077550,
+            "recaptureBase": 2399
+          },
+          {
+            "incrementalBenefit": 32500,
+            "minTaxableIncome": 5000000,
+            "recaptureBase": 32571
+          }
+        ]
+      },
+      "topRate": 0.109,
+      "topRateAgiThreshold": 25000000
     }
   },
   "2026": {
@@ -45,12 +134,101 @@
       "default": 1000000,
       "marriedFilingSeparately": 500000
     },
+    "nycSchoolTaxCredit": {
+      "fixedAmount": {
+        "default": 63,
+        "marriedFilingJointly": 125
+      },
+      "fixedAmountIncomeLimit": 250000,
+      "rateReduction": {
+        "baseAmount": {
+          "default": 21,
+          "marriedFilingJointly": 37
+        },
+        "baseRate": 0.00171,
+        "excessRate": 0.00228,
+        "incomeLimit": 500000,
+        "threshold": {
+          "default": 12000,
+          "marriedFilingJointly": 21600
+        }
+      }
+    },
     "safeHarbor": {
       "currentYearPercent": 0.9,
       "highIncomePercent": 1.1,
       "highIncomeThreshold": 150000,
       "highIncomeThresholdMFS": 75000,
       "priorYearPercent": 1.0
+    },
+    "taxBenefitRecapture": {
+      "agiThreshold": 107650,
+      "firstTierRate": {
+        "marriedFilingJointly": 0.054,
+        "marriedFilingSeparately": 0.059,
+        "single": 0.059
+      },
+      "phaseInRange": 50000,
+      "tiers": {
+        "marriedFilingJointly": [
+          {
+            "incrementalBenefit": 807,
+            "minTaxableIncome": 161550,
+            "recaptureBase": 333
+          },
+          {
+            "incrementalBenefit": 3071,
+            "minTaxableIncome": 323200,
+            "recaptureBase": 1140
+          },
+          {
+            "incrementalBenefit": 60350,
+            "minTaxableIncome": 2155350,
+            "recaptureBase": 4211
+          },
+          {
+            "incrementalBenefit": 32500,
+            "minTaxableIncome": 5000000,
+            "recaptureBase": 64561
+          }
+        ],
+        "marriedFilingSeparately": [
+          {
+            "incrementalBenefit": 2047,
+            "minTaxableIncome": 215400,
+            "recaptureBase": 567
+          },
+          {
+            "incrementalBenefit": 30172,
+            "minTaxableIncome": 1077550,
+            "recaptureBase": 2614
+          },
+          {
+            "incrementalBenefit": 32500,
+            "minTaxableIncome": 5000000,
+            "recaptureBase": 32786
+          }
+        ],
+        "single": [
+          {
+            "incrementalBenefit": 2047,
+            "minTaxableIncome": 215400,
+            "recaptureBase": 567
+          },
+          {
+            "incrementalBenefit": 30172,
+            "minTaxableIncome": 1077550,
+            "recaptureBase": 2614
+          },
+          {
+            "incrementalBenefit": 32500,
+            "minTaxableIncome": 5000000,
+            "recaptureBase": 32786
+          }
+        ]
+      },
+      "topRate": 0.109,
+      "topRateAgiThreshold": 25000000
     }
   }
 }

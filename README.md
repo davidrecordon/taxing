@@ -12,7 +12,7 @@ A web-based tax estimation tool for calculating Federal and state income taxes. 
   - **District of Columbia**: Progressive income tax (4%-10.75%)
   - **Florida**: No state income tax
   - **Illinois**: Flat-rate income tax with personal exemptions and the property tax credit
-  - **New York**: State income tax with optional NYC local tax for city residents
+  - **New York**: State income tax with the tax benefit recapture for higher incomes, and optional NYC local tax with the school tax credit for city residents
   - **Washington**: Capital gains tax only (no wage income tax)
 - **Filing Statuses**: Single, Married Filing Jointly, Married Filing Separately
 - **Income Types**: W-2 wages, interest, ordinary and qualified dividends, short-term and long-term capital gains

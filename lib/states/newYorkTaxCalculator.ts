@@ -1,4 +1,5 @@
 import {
+  FilingStatus,
   TaxInputs,
   TaxCalculationResult,
   TaxBracketsData,
@@ -15,6 +16,81 @@ import {
   calculateSafeHarbor,
   calculateStateIncome,
 } from "./stateCalcUtils";
+
+/**
+ * New York tax benefit recapture (IT-201 tax computation worksheets). Above
+ * the AGI threshold the benefit of the lower brackets is phased out over the
+ * next $50,000 of NY AGI, tier by tier, until the tax equals a flat rate on
+ * all taxable income. Returns the amount to add to the rate schedule tax.
+ */
+export function calculateTaxBenefitRecapture(
+  bracketTax: number,
+  taxableIncome: number,
+  agi: number,
+  filingStatus: FilingStatus,
+  newYorkLimits: NewYorkLimitsData,
+): number {
+  const recapture = newYorkLimits.taxBenefitRecapture;
+  if (agi <= recapture.agiThreshold || taxableIncome <= 0) return 0;
+
+  if (agi > recapture.topRateAgiThreshold) {
+    return Math.max(0, taxableIncome * recapture.topRate - bracketTax);
+  }
+
+  // The worksheets round the phase-in fraction to four decimal places
+  const phaseIn = (start: number) =>
+    Math.round(
+      (Math.min(Math.max(0, agi - start), recapture.phaseInRange) /
+        recapture.phaseInRange) *
+        10000,
+    ) / 10000;
+
+  const tier = recapture.tiers[filingStatus].findLast(
+    (candidate) => taxableIncome > candidate.minTaxableIncome,
+  );
+  if (!tier) {
+    // First tier: phase toward the flat rate on all taxable income
+    const flatTax = taxableIncome * recapture.firstTierRate[filingStatus];
+    return Math.max(0, flatTax - bracketTax) * phaseIn(recapture.agiThreshold);
+  }
+
+  return (
+    tier.recaptureBase +
+    tier.incrementalBenefit * phaseIn(tier.minTaxableIncome)
+  );
+}
+
+/**
+ * New York City school tax credit (IT-201 lines 69 and 69a): a fixed amount
+ * for lower incomes plus a rate reduction amount based on city taxable income.
+ */
+export function calculateNYCSchoolTaxCredit(
+  taxableIncome: number,
+  agi: number,
+  filingStatus: FilingStatus,
+  newYorkLimits: NewYorkLimitsData,
+): number {
+  const { fixedAmount, fixedAmountIncomeLimit, rateReduction } =
+    newYorkLimits.nycSchoolTaxCredit;
+  const key =
+    filingStatus === "marriedFilingJointly"
+      ? "marriedFilingJointly"
+      : "default";
+
+  const fixed = agi <= fixedAmountIncomeLimit ? fixedAmount[key] : 0;
+
+  let reduction = 0;
+  if (taxableIncome > 0 && taxableIncome <= rateReduction.incomeLimit) {
+    const threshold = rateReduction.threshold[key];
+    reduction =
+      taxableIncome <= threshold
+        ? taxableIncome * rateReduction.baseRate
+        : rateReduction.baseAmount[key] +
+          (taxableIncome - threshold) * rateReduction.excessRate;
+  }
+
+  return fixed + reduction;
+}
 
 /**
  * New York State Tax Calculator
@@ -75,6 +151,15 @@ export function calculateNewYorkTax(
     newYorkBrackets.brackets[filingStatus],
   );
 
+  // Step 5b: Tax benefit recapture for higher incomes
+  const nyTaxBenefitRecapture = calculateTaxBenefitRecapture(
+    nyStateTax.total,
+    taxableOrdinaryIncome,
+    adjustedGrossIncome,
+    filingStatus,
+    newYorkLimits,
+  );
+
   // Step 6: Calculate NYC local tax if resident
   let nycTax = 0;
   let nycBracketBreakdown: BracketBreakdown[] = [];
@@ -88,7 +173,21 @@ export function calculateNewYorkTax(
     nycBracketBreakdown = nycTaxResult.breakdown;
   }
 
-  const totalTax = nyStateTax.total + nycTax;
+  // Step 6b: NYC school tax credit, limited to the city tax
+  const nycSchoolTaxCredit = isNYCResident
+    ? Math.min(
+        nycTax,
+        calculateNYCSchoolTaxCredit(
+          taxableOrdinaryIncome,
+          adjustedGrossIncome,
+          filingStatus,
+          newYorkLimits,
+        ),
+      )
+    : 0;
+
+  const totalTax =
+    nyStateTax.total + nyTaxBenefitRecapture + nycTax - nycSchoolTaxCredit;
 
   // Step 7: Calculate remaining owed
   const { totalPaid, remainingOwed, refundDue } = calculatePaymentSummary(
@@ -140,7 +239,9 @@ export function calculateNewYorkTax(
     ltcgBracketBreakdown: [], // No LTCG brackets for NY
     ordinaryIncomeTax: nyStateTax.total,
     ltcgTax: 0,
+    nyTaxBenefitRecapture,
     nycTax: isNYCResident ? nycTax : undefined,
+    nycSchoolTaxCredit: isNYCResident ? nycSchoolTaxCredit : undefined,
     nycBracketBreakdown: isNYCResident ? nycBracketBreakdown : undefined,
     totalTax,
     withheld: inputs.stateTaxWithheld,

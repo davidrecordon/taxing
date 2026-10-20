@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { calculateNewYorkTax } from "../states/newYorkTaxCalculator";
+import {
+  calculateNewYorkTax,
+  calculateNYCSchoolTaxCredit,
+  calculateTaxBenefitRecapture,
+} from "../states/newYorkTaxCalculator";
+import { calculateTaxByBrackets } from "../taxUtils";
+import { FilingStatus } from "../types";
 import { SUPPORTED_YEARS, TaxYear } from "../config";
 import {
   newYorkBrackets,
@@ -59,8 +65,12 @@ describe("calculateNewYorkTax", () => {
       expect(result.nycTax).toBeGreaterThan(0);
       expect(result.nycBracketBreakdown).toBeDefined();
       expect(result.nycBracketBreakdown!.length).toBeGreaterThan(0);
-      // Total should be state + NYC
-      expect(result.totalTax).toBe(result.ordinaryIncomeTax + result.nycTax!);
+      // Total should be state + NYC less the NYC school tax credit
+      expect(result.nycSchoolTaxCredit).toBeGreaterThan(0);
+      expect(result.totalTax).toBeCloseTo(
+        result.ordinaryIncomeTax + result.nycTax! - result.nycSchoolTaxCredit!,
+        2,
+      );
     });
 
     it("does not apply NYC tax when isNYCResident is false", () => {
@@ -788,7 +798,9 @@ describe("calculateNewYorkTax", () => {
       expect(result.taxableOrdinaryIncome).toBe(92000);
       expect(result.ordinaryIncomeTax).toBeCloseTo(4859.75, 0);
       expect(result.nycTax).toBeCloseTo(3441.09, 0);
-      expect(result.totalTax).toBeCloseTo(8300.84, 0);
+      // NYC school tax credit: $63 + $21 + 0.228% x ($92,000 - $12,000)
+      expect(result.nycSchoolTaxCredit).toBeCloseTo(266.4, 2);
+      expect(result.totalTax).toBeCloseTo(8034.44, 0);
     });
 
     it("MFJ filer $200k matches NY DTF tax table - exact calculation", () => {
@@ -818,7 +830,7 @@ describe("calculateNewYorkTax", () => {
       );
 
       expect(result.taxableOrdinaryIncome).toBe(183950);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(9712.80, 0);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(9712.8, 0);
     });
 
     it("MFS filer $208k uses the single schedule - exact calculation", () => {
@@ -951,6 +963,169 @@ describe("calculateNewYorkTax", () => {
       expect(result.deductionBreakdown.propertyTax).toBe(20000);
       expect(result.deductionBreakdown.deductionAmount).toBe(15000);
     });
+  });
+});
+
+describe("calculateTaxBenefitRecapture", () => {
+  // Recapture for a given NY AGI and taxable income, using the rate schedule
+  // tax for that year as the starting point
+  const recaptureFor = (
+    year: TaxYear,
+    filingStatus: FilingStatus,
+    agi: number,
+    taxableIncome: number,
+  ) => {
+    const data = loadTestDataForYear(year);
+    const bracketTax = calculateTaxByBrackets(
+      taxableIncome,
+      data.newYorkBrackets.brackets[filingStatus],
+    ).total;
+    return {
+      bracketTax,
+      recapture: calculateTaxBenefitRecapture(
+        bracketTax,
+        taxableIncome,
+        agi,
+        filingStatus,
+        data.newYorkLimits,
+      ),
+    };
+  };
+
+  it("adds nothing at or below $107,650 of NY AGI", () => {
+    expect(recaptureFor("2025", "single", 107650, 99650).recapture).toBe(0);
+    expect(
+      recaptureFor("2025", "marriedFilingJointly", 100000, 83950).recapture,
+    ).toBe(0);
+  });
+
+  // Worked from the 2025 IT-201 tax computation worksheets:
+  // [filing status, NY AGI, taxable income, recapture]
+  it.each<[FilingStatus, number, number, number]>([
+    // First tier, phasing toward 6% (single) or 5.5% (joint) of taxable income
+    ["single", 110000, 102000, 26.71], // 568.25 x 0.0470
+    ["single", 130000, 122000, 254.01], // 568.25 x 0.4470
+    ["marriedFilingJointly", 108000, 91950, 2.33], // 332.50 x 0.0070
+    ["marriedFilingJointly", 150000, 133950, 281.63], // 332.50 x 0.8470
+    // Upper tiers: recapture base + incremental benefit x phase-in
+    ["marriedFilingSeparately", 240000, 232000, 1468.85], // 568 + 1,831 x 0.4920
+    ["single", 300000, 292000, 2399], // 568 + 1,831
+    ["marriedFilingJointly", 400000, 380000, 3887], // 1,140 + 2,747
+    ["single", 1100000, 1092000, 15946.23], // 2,399 + 30,172 x 0.4490
+    ["marriedFilingJointly", 2180000, 2163950, 33639.55], // 3,887 + 60,350 x 0.4930
+    ["single", 3000000, 2992000, 32571], // 2,399 + 30,172
+    ["marriedFilingJointly", 5020000, 5003950, 77237], // 64,237 + 32,500 x 0.4
+    ["single", 10000000, 9992000, 65071], // 32,571 + 32,500
+    // Taxable income in a lower tier than AGI: the taxable income tier applies
+    ["marriedFilingJointly", 400000, 300000, 1140], // 333 + 807
+  ])("2025 %s, AGI %i, taxable income %i", (status, agi, taxable, expected) => {
+    expect(recaptureFor("2025", status, agi, taxable).recapture).toBeCloseTo(
+      expected,
+      2,
+    );
+  });
+
+  it("taxes all taxable income at the flat rate once the first tier is phased in", () => {
+    // Single, AGI $200,000 with taxable income of $70,000: 6% x $70,000
+    const { bracketTax, recapture } = recaptureFor(
+      "2025",
+      "single",
+      200000,
+      70000,
+    );
+
+    expect(bracketTax + recapture).toBeCloseTo(4200, 2);
+  });
+
+  it("taxes all taxable income at 10.9% above $25,000,000 of NY AGI", () => {
+    const { bracketTax, recapture } = recaptureFor(
+      "2025",
+      "marriedFilingJointly",
+      30000000,
+      29983950,
+    );
+
+    expect(recapture).toBeCloseTo(246737.25, 1);
+    expect(bracketTax + recapture).toBeCloseTo(3268250.55, 1);
+  });
+
+  // 2026 amounts from the 2026 IT-2105 worksheets
+  it.each<[FilingStatus, number, number, number]>([
+    ["single", 130000, 122000, 254.01], // 5.9% first tier
+    ["marriedFilingJointly", 150000, 133950, 281.63], // 5.4% first tier
+    ["marriedFilingJointly", 400000, 380000, 4211], // 1,140 + 3,071
+    ["single", 300000, 292000, 2614], // 567 + 2,047
+  ])("2026 %s, AGI %i, taxable income %i", (status, agi, taxable, expected) => {
+    expect(recaptureFor("2026", status, agi, taxable).recapture).toBeCloseTo(
+      expected,
+      2,
+    );
+  });
+
+  it("is included in the New York total", () => {
+    // Single, $130,000 wages: taxable income $122,000 after the $8,000
+    // standard deduction
+    const result = calculateNewYorkTax(
+      createDefaultInputs({ federalIncome: 130000, filingStatus: "single" }),
+      newYorkBrackets,
+      nycBrackets,
+      newYorkDeductions,
+      sharedLimits,
+      newYorkLimits,
+    );
+
+    expect(result.nyTaxBenefitRecapture).toBeCloseTo(254.01, 2);
+    expect(result.totalTax).toBeCloseTo(result.ordinaryIncomeTax + 254.01, 2);
+  });
+});
+
+describe("calculateNYCSchoolTaxCredit", () => {
+  const credit = (
+    taxableIncome: number,
+    agi: number,
+    filingStatus: FilingStatus = "single",
+  ) =>
+    calculateNYCSchoolTaxCredit(
+      taxableIncome,
+      agi,
+      filingStatus,
+      newYorkLimits,
+    );
+
+  it("adds the fixed amount and the rate reduction amount", () => {
+    // $63 + $21 + 0.228% x ($92,000 - $12,000)
+    expect(credit(92000, 100000)).toBeCloseTo(266.4, 2);
+  });
+
+  it("uses 0.171% of taxable income up to the threshold", () => {
+    // Joint: $125 + 0.171% x $21,600
+    expect(credit(21600, 40000, "marriedFilingJointly")).toBeCloseTo(161.94, 2);
+  });
+
+  it("drops the fixed amount above $250,000 of income", () => {
+    // $21 + 0.228% x ($300,000 - $12,000)
+    expect(credit(300000, 310000)).toBeCloseTo(677.64, 2);
+  });
+
+  it("allows no rate reduction amount above $500,000 of taxable income", () => {
+    expect(credit(500000, 520000)).toBeCloseTo(1133.64, 2);
+    expect(credit(500001, 520000)).toBe(0);
+  });
+
+  it("applies only to New York City residents", () => {
+    const inputs = { federalIncome: 100000, filingStatus: "single" as const };
+    const calculate = (isNYCResident: boolean) =>
+      calculateNewYorkTax(
+        createDefaultInputs({ ...inputs, isNYCResident }),
+        newYorkBrackets,
+        nycBrackets,
+        newYorkDeductions,
+        sharedLimits,
+        newYorkLimits,
+      );
+
+    expect(calculate(true).nycSchoolTaxCredit).toBeCloseTo(266.4, 2);
+    expect(calculate(false).nycSchoolTaxCredit).toBeUndefined();
   });
 });
 

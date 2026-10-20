@@ -170,6 +170,15 @@ export interface WashingtonLimitsData {
 }
 
 // New York-specific limits
+// One upper tier of the New York tax benefit recapture: for taxable income
+// above `minTaxableIncome`, add `recaptureBase` plus `incrementalBenefit`
+// phased in over AGI above the same amount
+export interface NewYorkRecaptureTier {
+  incrementalBenefit: number;
+  minTaxableIncome: number;
+  recaptureBase: number;
+}
+
 export interface NewYorkLimitsData {
   // New York itemized deduction adjustment (Form IT-196 lines 46-47), based
   // on New York AGI. Each tier removes `rate` of the deductions, phased in over
@@ -194,12 +203,55 @@ export interface NewYorkLimitsData {
     default: number;
     marriedFilingSeparately: number;
   };
+  // New York City school tax credit (IT-201 lines 69 and 69a)
+  nycSchoolTaxCredit: {
+    fixedAmount: {
+      default: number;
+      marriedFilingJointly: number;
+    };
+    fixedAmountIncomeLimit: number;
+    // `baseRate` of city taxable income up to the threshold; above it,
+    // `baseAmount` plus `excessRate` of the excess
+    rateReduction: {
+      baseAmount: {
+        default: number;
+        marriedFilingJointly: number;
+      };
+      baseRate: number;
+      excessRate: number;
+      incomeLimit: number;
+      threshold: {
+        default: number;
+        marriedFilingJointly: number;
+      };
+    };
+  };
   safeHarbor: {
     currentYearPercent: number;
     highIncomePercent: number;
     highIncomeThreshold: number;
     highIncomeThresholdMFS: number;
     priorYearPercent: number;
+  };
+  // Tax benefit recapture (IT-201 tax computation worksheets): above the AGI
+  // threshold the benefit of the lower brackets is phased out
+  taxBenefitRecapture: {
+    agiThreshold: number;
+    // Flat rate the first tier phases toward, for taxable income up to the
+    // first entry in `tiers`
+    firstTierRate: {
+      marriedFilingJointly: number;
+      marriedFilingSeparately: number;
+      single: number;
+    };
+    phaseInRange: number;
+    tiers: {
+      marriedFilingJointly: NewYorkRecaptureTier[];
+      marriedFilingSeparately: NewYorkRecaptureTier[];
+      single: NewYorkRecaptureTier[];
+    };
+    topRate: number; // Flat rate on all taxable income above topRateAgiThreshold
+    topRateAgiThreshold: number;
   };
 }
 
@@ -479,7 +531,9 @@ export interface TaxCalculationResult {
   caMentalHealthTax?: number; // California only - 1% on income over $1M
   coloradoAdjustments?: ColoradoAdjustments; // Colorado only
   propertyTaxCredit?: number; // Illinois only - credit for property tax paid
-  nycTax?: number; // New York City local tax
+  nyTaxBenefitRecapture?: number; // New York only - recapture added to bracket tax
+  nycTax?: number; // New York City local tax (before the school tax credit)
+  nycSchoolTaxCredit?: number; // New York City school tax credit
   nycBracketBreakdown?: BracketBreakdown[]; // NYC tax bracket breakdown
   ficaBreakdown?: FicaBreakdown;
   niitBreakdown?: NIITBreakdown;

@@ -22,6 +22,9 @@ export default memo(function NewYorkBreakdown({ result, taxYear }: Props) {
 
   const hasNYCTax = (result.nycTax ?? 0) > 0;
 
+  const recapture = result.nyTaxBenefitRecapture ?? 0;
+  const schoolTaxCredit = result.nycSchoolTaxCredit ?? 0;
+
   return (
     <div className="theme-card p-4">
       <h2 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 font-display">
@@ -164,7 +167,7 @@ export default memo(function NewYorkBreakdown({ result, taxYear }: Props) {
       )}
 
       {/* Combined Tax Summary */}
-      {hasNYCTax && (
+      {(hasNYCTax || recapture > 0) && (
         <div className="bg-secondary p-3 rounded-[var(--radius-md)] mb-4">
           <div className="flex justify-between text-sm text-text-secondary">
             <span>NY State Tax</span>
@@ -172,16 +175,44 @@ export default memo(function NewYorkBreakdown({ result, taxYear }: Props) {
               {formatCurrency(result.ordinaryIncomeTax)}
             </span>
           </div>
-          <div className="flex justify-between text-sm text-text-secondary">
-            <span>NYC Local Tax</span>
-            <span className="font-mono text-text-primary">
-              {formatCurrency(result.nycTax ?? 0)}
-            </span>
-          </div>
+          {recapture > 0 && (
+            <div className="flex justify-between text-sm text-text-secondary">
+              <span>Tax Benefit Recapture</span>
+              <span className="font-mono text-text-primary">
+                {formatCurrency(recapture)}
+              </span>
+            </div>
+          )}
+          {hasNYCTax && (
+            <div className="flex justify-between text-sm text-text-secondary">
+              <span>NYC Local Tax</span>
+              <span className="font-mono text-text-primary">
+                {formatCurrency(result.nycTax ?? 0)}
+              </span>
+            </div>
+          )}
+          {schoolTaxCredit > 0 && (
+            <div className="flex justify-between text-sm text-positive">
+              <span>Less: NYC School Tax Credit</span>
+              <span className="font-mono">
+                -{formatCurrency(schoolTaxCredit)}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between font-medium pt-1 border-t border-border text-text-primary">
-            <span>Combined NY + NYC Tax</span>
+            <span>
+              {hasNYCTax
+                ? "Combined NY + NYC Tax"
+                : "NY State Tax with Recapture"}
+            </span>
             <span className="font-mono">{formatCurrency(result.totalTax)}</span>
           </div>
+          {recapture > 0 && (
+            <p className="text-xs text-text-muted mt-1">
+              New York phases out the benefit of its lower tax brackets for
+              higher incomes.
+            </p>
+          )}
         </div>
       )}
 
@@ -200,7 +231,9 @@ export default memo(function NewYorkBreakdown({ result, taxYear }: Props) {
       {/* Safe Harbor Section */}
       {result.safeHarbor && result.remainingOwed > 0 && (
         <div className="bg-warning-bg p-3 rounded-[var(--radius-md)] space-y-2">
-          <h3 className="font-medium text-text-primary">Safe Harbor (Penalty Avoidance)</h3>
+          <h3 className="font-medium text-text-primary">
+            Safe Harbor (Penalty Avoidance)
+          </h3>
           <div className="text-sm space-y-1">
             <div className="flex justify-between text-text-secondary">
               <span>
@@ -248,7 +281,9 @@ export default memo(function NewYorkBreakdown({ result, taxYear }: Props) {
             </div>
           ) : (
             <div className="flex justify-between font-bold pt-2 border-t border-warning">
-              <span className="text-text-primary">Still Needed for Safe Harbor</span>
+              <span className="text-text-primary">
+                Still Needed for Safe Harbor
+              </span>
               <span className="text-warning font-mono">
                 {formatCurrency(result.safeHarbor.remaining)}
               </span>

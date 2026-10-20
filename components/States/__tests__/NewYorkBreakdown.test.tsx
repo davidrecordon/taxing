@@ -39,6 +39,27 @@ describe("NewYorkBreakdown", () => {
     expect(screen.getByText("Combined NY + NYC Tax")).toBeInTheDocument();
   });
 
+  it("shows the tax benefit recapture for higher incomes", () => {
+    // Single, $130,000 in 2026: $6,629.75 bracket tax + $254.01 recapture
+    const result = renderStateBreakdown(NewYorkBreakdown, "newyork", {
+      federalIncome: 130000,
+    });
+
+    expect(rowText("Tax Benefit Recapture")).toContain("$254");
+    expect(rowText("NY State Tax with Recapture")).toContain("$6,884");
+    expect(result.totalTax).toBeCloseTo(6883.76, 1);
+  });
+
+  it("shows the NYC school tax credit for city residents", () => {
+    renderStateBreakdown(NewYorkBreakdown, "newyork", {
+      federalIncome: 100000,
+      isNYCResident: true,
+    });
+
+    expect(rowText("Less: NYC School Tax Credit")).toContain("-$266");
+    expect(screen.queryByText("Tax Benefit Recapture")).not.toBeInTheDocument();
+  });
+
   it("hides the NYC section for other New York residents", () => {
     renderStateBreakdown(NewYorkBreakdown, "newyork", {
       federalIncome: 100000,

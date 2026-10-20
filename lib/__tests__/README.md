@@ -12,19 +12,19 @@ bun run test:coverage   # With coverage report
 
 ## Test Files
 
-| File                              | Description                                                             |
-| --------------------------------- | ----------------------------------------------------------------------- |
-| `federalTaxCalculator.test.ts`    | Federal income tax, FICA, LTCG, NIIT, self-employment, QBI, AGI         |
-| `californiaTaxCalculator.test.ts` | CA state tax, mental health surtax, itemized deductions, safe harbor    |
-| `coloradoTaxCalculator.test.ts`   | CO flat tax, federal taxable income basis, addbacks and subtraction     |
-| `dcTaxCalculator.test.ts`         | DC progressive tax, itemized deductions, matching the federal deduction |
-| `floridaTaxCalculator.test.ts`    | FL no income tax, zero calculations                                     |
-| `illinoisTaxCalculator.test.ts`   | IL flat tax, personal exemptions, income limit, property tax credit     |
-| `newYorkTaxCalculator.test.ts`    | NY state tax, NYC local tax, high-income safe harbor                    |
-| `washingtonTaxCalculator.test.ts` | WA capital gains tax, exemption, surtax                                 |
-| `deductionCalculator.test.ts`     | Federal and state deductions: SALT cap, mortgage limits, income limits  |
-| `taxUtils.test.ts`                | Effective rates, LTCG stacking, capital loss netting, dividends         |
-| `formatters.test.ts`              | Currency and percentage formatting                                      |
+| File                              | Description                                                              |
+| --------------------------------- | ------------------------------------------------------------------------ |
+| `federalTaxCalculator.test.ts`    | Federal income tax, FICA, LTCG, NIIT, self-employment, QBI, AGI          |
+| `californiaTaxCalculator.test.ts` | CA state tax, mental health surtax, itemized deductions, safe harbor     |
+| `coloradoTaxCalculator.test.ts`   | CO flat tax, federal taxable income basis, addbacks and subtraction      |
+| `dcTaxCalculator.test.ts`         | DC progressive tax, itemized deductions, matching the federal deduction  |
+| `floridaTaxCalculator.test.ts`    | FL no income tax, zero calculations                                      |
+| `illinoisTaxCalculator.test.ts`   | IL flat tax, personal exemptions, income limit, property tax credit      |
+| `newYorkTaxCalculator.test.ts`    | NY state tax, tax benefit recapture, NYC local tax and school tax credit |
+| `washingtonTaxCalculator.test.ts` | WA capital gains tax, exemption, surtax                                  |
+| `deductionCalculator.test.ts`     | Federal and state deductions: SALT cap, mortgage limits, income limits   |
+| `taxUtils.test.ts`                | Effective rates, LTCG stacking, capital loss netting, dividends          |
+| `formatters.test.ts`              | Currency and percentage formatting                                       |
 
 ## Shared Test Utilities
 

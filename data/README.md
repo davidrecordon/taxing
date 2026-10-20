@@ -176,6 +176,19 @@ New York-specific limits and thresholds.
     secondTierThreshold: number
   },
   mortgageBalanceLimit: { default: number, marriedFilingSeparately: number },
+  nycSchoolTaxCredit: {              // IT-201 lines 69 and 69a
+    fixedAmount: { default: number, marriedFilingJointly: number },
+    fixedAmountIncomeLimit: number,
+    rateReduction: { baseAmount, baseRate, excessRate, incomeLimit, threshold }
+  },
+  taxBenefitRecapture: {             // IT-201 tax computation worksheets
+    agiThreshold: number,
+    firstTierRate: { marriedFilingJointly: number, marriedFilingSeparately: number, single: number },
+    phaseInRange: number,
+    tiers: { [filingStatus]: [{ incrementalBenefit, minTaxableIncome, recaptureBase }] },
+    topRate: number,
+    topRateAgiThreshold: number
+  },
   safeHarbor: {
     currentYearPercent: number,      // 90% of current year
     priorYearPercent: number,        // 100% of prior year (default)

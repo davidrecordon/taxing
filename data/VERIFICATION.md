@@ -270,6 +270,43 @@ This document verifies that all tax data in the JSON files matches official gove
 
 **Correction (2026-10-19):** The calculator previously dropped property tax from New York itemized deductions, used the federal $750,000 mortgage limit, and applied no income-based adjustment.
 
+### Tax Benefit Recapture
+
+**Source:** [2025 IT-201 Instructions](https://www.tax.ny.gov/pdf/current_forms/it/it201i.pdf) (line 39 and the tax computation worksheets 1 to 11, pages 32 to 37), [Tax Law section 601(d-4)](https://www.nysenate.gov/legislation/laws/TAX/601)
+
+Above $107,650 of NY AGI the benefit of the lower brackets is phased out over the next $50,000 of NY AGI, tier by tier (the fraction is rounded to four decimal places). Above $25,000,000 of NY AGI the tax is 10.9% of taxable income. Married filing separately uses the single amounts.
+
+| Filing status | Taxable income over | Recapture base | Incremental benefit | Match |
+| ------------- | ------------------- | -------------- | ------------------- | ----- |
+| MFJ           | first tier (5.5%)   | n/a            | n/a                 | Yes   |
+| MFJ           | $161,550            | $333           | $807                | Yes   |
+| MFJ           | $323,200            | $1,140         | $2,747              | Yes   |
+| MFJ           | $2,155,350          | $3,887         | $60,350             | Yes   |
+| MFJ           | $5,000,000          | $64,237        | $32,500             | Yes   |
+| Single/MFS    | first tier (6%)     | n/a            | n/a                 | Yes   |
+| Single/MFS    | $215,400            | $568           | $1,831              | Yes   |
+| Single/MFS    | $1,077,550          | $2,399         | $30,172             | Yes   |
+| Single/MFS    | $5,000,000          | $32,571        | $32,500             | Yes   |
+
+### New York City School Tax Credit
+
+**Source:** [2025 IT-201 Instructions](https://www.tax.ny.gov/pdf/current_forms/it/it201i.pdf), lines 69 and 69a (pages 20 to 21)
+
+| Item                                                  | Our Data                   | Official                   | Match |
+| ----------------------------------------------------- | -------------------------- | -------------------------- | ----- |
+| Fixed amount (Single/MFS), income of $250,000 or less | $63                        | $63                        | Yes   |
+| Fixed amount (MFJ), income of $250,000 or less        | $125                       | $125                       | Yes   |
+| Rate reduction: rate up to the threshold              | 0.171%                     | 0.171%                     | Yes   |
+| Rate reduction threshold (Single/MFS)                 | $12,000                    | $12,000                    | Yes   |
+| Rate reduction threshold (MFJ)                        | $21,600                    | $21,600                    | Yes   |
+| Rate reduction above the threshold (Single/MFS)       | $21 + 0.228% of the excess | $21 + 0.228% of the excess | Yes   |
+| Rate reduction above the threshold (MFJ)              | $37 + 0.228% of the excess | $37 + 0.228% of the excess | Yes   |
+| Rate reduction income limit                           | $500,000                   | $500,000                   | Yes   |
+
+**Notes:** The calculator applies both parts to New York City residents and limits the total to the city tax (the fixed amount is refundable on the return). It uses NY AGI for the $250,000 test and city taxable income for the $500,000 test. New York City tax itself has no recapture. Not modelled: the $1,000 dependent exemption, the household credits (income of $32,000 or less), and the metropolitan commuter transportation mobility tax on self-employment earnings.
+
+**Correction (2026-10-19):** The calculator previously applied the rate schedule alone, with no tax benefit recapture and no school tax credit.
+
 ---
 
 ## Washington (2025)
@@ -520,6 +557,24 @@ NY enacted 0.1% rate reductions for the bottom 5 brackets effective 2026:
 | Single        | $8,000   | $8,000   | Yes   |
 | MFJ           | $16,050  | $16,050  | Yes   |
 
+### Tax Benefit Recapture and School Tax Credit (2026)
+
+**Source:** [2026 IT-2105 Instructions](https://www.tax.ny.gov/pdf/current_forms/it/it2105i.pdf) (tax computation worksheets, pages 3 to 5), [Tax Law section 601(d-5)](https://www.nysenate.gov/legislation/laws/TAX/601)
+
+| Filing status | Taxable income over | Recapture base | Incremental benefit | Match |
+| ------------- | ------------------- | -------------- | ------------------- | ----- |
+| MFJ           | first tier (5.4%)   | n/a            | n/a                 | Yes   |
+| MFJ           | $161,550            | $333           | $807                | Yes   |
+| MFJ           | $323,200            | $1,140         | $3,071              | Yes   |
+| MFJ           | $2,155,350          | $4,211         | $60,350             | Yes   |
+| MFJ           | $5,000,000          | $64,561        | $32,500             | Yes   |
+| Single/MFS    | first tier (5.9%)   | n/a            | n/a                 | Yes   |
+| Single/MFS    | $215,400            | $567           | $2,047              | Yes   |
+| Single/MFS    | $1,077,550          | $2,614         | $30,172             | Yes   |
+| Single/MFS    | $5,000,000          | $32,786        | $32,500             | Yes   |
+
+**Note:** These come from the 2026 estimated tax instructions and match the statute; re-check against the 2026 IT-201 instructions when published. The New York City school tax credit amounts for 2026 are not yet published, so 2026 reuses the 2025 values (WAITING).
+
 ---
 
 ## Washington (2026)
@@ -650,7 +705,7 @@ Same as 2025 (brackets not inflation-adjusted).
 - Washington 2026 capital gains standard deduction (and the 9.9% tier in `washington-brackets.json`, which starts at the deduction plus $1,000,000).
 - California 2026 itemized deduction limitation thresholds (Schedule CA (540) instructions, expected late December 2026).
 - DC 2026 standard deduction amounts.
-- New York 2026 Form IT-196 and instructions (rules are statutory; forms not yet published).
+- New York 2026 Form IT-196 and IT-201 instructions (itemized deduction and recapture rules are statutory; forms not yet published), and the 2026 New York City school tax credit amounts.
 
 ---
 
@@ -672,3 +727,4 @@ Same as 2025 (brackets not inflation-adjusted).
 4. **Colorado:** added the state income tax addback, the high-income deduction addback and the non-itemizer charitable subtraction.
 5. **Illinois:** the personal exemption is disallowed above the income limit, and the 5% property tax credit is applied.
 6. **Washington:** the 9.9% tier now starts after the standard deduction.
+7. **New York:** added the tax benefit recapture for NY AGI over $107,650 and the New York City school tax credit.
