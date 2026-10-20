@@ -12,7 +12,10 @@ import {
   QbiDeduction,
   SelfEmploymentTaxBreakdown,
 } from "./types";
-import { calculateFederalDeductions } from "./deductionCalculator";
+import {
+  applyFederalItemizedLimit,
+  calculateFederalDeductions,
+} from "./deductionCalculator";
 import {
   calculateLTCGTaxWithStacking,
   calculateTaxByBrackets,
@@ -198,8 +201,8 @@ export function calculateFederalTax(
     longTermLossCarryoverOffset -
     preTaxDeductions;
 
-  // Step 3: Calculate deductions
-  const deductionBreakdown = calculateFederalDeductions(
+  // Step 3: Calculate deductions (before the overall itemized limitation)
+  const baseDeductionBreakdown = calculateFederalDeductions(
     {
       propertyTaxesPaid: inputs.propertyTaxesPaid,
       mortgageInterestPaid: inputs.mortgageInterestPaid,
@@ -214,31 +217,63 @@ export function calculateFederalTax(
     adjustedGrossIncome,
   );
 
-  // Step 4: Calculate taxable ordinary income (before QBI)
+  // Step 4: Taxable income for a given deduction (before QBI)
   // Deductions apply to ordinary income first; any excess reduces income
-  // taxed at long-term capital gains rates
-  const ordinaryAfterDeductions =
-    agiOrdinary - deductionBreakdown.deductionAmount;
-  const taxableOrdinaryIncomeBeforeQbi = Math.max(0, ordinaryAfterDeductions);
-  const excessDeductions = Math.max(0, -ordinaryAfterDeductions);
+  // taxed at long-term capital gains rates (net long-term gains plus
+  // qualified dividends)
+  const taxableIncomeFor = (deductionAmount: number) => {
+    const ordinaryAfterDeductions = agiOrdinary - deductionAmount;
+    return {
+      ordinary: Math.max(0, ordinaryAfterDeductions),
+      preferential: Math.max(
+        0,
+        preferentialIncome - Math.max(0, -ordinaryAfterDeductions),
+      ),
+    };
+  };
 
-  // Step 4a: Calculate income taxed at long-term capital gains rates
-  // (net long-term gains plus qualified dividends)
-  const taxableLTCG = Math.max(0, preferentialIncome - excessDeductions);
-
-  // Step 4b: Calculate QBI deduction (if applicable)
   // QBI is 20% of qualified business income, limited to 20% of taxable
   // ordinary income, and phases out based on total taxable income
-  const qbiDeduction =
-    selfEmploymentIncome > 0 && taxableOrdinaryIncomeBeforeQbi > 0
+  const qbiDeductionFor = (taxable: {
+    ordinary: number;
+    preferential: number;
+  }) =>
+    selfEmploymentIncome > 0 && taxable.ordinary > 0
       ? calculateQbiDeduction(
           selfEmploymentIncome,
-          taxableOrdinaryIncomeBeforeQbi,
-          taxableOrdinaryIncomeBeforeQbi + taxableLTCG,
+          taxable.ordinary,
+          taxable.ordinary + taxable.preferential,
           filingStatus,
           federalLimits,
         )
       : undefined;
+
+  // Step 4a: Apply the overall limitation on itemized deductions. The QBI
+  // deduction is determined without regard to it.
+  const baseQbiDeduction = qbiDeductionFor(
+    taxableIncomeFor(baseDeductionBreakdown.deductionAmount),
+  );
+  const topBracketStart =
+    federalBrackets.brackets[filingStatus].at(-1)?.min ?? Infinity;
+  const deductionBreakdown = applyFederalItemizedLimit(
+    baseDeductionBreakdown,
+    adjustedGrossIncome - (baseQbiDeduction?.finalDeduction ?? 0),
+    topBracketStart,
+    federalLimits,
+  );
+
+  // Step 4b: Final taxable income and QBI deduction
+  const {
+    ordinary: taxableOrdinaryIncomeBeforeQbi,
+    preferential: taxableLTCG,
+  } = taxableIncomeFor(deductionBreakdown.deductionAmount);
+  const qbiDeduction =
+    deductionBreakdown.deductionUsed === baseDeductionBreakdown.deductionUsed
+      ? baseQbiDeduction
+      : qbiDeductionFor({
+          ordinary: taxableOrdinaryIncomeBeforeQbi,
+          preferential: taxableLTCG,
+        });
   const qbiAmount = qbiDeduction?.finalDeduction ?? 0;
 
   // Taxable ordinary income after QBI deduction

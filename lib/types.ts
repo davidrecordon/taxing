@@ -70,6 +70,16 @@ export interface SharedLimitsData {
 
 // Federal-specific limits
 export interface FederalLimitsData {
+  // Share of AGI below which charitable contributions are not deductible
+  // for itemizers (0 before 2026)
+  charitableFloorRate: number;
+  // Overall limitation on itemized deductions (IRC 68): the fraction applied
+  // to the lesser of itemized deductions or income above the start of the top
+  // bracket (numerator 0 before 2026)
+  itemizedDeductionReduction: {
+    denominator: number;
+    numerator: number;
+  };
   mortgageBalanceLimit: {
     default: number;
     marriedFilingSeparately: number;
@@ -363,6 +373,7 @@ export interface DeductionBreakdown {
   propertyTax?: number; // State returns: property tax deducted outside any SALT cap
   highIncomeReduction?: number; // Itemized deductions lost to a high-income limit
   followsFederalChoice?: boolean; // Standard vs itemized is set by the federal return
+  charitableFloorReduction?: number; // Charitable giving under the AGI floor
 }
 
 export interface FicaBreakdown {

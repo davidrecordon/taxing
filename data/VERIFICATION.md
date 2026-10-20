@@ -142,6 +142,20 @@ This document verifies that all tax data in the JSON files matches official gove
 
 **Correction (2026-10-19):** The QBI thresholds and phase-in ranges were previously the 2024 amounts ($191,950 / $383,900 with $50,000 / $100,000 ranges), and the SALT cap was the 2025 amount with the same errors described under Federal (2025).
 
+### Itemized Deduction Changes (2026)
+
+**Source:** [Public Law 119-21](https://www.govinfo.gov/content/pkg/PLAW-119publ21/html/PLAW-119publ21.htm) sections 70111 (IRC 68) and 70425 (IRC 170(b)(1)(I)), [draft 2026 Schedule A](https://www.irs.gov/pub/irs-dft/f1040sa--dft.pdf) line 18, [Rev. Proc. 2025-32](https://www.irs.gov/pub/irs-drop/rp-25-32.pdf) section 4.01, [Pub. 505 (2026)](https://www.irs.gov/pub/irs-pdf/p505.pdf) Worksheets 2-5 and 2-6
+
+| Item                                  | Our Data | Official | Match |
+| ------------------------------------- | -------- | -------- | ----- |
+| Charitable floor (share of AGI)       | 0.5%     | 0.5%     | Yes   |
+| Overall limitation fraction           | 2/37     | 2/37     | Yes   |
+| Overall limitation threshold (Single) | $640,600 | $640,600 | Yes   |
+| Overall limitation threshold (MFJ)    | $768,700 | $768,700 | Yes   |
+| Overall limitation threshold (MFS)    | $384,350 | $384,350 | Yes   |
+
+**Notes:** Neither rule applies for 2025 (rate 0 and numerator 0 in the data). The overall limitation threshold is the start of the 37% bracket and is read from `federal-brackets.json`, not stored separately. It is applied after every other limit, to AGI less the QBI deduction, and the QBI deduction is computed without regard to it. The statute says 2/37; the 2026 Form 1040-ES and Pub. 505 worksheets use 5.4%, a difference of about $0.54 per $1,000. Not modelled: the non-itemizer charitable deduction ($1,000, $2,000 joint, cash gifts only), the percentage-of-AGI limits on charitable gifts, and the $1,000,000 mortgage limit for loans from before December 16, 2017.
+
 ---
 
 ## California (2025)

@@ -456,8 +456,9 @@ describe("calculateDCTax", () => {
     it("itemizes for DC when the federal return itemizes, even below the DC standard deduction", () => {
       // Federal itemized: $9,500 DC tax + $6,000 property tax + $5,000
       // mortgage interest + $1,000 charity = $21,500 > $16,100 standard.
-      // DC itemized: $6,000 + $5,000 + $1,000 = $12,000 < $16,100 standard,
-      // but DC must itemize because the federal return does.
+      // DC itemized: $6,000 + $5,000 + $250 of charity above the federal
+      // 0.5% floor = $11,250 < $16,100 standard, but DC must itemize because
+      // the federal return does.
       const { dc, federal } = calculateWithFederal({
         federalIncome: 150000,
         stateTaxWithheld: 9500,
@@ -468,7 +469,7 @@ describe("calculateDCTax", () => {
 
       expect(federal.deductionBreakdown.deductionUsed).toBe("itemized");
       expect(dc.deductionBreakdown.deductionUsed).toBe("itemized");
-      expect(dc.deductionBreakdown.deductionAmount).toBe(12000);
+      expect(dc.deductionBreakdown.deductionAmount).toBe(11250);
       expect(dc.deductionBreakdown.followsFederalChoice).toBe(true);
     });
 
@@ -489,8 +490,9 @@ describe("calculateDCTax", () => {
     });
 
     it("applies the 5% reduction when following the federal choice", () => {
-      // AGI $600,000: federal SALT cap is $11,900, itemized $51,900.
-      // DC: $25,000 + $15,000 = $40,000 less 5% x $400,000 = $20,000
+      // AGI $600,000: federal SALT cap is $11,900 and charity counts above
+      // the $3,000 floor, so federal itemized is $48,900.
+      // DC: $25,000 + $12,000 = $37,000 less 5% x $400,000 = $17,000
       const { dc, federal } = calculateWithFederal({
         federalIncome: 600000,
         stateTaxWithheld: 45000,
@@ -501,7 +503,7 @@ describe("calculateDCTax", () => {
 
       expect(federal.deductionBreakdown.deductionUsed).toBe("itemized");
       expect(dc.deductionBreakdown.highIncomeReduction).toBe(20000);
-      expect(dc.deductionBreakdown.deductionAmount).toBe(20000);
+      expect(dc.deductionBreakdown.deductionAmount).toBe(17000);
     });
   });
 

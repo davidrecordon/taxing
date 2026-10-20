@@ -227,10 +227,11 @@ describe("calculateColoradoTax", () => {
         ficaData,
       );
 
-      // $200k - $40k itemized = $160k federal taxable
-      // Colorado tax = $160k * 4.4% = $7,040
-      expect(result.taxableOrdinaryIncome).toBe(160000);
-      expect(result.ordinaryIncomeTax).toBeCloseTo(7040, 0);
+      // Charitable giving counts above the $1,000 floor (0.5% of AGI)
+      // $200k - $39k itemized = $161k federal taxable
+      // Colorado tax = $161k * 4.4% = $7,084
+      expect(result.taxableOrdinaryIncome).toBe(161000);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(7084, 0);
     });
   });
 });

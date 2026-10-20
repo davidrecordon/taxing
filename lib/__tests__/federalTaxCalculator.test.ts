@@ -1310,6 +1310,102 @@ describe("calculateFederalTax", () => {
     });
   });
 
+  describe("2026 itemized deduction limits", () => {
+    it("applies the charitable floor and the overall limitation together", () => {
+      // MFJ, AGI $1,000,000. SALT cap is $10,000 at this income.
+      // Charity: $45,000 less the $5,000 floor = $40,000
+      // Itemized before the limit: $10,000 + $30,000 + $40,000 = $80,000
+      // Limit: 2/37 x min($80,000, $1,000,000 - $768,700) = $4,324.32
+      const inputs = createDefaultInputs({
+        federalIncome: 1000000,
+        stateTaxWithheld: 60000,
+        mortgageInterestPaid: 30000,
+        charitableContributions: 45000,
+        filingStatus: "marriedFilingJointly",
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData,
+      );
+
+      expect(result.deductionBreakdown.charitableContributions).toBe(40000);
+      expect(result.deductionBreakdown.highIncomeReduction).toBeCloseTo(
+        4324.32,
+        2,
+      );
+      expect(result.deductionBreakdown.deductionAmount).toBeCloseTo(
+        75675.68,
+        2,
+      );
+      expect(result.taxableOrdinaryIncome).toBeCloseTo(924324.32, 2);
+    });
+
+    it("counts long-term gains toward the top bracket test", () => {
+      // Single, $400,000 wages + $260,000 LTCG = $660,000 AGI
+      // Itemized: $10,000 SALT + $20,000 mortgage + $20,000 charity above
+      // the $3,300 floor = $50,000
+      // Limit: 2/37 x min($50,000, $660,000 - $640,600) = $1,048.65
+      const inputs = createDefaultInputs({
+        federalIncome: 400000,
+        longTermCapitalGains: 260000,
+        stateTaxWithheld: 40000,
+        mortgageInterestPaid: 20000,
+        charitableContributions: 23300,
+        filingStatus: "single",
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData,
+      );
+
+      expect(result.deductionBreakdown.highIncomeReduction).toBeCloseTo(
+        1048.65,
+        2,
+      );
+      expect(result.deductionBreakdown.deductionAmount).toBeCloseTo(
+        48951.35,
+        2,
+      );
+    });
+
+    it("applies neither limit in 2025", () => {
+      const data2025 = loadTestDataForYear("2025");
+      const inputs = createDefaultInputs({
+        federalIncome: 1000000,
+        stateTaxWithheld: 60000,
+        mortgageInterestPaid: 30000,
+        charitableContributions: 45000,
+        filingStatus: "marriedFilingJointly",
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        data2025.federalBrackets,
+        data2025.ltcgBrackets,
+        data2025.federalDeductions,
+        data2025.sharedLimits,
+        data2025.federalLimits,
+        data2025.ficaData,
+      );
+
+      expect(result.deductionBreakdown.charitableContributions).toBe(45000);
+      expect(result.deductionBreakdown.highIncomeReduction ?? 0).toBe(0);
+      expect(result.deductionBreakdown.deductionAmount).toBe(85000);
+    });
+  });
+
   describe("Net Investment Income Tax (NIIT)", () => {
     it("applies 3.8% NIIT when MAGI exceeds threshold with capital gains", () => {
       // Single filer with $250k wages + $100k LTCG = $350k MAGI

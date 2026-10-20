@@ -1,11 +1,16 @@
 import { describe, it, expect } from "vitest";
 import {
+  applyFederalItemizedLimit,
   calculateCaliforniaDeductions,
   calculateFederalDeductions,
   calculateNewYorkDeductions,
   calculateSaltLimit,
 } from "../deductionCalculator";
-import { DeductionsData, FederalLimitsData } from "../types";
+import {
+  DeductionBreakdown,
+  DeductionsData,
+  FederalLimitsData,
+} from "../types";
 import {
   federalDeductions,
   californiaDeductions,
@@ -51,14 +56,13 @@ describe("calculateFederalDeductions", () => {
     it("caps SALT at $10,000 when fully phased down and chooses itemized when higher than standard", () => {
       // $15,000 CA tax withheld + $8,000 property tax = $23,000 total SALT
       // Capped at $10,000 (fully phased down)
-      // $20,000 mortgage interest + $5,000 charitable = $25,000
-      // Total itemized: $10,000 + $25,000 = $35,000 > $15,000 standard
+      // $25,000 mortgage interest
+      // Total itemized: $10,000 + $25,000 = $35,000 > $16,100 standard
       const inputs = createDefaultDeductionInputs({
         stateTaxWithheld: 15000,
         propertyTaxesPaid: 8000,
-        mortgageInterestPaid: 20000,
+        mortgageInterestPaid: 25000,
         mortgageBalance: 500000, // within limit
-        charitableContributions: 5000,
       });
 
       const result = calculateFederalDeductions(
@@ -79,7 +83,7 @@ describe("calculateFederalDeductions", () => {
     it("uses standard deduction when itemized is lower", () => {
       // Only $5,000 in itemizable deductions
       const inputs = createDefaultDeductionInputs({
-        charitableContributions: 5000,
+        mortgageInterestPaid: 5000,
       });
 
       const result = calculateFederalDeductions(
@@ -229,7 +233,7 @@ describe("calculateFederalDeductions boundary cases", () => {
   it("itemized equals standard uses standard", () => {
     // Single std deduction is $16,100
     const inputs = createDefaultDeductionInputs({
-      charitableContributions: 16100,
+      mortgageInterestPaid: 16100,
     });
 
     const result = calculateFederalDeductions(
@@ -247,7 +251,7 @@ describe("calculateFederalDeductions boundary cases", () => {
 
   it("itemized $1 more than standard uses itemized", () => {
     const inputs = createDefaultDeductionInputs({
-      charitableContributions: 16101,
+      mortgageInterestPaid: 16101,
     });
 
     const result = calculateFederalDeductions(
@@ -816,6 +820,136 @@ describe("mortgage interest edge cases across both jurisdictions", () => {
     expect(federalResult.mortgageInterest).toBe(37500);
     // CA: Full $40k (within $1M limit)
     expect(caResult.mortgageInterest).toBe(40000);
+  });
+});
+
+describe("calculateFederalDeductions charitable floor", () => {
+  const charitableInputs = createDefaultDeductionInputs({
+    stateTaxWithheld: 20000,
+    mortgageInterestPaid: 12000,
+    charitableContributions: 3000,
+  });
+
+  it("deducts only giving above 0.5% of AGI in 2026", () => {
+    // AGI $200,000: floor is $1,000, so $2,000 of the $3,000 counts
+    const result = calculateFederalDeductions(
+      charitableInputs,
+      "single",
+      federalDeductions,
+      federalLimits,
+      200000,
+    );
+
+    expect(result.charitableFloorReduction).toBe(1000);
+    expect(result.charitableContributions).toBe(2000);
+    expect(result.itemizedDeduction).toBe(34000);
+  });
+
+  it("deducts nothing when giving is under the floor", () => {
+    const result = calculateFederalDeductions(
+      createDefaultDeductionInputs({
+        stateTaxWithheld: 20000,
+        charitableContributions: 800,
+      }),
+      "single",
+      federalDeductions,
+      federalLimits,
+      200000,
+    );
+
+    expect(result.charitableContributions).toBe(0);
+    expect(result.itemizedDeduction).toBe(20000);
+  });
+
+  it("has no floor in 2025", () => {
+    const data2025 = loadTestDataForYear("2025");
+    const result = calculateFederalDeductions(
+      charitableInputs,
+      "single",
+      data2025.federalDeductions,
+      data2025.federalLimits,
+      200000,
+    );
+
+    expect(result.charitableFloorReduction).toBe(0);
+    expect(result.charitableContributions).toBe(3000);
+    expect(result.itemizedDeduction).toBe(35000);
+  });
+});
+
+describe("applyFederalItemizedLimit", () => {
+  const itemized = (itemizedDeduction: number): DeductionBreakdown => ({
+    standardDeduction: 32200,
+    itemizedDeduction,
+    deductionUsed: "itemized",
+    deductionAmount: itemizedDeduction,
+    saltDeduction: 10000,
+    saltCapped: true,
+    mortgageInterest: itemizedDeduction - 10000,
+    charitableContributions: 0,
+  });
+
+  it("reduces deductions by 2/37 of the deductions when income is far above the top bracket", () => {
+    // MFJ, $1,000,000 before itemized deductions, top bracket starts at
+    // $768,700: lesser of $80,000 and $231,300 is $80,000
+    const result = applyFederalItemizedLimit(
+      itemized(80000),
+      1000000,
+      768700,
+      federalLimits,
+    );
+
+    expect(result.highIncomeReduction).toBeCloseTo(4324.32, 2);
+    expect(result.deductionAmount).toBeCloseTo(75675.68, 2);
+    expect(result.deductionUsed).toBe("itemized");
+  });
+
+  it("reduces by 2/37 of income over the top bracket when that is smaller", () => {
+    // Single, $660,000 before itemized deductions, top bracket starts at
+    // $640,600: lesser of $50,000 and $19,400 is $19,400
+    const result = applyFederalItemizedLimit(
+      itemized(50000),
+      660000,
+      640600,
+      federalLimits,
+    );
+
+    expect(result.highIncomeReduction).toBeCloseTo(1048.65, 2);
+    expect(result.deductionAmount).toBeCloseTo(48951.35, 2);
+  });
+
+  it("does nothing at or below the top bracket", () => {
+    const breakdown = itemized(50000);
+
+    expect(
+      applyFederalItemizedLimit(breakdown, 640600, 640600, federalLimits),
+    ).toBe(breakdown);
+  });
+
+  it("switches to the standard deduction when the reduced amount is lower", () => {
+    // $34,000 less 2/37 = $32,162.16, below the $32,200 standard deduction
+    const result = applyFederalItemizedLimit(
+      itemized(34000),
+      2000000,
+      768700,
+      federalLimits,
+    );
+
+    expect(result.deductionUsed).toBe("standard");
+    expect(result.deductionAmount).toBe(32200);
+  });
+
+  it("does not apply in 2025", () => {
+    const breakdown = itemized(80000);
+
+    expect(
+      applyFederalItemizedLimit(
+        breakdown,
+        1000000,
+        751600,
+        loadTestDataForYear("2025").federalLimits,
+      ),
+    ).toBe(breakdown);
   });
 });
 

@@ -57,6 +57,11 @@ Federal-specific limits and thresholds.
 
 ```typescript
 {
+  charitableFloorRate: number,       // 0.5% of AGI from 2026, 0 before
+  itemizedDeductionReduction: {      // IRC 68: 2/37 from 2026, 0/37 before
+    denominator: number,
+    numerator: number
+  },
   saltLimit: {
     floor: number,
     limit: number,

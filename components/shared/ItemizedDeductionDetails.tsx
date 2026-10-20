@@ -39,7 +39,11 @@ export default memo(function ItemizedDeductionDetails({
           <span>{formatCurrency(deductionBreakdown.mortgageInterest)}</span>
         </div>
         <div className="flex justify-between">
-          <span>Charitable Contributions</span>
+          <span>
+            Charitable Contributions
+            {(deductionBreakdown.charitableFloorReduction ?? 0) > 0 &&
+              " (above the AGI floor)"}
+          </span>
           <span>
             {formatCurrency(deductionBreakdown.charitableContributions)}
           </span>

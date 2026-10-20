@@ -88,9 +88,17 @@ export function calculateFederalDeductions(
     mortgageBalanceLimit,
   );
 
-  // Calculate itemized deductions
+  // Charitable contributions count only above a share of AGI (2026 onward)
+  const charitableFloorReduction = Math.min(
+    inputs.charitableContributions,
+    Math.max(0, agi) * federalLimits.charitableFloorRate,
+  );
+  const charitableContributions =
+    inputs.charitableContributions - charitableFloorReduction;
+
+  // Calculate itemized deductions (before the overall limitation)
   const itemizedDeduction =
-    saltDeduction + deductibleMortgageInterest + inputs.charitableContributions;
+    saltDeduction + deductibleMortgageInterest + charitableContributions;
 
   // Use whichever is higher
   const useItemized = itemizedDeduction > standardDeduction;
@@ -103,7 +111,61 @@ export function calculateFederalDeductions(
     saltDeduction: useItemized ? saltDeduction : 0,
     saltCapped: useItemized && saltCapped,
     mortgageInterest: useItemized ? deductibleMortgageInterest : 0,
-    charitableContributions: useItemized ? inputs.charitableContributions : 0,
+    charitableContributions: useItemized ? charitableContributions : 0,
+    charitableFloorReduction: useItemized ? charitableFloorReduction : 0,
+  };
+}
+
+/**
+ * Overall limitation on federal itemized deductions (IRC 68, 2026 onward).
+ * Deductions are reduced by a fraction of the lesser of the deductions or the
+ * income above the start of the top bracket, after every other limit. If the
+ * reduced amount no longer beats the standard deduction, the standard
+ * deduction is used.
+ *
+ * `incomeBeforeItemized` is taxable income with itemized deductions added
+ * back: AGI less the QBI deduction.
+ */
+export function applyFederalItemizedLimit(
+  breakdown: DeductionBreakdown,
+  incomeBeforeItemized: number,
+  topBracketStart: number,
+  federalLimits: FederalLimitsData,
+): DeductionBreakdown {
+  const { denominator, numerator } = federalLimits.itemizedDeductionReduction;
+  if (breakdown.deductionUsed !== "itemized" || numerator === 0) {
+    return breakdown;
+  }
+
+  const highIncomeReduction =
+    (Math.min(
+      breakdown.itemizedDeduction,
+      Math.max(0, incomeBeforeItemized - topBracketStart),
+    ) *
+      numerator) /
+    denominator;
+  if (highIncomeReduction <= 0) return breakdown;
+
+  const itemizedDeduction = breakdown.itemizedDeduction - highIncomeReduction;
+  if (itemizedDeduction > breakdown.standardDeduction) {
+    return {
+      ...breakdown,
+      itemizedDeduction,
+      deductionAmount: itemizedDeduction,
+      highIncomeReduction,
+    };
+  }
+
+  return {
+    ...breakdown,
+    itemizedDeduction,
+    deductionUsed: "standard",
+    deductionAmount: breakdown.standardDeduction,
+    saltDeduction: 0,
+    saltCapped: false,
+    mortgageInterest: 0,
+    charitableContributions: 0,
+    charitableFloorReduction: 0,
   };
 }
 
