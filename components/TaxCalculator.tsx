@@ -37,6 +37,10 @@ import FilingStatusComparisonModal, {
   MFSScenarioResult,
 } from "./Modals/FilingStatusComparisonModal";
 import {
+  CharitableScenario,
+  summarizeCharitableScenario,
+} from "@/lib/charitableScenario";
+import {
   STATES_SHARING_DEDUCTION_CHOICE,
   calculateWithSharedDeductionChoice,
 } from "@/lib/deductionChoice";
@@ -359,38 +363,21 @@ export default function TaxCalculator() {
     [taxYear],
   );
 
-  // Calculate federal tax scenario with different charitable contributions
+  // Federal and state tax for a different amount of charitable giving, with
+  // what limited the deduction (used by the charitable what-if tool)
   const calculateCharitableScenario = useCallback(
-    (contributions: number) => {
-      const scenarioResult = calculateTaxes({
+    (contributions: number): CharitableScenario => {
+      const { federal, state } = calculateTaxes({
         ...inputs,
         charitableContributions: contributions,
-      }).federal;
-      return {
-        totalTax: scenarioResult.totalTax,
-        remainingOwed: scenarioResult.remainingOwed,
-        refundDue: scenarioResult.refundDue,
-        effectiveRate:
-          scenarioResult.grossIncome > 0
-            ? scenarioResult.totalTax / scenarioResult.grossIncome
-            : 0,
-      };
+      });
+      return summarizeCharitableScenario(
+        federal,
+        state,
+        federalData.federalLimits,
+      );
     },
-    [inputs, calculateTaxes],
-  );
-
-  // Extract federal results for the modal
-  const federalResultsForModal = useMemo(
-    () => ({
-      totalTax: results.federal.totalTax,
-      remainingOwed: results.federal.remainingOwed,
-      refundDue: results.federal.refundDue,
-      effectiveRate:
-        results.federal.grossIncome > 0
-          ? results.federal.totalTax / results.federal.grossIncome
-          : 0,
-    }),
-    [results.federal],
+    [inputs, calculateTaxes, federalData],
   );
 
   // Federal, state and combined tax for a filing status comparison scenario
@@ -540,7 +527,6 @@ export default function TaxCalculator() {
               sharedLimits={federalData.sharedLimits}
               federalLimits={federalData.federalLimits}
               federalAgi={results.federal.adjustedGrossIncome}
-              federalResults={federalResultsForModal}
               calculateCharitableScenario={calculateCharitableScenario}
             />
 

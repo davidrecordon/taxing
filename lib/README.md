@@ -10,6 +10,7 @@ lib/
   types.ts               # TypeScript type definitions
   formatters.ts          # Currency/percentage formatting utilities
   taxUtils.ts            # Shared calculation utilities
+  charitableScenario.ts  # Tax saved by charitable giving, for the what-if tool
   deductionCalculator.ts # Federal and state deduction logic (standard vs itemized)
   deductionChoice.ts     # Picks the deduction type where it changes state tax (DC, CO)
   federalTaxCalculator.ts # Federal income tax calculations

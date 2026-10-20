@@ -83,6 +83,15 @@ export function calculateSaltLimit(
   return isSeparate ? cap / 2 : cap;
 }
 
+// Charitable giving that is not deductible federally: a share of AGI (2026
+// onward)
+export function calculateCharitableFloor(
+  agi: number,
+  federalLimits: FederalLimitsData,
+): number {
+  return Math.max(0, agi) * federalLimits.charitableFloorRate;
+}
+
 export function calculateFederalDeductions(
   inputs: DeductionInputs,
   filingStatus: FilingStatus,
@@ -115,10 +124,10 @@ export function calculateFederalDeductions(
     federalMortgageBalanceLimit(inputs, federalLimits),
   );
 
-  // Charitable contributions count only above a share of AGI (2026 onward)
+  // Charitable contributions count only above the floor
   const charitableFloorReduction = Math.min(
     inputs.charitableContributions,
-    Math.max(0, agi) * federalLimits.charitableFloorRate,
+    calculateCharitableFloor(agi, federalLimits),
   );
   const charitableContributions =
     inputs.charitableContributions - charitableFloorReduction;

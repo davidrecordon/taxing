@@ -1,106 +1,162 @@
 "use client";
 
-import { useEffect } from "react";
-import { formatCurrency, formatPercent } from "@/lib/formatters";
-
-interface ScenarioResult {
-  totalTax: number;
-  remainingOwed: number;
-  refundDue: number;
-  effectiveRate: number;
-}
+import { useEffect, useRef } from "react";
+import {
+  CharitableScenario,
+  compareWithNoGiving,
+} from "@/lib/charitableScenario";
+import { formatCurrency } from "@/lib/formatters";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   currentContributions: number;
   federalAgi: number;
-  currentResults: ScenarioResult;
-  calculateScenario: (contributions: number) => ScenarioResult;
+  stateLabel: string;
+  calculateScenario: (contributions: number) => CharitableScenario;
   onApply: (contributions: number) => void;
 }
+
+// Above this share of income the percentage limits on charitable deductions
+// can apply (30% for appreciated assets, 60% for cash)
+const LARGE_GIFT_SHARE_OF_INCOME = 0.3;
 
 export default function CharitableWhatIfModal({
   isOpen,
   onClose,
   currentContributions,
   federalAgi,
-  currentResults,
+  stateLabel,
   calculateScenario,
   onApply,
 }: Props) {
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
       }
     };
 
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
-      return () => document.removeEventListener("keydown", handleEscape);
-    }
+    // Move focus into the dialog, and give it back when the dialog closes
+    const previouslyFocused = document.activeElement;
+    closeButtonRef.current?.focus();
+
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      if (previouslyFocused instanceof HTMLElement) {
+        previouslyFocused.focus();
+      }
+    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  // Build scenarios based on current contributions
-  const scenarios =
-    currentContributions === 0
-      ? [
-          { label: "Current ($0)", value: 0, isCurrent: true },
-          {
-            label: "1% of AGI",
-            value: Math.round(federalAgi * 0.01),
-            isCurrent: false,
-          },
-          {
-            label: "5% of AGI",
-            value: Math.round(federalAgi * 0.05),
-            isCurrent: false,
-          },
-          {
-            label: "10% of AGI",
-            value: Math.round(federalAgi * 0.1),
-            isCurrent: false,
-          },
-        ]
-      : [
-          {
-            label: "Half",
-            value: Math.round(currentContributions / 2),
-            isCurrent: false,
-          },
-          { label: "Current", value: currentContributions, isCurrent: true },
-          {
-            label: "Double",
-            value: currentContributions * 2,
-            isCurrent: false,
-          },
-        ];
+  const scenarios = [
+    {
+      label: "Half",
+      value: Math.round(currentContributions / 2),
+      isCurrent: false,
+    },
+    { label: "Current", value: currentContributions, isCurrent: true },
+    { label: "Double", value: currentContributions * 2, isCurrent: false },
+  ];
 
-  // Calculate results for each scenario
-  const scenarioResults = scenarios.map((scenario) => ({
-    ...scenario,
-    results: scenario.isCurrent
-      ? currentResults
-      : calculateScenario(scenario.value),
-  }));
+  // Each scenario is compared with giving nothing, so every row answers
+  // "what does giving this much save?"
+  const noGiving = calculateScenario(0);
+  const rows = scenarios.map((scenario) => {
+    const result = calculateScenario(scenario.value);
+    return {
+      ...scenario,
+      result,
+      saving: compareWithNoGiving(noGiving, result),
+    };
+  });
+  const largestRow = rows[rows.length - 1];
 
-  // Calculate savings/change compared to current
-  const getSavingsDisplay = (results: ScenarioResult, isCurrent: boolean) => {
-    if (isCurrent) return null;
-    const savings = currentResults.totalTax - results.totalTax;
-    if (savings > 0) {
-      return <span className="text-positive">-{formatCurrency(savings)}</span>;
-    } else if (savings < 0) {
-      return (
-        <span className="text-negative">
-          +{formatCurrency(Math.abs(savings))}
-        </span>
-      );
+  // Name the state, and split each saving, only where there is state tax for
+  // a gift to change
+  const hasStateTax = noGiving.stateTax > 0;
+  const taxesCovered = hasStateTax ? `Federal and ${stateLabel}` : "Federal";
+
+  // What the second half of a doubled gift saves on its own
+  const currentRow = rows.find((row) => row.isCurrent) ?? largestRow;
+  const extraGift = largestRow.value - currentRow.value;
+  const extraSaved =
+    largestRow.saving.totalSaved - currentRow.saving.totalSaved;
+  const doublingSummary =
+    extraSaved > 0
+      ? `Doubling your gift saves a further ${formatCurrency(extraSaved)}, so the extra ${formatCurrency(extraGift)} costs ${formatCurrency(extraGift - extraSaved)} after tax (${Math.round(((extraGift - extraSaved) / extraGift) * 100)}¢ per $1).`
+      : "Doubling your gift saves no further tax.";
+
+  // Notes on what is limiting the saving
+  const notes: string[] = [];
+  if (largestRow.result.federalFloor > 0) {
+    notes.push(
+      `The first ${formatCurrency(largestRow.result.federalFloor)} of giving each year is not deductible federally.`,
+    );
+  }
+  if (
+    rows.some(
+      (row) =>
+        row.result.standardChosenForStateTax && row.saving.totalSaved === 0,
+    )
+  ) {
+    notes.push(
+      `Where there is no saving, taking the standard deduction is still better for your Federal and ${stateLabel} tax combined.`,
+    );
+  } else if (rows.some((row) => !row.result.federalItemizes)) {
+    notes.push(
+      "Where there is no Federal saving, the standard deduction is still larger than your itemized deductions.",
+    );
+  }
+  if (rows.some((row) => row.saving.federalLimitGrew)) {
+    notes.push(
+      "Part of each gift is lost to the Federal limit on itemized deductions for top-bracket income.",
+    );
+  }
+  if (rows.some((row) => row.saving.stateLimitGrew)) {
+    notes.push(
+      `${stateLabel} allows only part of each gift at your income, which lowers the state saving.`,
+    );
+  }
+  if (rows.some((row) => row.saving.stateSaved < 0)) {
+    notes.push(
+      `A gift that makes itemizing worthwhile can raise ${stateLabel} tax while lowering the total.`,
+    );
+  } else if (
+    noGiving.stateTax > 0 &&
+    rows.every((row) => row.saving.stateSaved === 0) &&
+    largestRow.saving.federalSaved > 0
+  ) {
+    notes.push(`These gifts do not change your ${stateLabel} tax.`);
+  }
+  if (
+    federalAgi > 0 &&
+    rows.some((row) => row.value > federalAgi * LARGE_GIFT_SHARE_OF_INCOME)
+  ) {
+    notes.push(
+      "Gifts above 30% of income (60% for cash) may not be fully deductible in one year; the rest carries forward. That limit is not applied here.",
+    );
+  }
+  notes.push(
+    "Donating appreciated investments also avoids tax on the gain, which is not included here.",
+  );
+
+  // A negative amount means the gift raises that tax
+  const formatSaved = (amount: number) => {
+    if (amount > 0) {
+      return <span className="text-positive">{formatCurrency(amount)}</span>;
     }
-    return <span className="text-text-muted">No change</span>;
+    if (amount < 0) {
+      return <span className="text-negative">-{formatCurrency(-amount)}</span>;
+    }
+    return <span className="text-text-muted">{formatCurrency(0)}</span>;
   };
 
   const handleApply = (value: number) => {
@@ -118,116 +174,154 @@ export default function CharitableWhatIfModal({
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative theme-card max-w-full sm:max-w-2xl w-full p-4 sm:p-6 animate-scale-in">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-text-primary font-display">
-              Charitable Contributions: What If?
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-text-muted hover:text-text-primary transition-colors"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="charitable-what-if-title"
+          className="relative bg-background rounded-[var(--radius-lg)] max-w-full sm:max-w-2xl w-full animate-scale-in"
+        >
+          {/* The card is translucent in the dark theme, so it sits on an
+              opaque layer to keep the page from showing through */}
+          <div className="theme-card p-4 sm:p-6">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h2
+                id="charitable-what-if-title"
+                className="text-xl font-semibold text-text-primary font-display"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
+                Charitable Contributions: What If?
+              </h2>
+              <button
+                onClick={onClose}
+                aria-label="Close"
+                className="text-text-muted hover:text-text-primary transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
 
-          {/* Info text */}
-          <p className="text-sm text-text-secondary mb-4">
-            See how different charitable contribution amounts would affect your
-            federal taxes. Effective rate is calculated based upon gross (not
-            taxable) income for planning purposes. Charitable contributions will
-            also impact your state taxes.
-          </p>
+            {/* Info text */}
+            <p className="text-sm text-text-secondary mb-4">
+              What giving saves in {taxesCovered} tax, and what each gift costs
+              you after that saving. Savings are compared with giving nothing.
+            </p>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-2 px-2 font-medium text-text-primary">
-                    Scenario
-                  </th>
-                  <th className="text-right py-2 px-2 font-medium text-text-primary">
-                    Amount
-                  </th>
-                  <th className="text-right py-2 px-2 font-medium text-text-primary">
-                    Owed / Refund
-                  </th>
-                  <th className="hidden sm:table-cell text-right py-2 px-2 font-medium text-text-primary">
-                    Eff. Rate
-                  </th>
-                  <th className="text-right py-2 px-2 font-medium text-text-primary">
-                    Total Tax Impact
-                  </th>
-                  <th className="py-2 px-2"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {scenarioResults.map((scenario) => (
-                  <tr
-                    key={scenario.label}
-                    className={`border-b border-border ${
-                      scenario.isCurrent ? "bg-accent-subtle" : "hover:bg-secondary"
-                    } transition-colors`}
-                  >
-                    <td className="py-3 px-2 font-medium text-text-primary">
-                      {scenario.label}
-                    </td>
-                    <td className="py-3 px-2 text-right text-text-secondary">
-                      {formatCurrency(scenario.value)}
-                    </td>
-                    <td className="py-3 px-2 text-right text-text-primary">
-                      {scenario.results.refundDue > 0 ? (
-                        <span className="text-positive">
-                          {formatCurrency(scenario.results.refundDue)} refund
-                        </span>
-                      ) : (
-                        `${formatCurrency(scenario.results.remainingOwed)} owed`
-                      )}
-                    </td>
-                    <td className="hidden sm:table-cell py-3 px-2 text-right text-text-primary">
-                      {formatPercent(scenario.results.effectiveRate, 1)}
-                    </td>
-                    <td className="py-3 px-2 text-right">
-                      {getSavingsDisplay(scenario.results, scenario.isCurrent)}
-                    </td>
-                    <td className="py-3 px-2 text-right">
-                      {!scenario.isCurrent && (
-                        <button
-                          onClick={() => handleApply(scenario.value)}
-                          className="theme-button-primary px-3 py-1 text-xs"
-                        >
-                          Apply
-                        </button>
-                      )}
-                    </td>
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-2 px-2 font-medium text-text-primary">
+                      Scenario
+                    </th>
+                    <th className="text-right py-2 px-2 font-medium text-text-primary">
+                      Gift
+                    </th>
+                    <th className="text-right py-2 px-2 font-medium text-text-primary">
+                      Tax Saved
+                    </th>
+                    <th className="text-right py-2 px-2 font-medium text-text-primary">
+                      Cost After Tax
+                    </th>
+                    <th className="py-2 px-2">
+                      <span className="sr-only">Use this amount</span>
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {rows.map((row) => {
+                    const { federalSaved, stateSaved, totalSaved } = row.saving;
+                    const costAfterTax = row.value - totalSaved;
 
-          {/* Footer */}
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-text-secondary border border-border rounded-[var(--radius-md)] hover:bg-secondary transition-colors"
-            >
-              Close
-            </button>
+                    return (
+                      <tr
+                        key={row.label}
+                        className={`border-b border-border align-top ${
+                          row.isCurrent
+                            ? "bg-accent-subtle"
+                            : "hover:bg-secondary"
+                        } transition-colors`}
+                      >
+                        <td className="py-3 px-2 font-medium text-text-primary">
+                          {row.label}
+                        </td>
+                        <td className="py-3 px-2 text-right font-mono text-text-secondary">
+                          {formatCurrency(row.value)}
+                        </td>
+                        <td className="py-3 px-2 text-right">
+                          <div className="font-mono font-medium">
+                            {formatSaved(totalSaved)}
+                          </div>
+                          {hasStateTax && totalSaved !== 0 && (
+                            <div className="text-xs text-text-muted">
+                              Federal {formatSaved(federalSaved)}, State{" "}
+                              {formatSaved(stateSaved)}
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-3 px-2 text-right">
+                          <div className="font-mono font-medium text-text-primary">
+                            {formatCurrency(costAfterTax)}
+                          </div>
+                          {row.value > 0 && (
+                            <div className="text-xs text-text-muted">
+                              {Math.round((costAfterTax / row.value) * 100)}¢
+                              per $1 given
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-3 px-2 text-right">
+                          {!row.isCurrent && (
+                            <button
+                              onClick={() => handleApply(row.value)}
+                              aria-label={`Use ${formatCurrency(row.value)}`}
+                              className="theme-button-primary px-3 py-1 text-xs"
+                            >
+                              Apply
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* What doubling adds, compared with the current gift */}
+            <p className="mt-3 text-sm text-text-secondary">
+              {doublingSummary}
+            </p>
+
+            {/* Notes on what limits the saving */}
+            <ul className="mt-3 space-y-1 text-xs text-text-muted list-disc pl-4">
+              {notes.map((note) => (
+                <li key={note}>{note}</li>
+              ))}
+            </ul>
+
+            {/* Footer */}
+            <div className="mt-4 flex justify-end">
+              <button
+                ref={closeButtonRef}
+                onClick={onClose}
+                className="px-4 py-2 text-text-secondary border border-border rounded-[var(--radius-md)] hover:bg-secondary transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       </div>

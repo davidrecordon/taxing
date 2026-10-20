@@ -23,6 +23,8 @@ bun run test:coverage   # With coverage report
 | `newYorkTaxCalculator.test.ts`    | NY state tax, tax benefit recapture, NYC local tax and school tax credit |
 | `washingtonTaxCalculator.test.ts` | WA capital gains tax, exemption, surtax                                  |
 | `deductionCalculator.test.ts`     | Federal and state deductions: SALT cap, mortgage limits, income limits   |
+| `deductionChoice.test.ts`         | Choosing the deduction type for the federal and DC returns together      |
+| `charitableScenario.test.ts`      | Tax saved by charitable giving, by state, for the what-if tool           |
 | `taxUtils.test.ts`                | Effective rates, LTCG stacking, capital loss netting, dividends          |
 | `formatters.test.ts`              | Currency and percentage formatting                                       |
 

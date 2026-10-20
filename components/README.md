@@ -18,7 +18,7 @@ components/
     PriorYearInputs.tsx       # Prior year tax and loss carryovers
     WithholdingInputs.tsx     # Tax withholding and estimated payments
   Modals/                # Modal dialogs
-    CharitableWhatIfModal.tsx      # "What if" scenario for charitable contributions
+    CharitableWhatIfModal.tsx      # Tax saved by giving half, the same, or double
     FilingStatusComparisonModal.tsx # MFJ vs MFS comparison
   States/                # State-specific breakdown components
     CaliforniaBreakdown.tsx

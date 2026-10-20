@@ -1,18 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { TaxInputs, SharedLimitsData, FederalLimitsData } from "@/lib/types";
+import { useCallback, useMemo, useState } from "react";
+import {
+  FederalLimitsData,
+  STATE_LABELS,
+  SharedLimitsData,
+  TaxInputs,
+} from "@/lib/types";
+import {
+  CharitableScenario,
+  compareWithNoGiving,
+} from "@/lib/charitableScenario";
 import { calculateSaltLimit } from "@/lib/deductionCalculator";
 import { formatCurrency } from "@/lib/formatters";
 import CurrencyInput from "../UI/CurrencyInput";
 import CharitableWhatIfModal from "../Modals/CharitableWhatIfModal";
-
-interface ScenarioResult {
-  totalTax: number;
-  remainingOwed: number;
-  refundDue: number;
-  effectiveRate: number;
-}
 
 interface Props {
   inputs: TaxInputs;
@@ -20,8 +22,7 @@ interface Props {
   sharedLimits: SharedLimitsData;
   federalLimits: FederalLimitsData;
   federalAgi?: number;
-  federalResults?: ScenarioResult;
-  calculateCharitableScenario?: (contributions: number) => ScenarioResult;
+  calculateCharitableScenario?: (contributions: number) => CharitableScenario;
 }
 
 export default function DeductionInputs({
@@ -30,10 +31,36 @@ export default function DeductionInputs({
   sharedLimits,
   federalLimits,
   federalAgi,
-  federalResults,
   calculateCharitableScenario,
 }: Props) {
   const [isWhatIfOpen, setIsWhatIfOpen] = useState(false);
+  const closeWhatIf = useCallback(() => setIsWhatIfOpen(false), []);
+
+  // The what-if tool is offered once the giving entered reduces tax. Until
+  // then a hint says why it does not.
+  const giving = inputs.charitableContributions;
+  const charitableHint = useMemo(() => {
+    if (!calculateCharitableScenario || giving <= 0) return undefined;
+
+    const current = calculateCharitableScenario(giving);
+    const saving = compareWithNoGiving(calculateCharitableScenario(0), current);
+    if (saving.totalSaved > 0) return undefined;
+
+    if (current.standardChosenForStateTax) {
+      return `This does not reduce your tax yet: taking the standard deduction is still better for your Federal and ${STATE_LABELS[inputs.selectedState]} tax combined.`;
+    }
+    if (!current.federalItemizes) {
+      return "This does not reduce your tax yet: the standard deduction is still larger than your itemized deductions.";
+    }
+    if (giving <= current.federalFloor) {
+      return `This does not reduce your tax yet: the first ${formatCurrency(current.federalFloor)} of giving each year is not deductible.`;
+    }
+    return "This does not reduce your tax.";
+  }, [calculateCharitableScenario, giving, inputs.selectedState]);
+  const showWhatIf =
+    calculateCharitableScenario !== undefined &&
+    giving > 0 &&
+    charitableHint === undefined;
 
   // SALT limit phases down as AGI rises above the threshold
   const applicableSaltLimit = calculateSaltLimit(
@@ -157,9 +184,10 @@ export default function DeductionInputs({
             label="Charitable Contributions"
             value={inputs.charitableContributions}
             onChange={(v) => onUpdate("charitableContributions", v)}
+            hint={charitableHint}
           />
         </div>
-        {federalResults && calculateCharitableScenario && (
+        {showWhatIf && (
           <button
             onClick={() => setIsWhatIfOpen(true)}
             className="px-4 py-2 bg-accent-subtle text-accent text-sm font-medium rounded-[var(--radius-md)] hover:bg-[var(--color-accent)] hover:text-white transition-colors whitespace-nowrap"
@@ -169,13 +197,13 @@ export default function DeductionInputs({
         )}
       </div>
 
-      {federalResults && calculateCharitableScenario && (
+      {calculateCharitableScenario && (
         <CharitableWhatIfModal
-          isOpen={isWhatIfOpen}
-          onClose={() => setIsWhatIfOpen(false)}
+          isOpen={isWhatIfOpen && showWhatIf}
+          onClose={closeWhatIf}
           currentContributions={inputs.charitableContributions}
           federalAgi={federalAgi ?? 0}
-          currentResults={federalResults}
+          stateLabel={STATE_LABELS[inputs.selectedState]}
           calculateScenario={calculateCharitableScenario}
           onApply={(value) => onUpdate("charitableContributions", value)}
         />
