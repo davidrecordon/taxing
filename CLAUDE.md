@@ -81,7 +81,7 @@ Keep inputs to the minimum the calculation needs; prefer deriving a value from e
 The forms are progressive: a field that only matters once another has a value is a sub-field. It appears when its parent has a value and never hides while it holds a value of its own, so nothing on screen is affected by a number the user cannot see. Add new detail fields this way rather than as always-visible inputs.
 
 1. Add field to `TaxInputs` type in `lib/types.ts`
-2. Add to `defaultInputs` in `TaxCalculator.tsx`, and to `buildSpouseInputs()` there so the married-filing-separately comparison splits it
+2. Add to `defaultInputs` in `TaxCalculator.tsx`, and to `buildSpouseInputs()` in `lib/spouseInputs.ts` so the married-filing-separately comparison splits it
 3. Add to `createDefaultInputs()` in `lib/__tests__/testData.ts` and to the fixture in the filing status comparison modal test
 4. Add UI in appropriate form component (`Forms/`)
 5. Update calculators to use the new field

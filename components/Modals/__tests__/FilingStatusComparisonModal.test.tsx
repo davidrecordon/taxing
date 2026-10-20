@@ -2,9 +2,9 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import FilingStatusComparisonModal, {
-  SplitConfig,
   MFSScenarioResult,
 } from "../FilingStatusComparisonModal";
+import { SplitConfig } from "@/lib/spouseInputs";
 import { TaxInputs } from "@/lib/types";
 import { TAX_YEAR } from "@/lib/config";
 

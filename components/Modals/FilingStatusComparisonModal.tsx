@@ -2,18 +2,9 @@
 
 import { useState, useMemo } from "react";
 import { formatCurrency } from "@/lib/formatters";
+import { SplitConfig } from "@/lib/spouseInputs";
 import { TaxInputs } from "@/lib/types";
 import Dialog from "../UI/Dialog";
-
-export interface SplitConfig {
-  wages: number;
-  stcg: number;
-  ltcg: number;
-  dividends: number; // Also applies to interest
-  contributions401k: number;
-  preTaxMedical: number;
-  deductions: number;
-}
 
 export interface ScenarioResult {
   federalTax: number;
