@@ -119,7 +119,13 @@ export function calculateColoradoTax(
     selfEmploymentIncome:
       selfEmploymentIncome > 0 ? selfEmploymentIncome : undefined,
     deductibleSETax: deductibleSETax > 0 ? deductibleSETax : undefined,
-    adjustedGrossIncome: taxableIncome, // For CO, this is federal taxable income
+    adjustedGrossIncome:
+      grossIncome -
+      shortTermLossCarryoverOffset -
+      longTermLossCarryoverOffset -
+      inputs.contributions401k -
+      inputs.preTaxMedical -
+      deductibleSETax,
     deductionBreakdown: emptyDeductionBreakdown,
     taxableOrdinaryIncome: taxableIncome,
     taxableLTCG: 0, // CO doesn't have separate LTCG treatment

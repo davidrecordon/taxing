@@ -111,6 +111,12 @@ export default memo(function NewYorkBreakdown({ result, taxYear }: Props) {
             </span>
           </div>
         )}
+        <div className="flex justify-between font-medium border-t border-border pt-1 text-text-primary">
+          <span>New York Adjusted Gross Income (AGI)</span>
+          <span className="font-mono">
+            {formatCurrency(Math.max(0, result.adjustedGrossIncome))}
+          </span>
+        </div>
         <div className="flex justify-between text-positive">
           <span>
             Less:{" "}
@@ -124,7 +130,7 @@ export default memo(function NewYorkBreakdown({ result, taxYear }: Props) {
           </span>
         </div>
         <div className="flex justify-between font-medium border-t border-border pt-1 text-text-primary">
-          <span>New York Adjusted Gross Income (AGI)</span>
+          <span>New York Taxable Income</span>
           <span className="font-mono">
             {formatCurrency(result.taxableOrdinaryIncome)}
           </span>

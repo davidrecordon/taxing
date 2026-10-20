@@ -108,6 +108,12 @@ export default memo(function CaliforniaBreakdown({ result, taxYear }: Props) {
             </span>
           </div>
         )}
+        <div className="flex justify-between font-medium border-t border-border pt-1 text-text-primary">
+          <span>California Adjusted Gross Income (AGI)</span>
+          <span className="font-mono">
+            {formatCurrency(Math.max(0, result.adjustedGrossIncome))}
+          </span>
+        </div>
         <div className="flex justify-between text-positive">
           <span>
             Less:{" "}
@@ -121,7 +127,7 @@ export default memo(function CaliforniaBreakdown({ result, taxYear }: Props) {
           </span>
         </div>
         <div className="flex justify-between font-medium border-t border-border pt-1 text-text-primary">
-          <span>California Adjusted Gross Income (AGI)</span>
+          <span>California Taxable Income</span>
           <span className="font-mono">
             {formatCurrency(result.taxableOrdinaryIncome)}
           </span>

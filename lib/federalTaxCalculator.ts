@@ -190,8 +190,9 @@ export function calculateFederalTax(
     capitalGains.ordinaryIncomeDeduction -
     preTaxDeductions;
 
-  // Pre-deduction AGI for SALT cap and NIIT thresholds
-  const preDeductionAgi =
+  // Adjusted gross income: income after above-the-line deductions, before
+  // the standard or itemized deduction. Drives the SALT cap and NIIT thresholds.
+  const adjustedGrossIncome =
     grossIncome -
     shortTermLossCarryoverOffset -
     longTermLossCarryoverOffset -
@@ -210,7 +211,7 @@ export function calculateFederalTax(
     filingStatus,
     federalDeductions,
     federalLimits,
-    preDeductionAgi,
+    adjustedGrossIncome,
   );
 
   // Step 4: Calculate taxable ordinary income (before QBI)
@@ -246,15 +247,6 @@ export function calculateFederalTax(
     taxableOrdinaryIncomeBeforeQbi - qbiAmount,
   );
 
-  // Step 4d: Calculate AGI (includes all deductions for display)
-  const adjustedGrossIncome =
-    grossIncome -
-    shortTermLossCarryoverOffset -
-    longTermLossCarryoverOffset -
-    preTaxDeductions -
-    deductionBreakdown.deductionAmount -
-    qbiAmount;
-
   // Step 5: Calculate ordinary income tax
   const ordinaryTax = calculateTaxByBrackets(
     taxableOrdinaryIncome,
@@ -288,7 +280,7 @@ export function calculateFederalTax(
       capitalGains.ordinaryIncomeDeduction,
   );
   const niitThreshold = federalLimits.niit.thresholds[filingStatus];
-  const magiOverThreshold = Math.max(0, preDeductionAgi - niitThreshold);
+  const magiOverThreshold = Math.max(0, adjustedGrossIncome - niitThreshold);
   const niitTaxableAmount = Math.min(netInvestmentIncome, magiOverThreshold);
   const niitTax =
     niitTaxableAmount > 0 ? niitTaxableAmount * federalLimits.niit.rate : 0;

@@ -70,16 +70,17 @@ export function calculateIllinoisTax(
   // Step 3: Apply Illinois personal exemption (instead of standard deduction)
   const personalExemption = illinoisDeductions.personalExemption[filingStatus];
 
-  // Calculate AGI after all deductions
   const adjustedGrossIncome =
     grossIncome -
     shortTermLossCarryoverOffset -
     longTermLossCarryoverOffset -
-    preTaxDeductions -
-    personalExemption;
+    preTaxDeductions;
 
   // Step 4: Calculate taxable income
-  const taxableOrdinaryIncome = Math.max(0, adjustedGrossIncome);
+  const taxableOrdinaryIncome = Math.max(
+    0,
+    adjustedGrossIncome - personalExemption,
+  );
 
   // Step 5: Calculate tax using flat rate (single bracket)
   const ordinaryTax = calculateTaxByBrackets(

@@ -34,22 +34,11 @@ export default function DeductionInputs({
 }: Props) {
   const [isWhatIfOpen, setIsWhatIfOpen] = useState(false);
 
-  // Calculate rough pre-deduction AGI to determine applicable SALT limit
-  const roughAgi =
-    inputs.federalIncome +
-    inputs.selfEmploymentIncome +
-    inputs.interestIncome +
-    inputs.ordinaryDividends +
-    inputs.shortTermCapitalGains +
-    inputs.longTermCapitalGains -
-    inputs.contributions401k -
-    inputs.preTaxMedical;
-
   // SALT limit phases down as AGI rises above the threshold
   const applicableSaltLimit = calculateSaltLimit(
     inputs.filingStatus,
     federalLimits,
-    roughAgi,
+    federalAgi ?? 0,
   );
 
   // Generate SALT warning message

@@ -84,11 +84,13 @@ export function calculateDCTax(
     grossIncome -
     shortTermLossCarryoverOffset -
     longTermLossCarryoverOffset -
-    preTaxDeductions -
-    deductionBreakdown.deductionAmount;
+    preTaxDeductions;
 
   // Step 4: Calculate taxable income
-  const taxableOrdinaryIncome = Math.max(0, adjustedGrossIncome);
+  const taxableOrdinaryIncome = Math.max(
+    0,
+    adjustedGrossIncome - deductionBreakdown.deductionAmount,
+  );
 
   // Step 5: Calculate DC tax
   const dcTax = calculateTaxByBrackets(

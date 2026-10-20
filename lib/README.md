@@ -33,7 +33,7 @@ TaxInputs (user form data)
     │     ├─ Calculate gross income (wages + interest + dividends + capital gains)
     │     ├─ Net capital gains, losses, and carryovers (Schedule D)
     │     ├─ Apply pre-tax deductions (401k, medical)
-    │     ├─ Calculate AGI
+    │     ├─ Calculate AGI (before the standard or itemized deduction)
     │     ├─ Determine deduction (standard vs itemized)
     │     ├─ Calculate tax by bracket
     │     ├─ Add LTCG / qualified dividend tax, FICA, and NIIT

@@ -87,11 +87,13 @@ export function calculateNewYorkTax(
     grossIncome -
     shortTermLossCarryoverOffset -
     longTermLossCarryoverOffset -
-    preTaxDeductions -
-    deductionBreakdown.deductionAmount;
+    preTaxDeductions;
 
   // Step 4: Calculate taxable income
-  const taxableOrdinaryIncome = Math.max(0, adjustedGrossIncome);
+  const taxableOrdinaryIncome = Math.max(
+    0,
+    adjustedGrossIncome - deductionBreakdown.deductionAmount,
+  );
 
   // Step 5: Calculate NY State tax
   const nyStateTax = calculateTaxByBrackets(
@@ -127,12 +129,7 @@ export function calculateNewYorkTax(
     filingStatus === "marriedFilingSeparately"
       ? newYorkLimits.safeHarbor.highIncomeThresholdMFS
       : newYorkLimits.safeHarbor.highIncomeThreshold;
-  const nyAgi =
-    grossIncome -
-    shortTermLossCarryoverOffset -
-    longTermLossCarryoverOffset -
-    preTaxDeductions;
-  const isHighIncome = nyAgi > highIncomeThreshold;
+  const isHighIncome = adjustedGrossIncome > highIncomeThreshold;
 
   const safeHarbor = calculateSafeHarbor(
     totalTax,

@@ -70,6 +70,29 @@ describe("calculateCaliforniaTax", () => {
     });
   });
 
+  describe("adjusted gross income", () => {
+    it("reports AGI before the California deduction", () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        contributions401k: 10000,
+        filingStatus: "single",
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits,
+      );
+
+      expect(result.adjustedGrossIncome).toBe(90000);
+      expect(result.taxableOrdinaryIncome).toBe(
+        90000 - result.deductionBreakdown.deductionAmount,
+      );
+    });
+  });
+
   describe("mental health tax", () => {
     it("applies 1% mental health tax on income above $1M", () => {
       // Single filer with $1,100,000 income

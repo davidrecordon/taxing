@@ -72,11 +72,13 @@ export function calculateCaliforniaTax(
     grossIncome -
     shortTermLossCarryoverOffset -
     longTermLossCarryoverOffset -
-    preTaxDeductions -
-    deductionBreakdown.deductionAmount;
+    preTaxDeductions;
 
-  // Step 4: Calculate taxable income (same as AGI for CA since all deductions are included)
-  const taxableOrdinaryIncome = Math.max(0, adjustedGrossIncome);
+  // Step 4: Calculate taxable income
+  const taxableOrdinaryIncome = Math.max(
+    0,
+    adjustedGrossIncome - deductionBreakdown.deductionAmount,
+  );
 
   // Step 5: Calculate tax (all income taxed as ordinary in CA)
   const ordinaryTax = calculateTaxByBrackets(
@@ -108,12 +110,7 @@ export function calculateCaliforniaTax(
     filingStatus === "marriedFilingSeparately"
       ? californiaLimits.safeHarbor.highIncomeThresholdMFS
       : californiaLimits.safeHarbor.highIncomeThreshold;
-  const caAgiForThreshold =
-    grossIncome -
-    shortTermLossCarryoverOffset -
-    longTermLossCarryoverOffset -
-    preTaxDeductions;
-  const isHighIncome = caAgiForThreshold > highIncomeThreshold;
+  const isHighIncome = adjustedGrossIncome > highIncomeThreshold;
 
   const safeHarbor = calculateSafeHarbor(
     totalTax,

@@ -106,6 +106,22 @@ describe("FederalBreakdown", () => {
 
       expect(screen.getByText("Gross Income")).toBeInTheDocument();
     });
+
+    it("shows AGI before deductions and taxable income after", () => {
+      const result = createMockResult({
+        adjustedGrossIncome: 100000,
+        taxableOrdinaryIncome: 80000,
+        taxableLTCG: 3900,
+      });
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
+
+      const agiRow = screen.getByText(
+        "Adjusted Gross Income (AGI)",
+      ).parentElement!;
+      const taxableRow = screen.getByText("Taxable Income").parentElement!;
+      expect(agiRow).toHaveTextContent("$100,000");
+      expect(taxableRow).toHaveTextContent("$83,900");
+    });
   });
 
   describe("deductions", () => {

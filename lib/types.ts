@@ -375,7 +375,7 @@ export interface TaxCalculationResult {
   preTaxMedical: number;
   selfEmploymentIncome?: number; // For state displays
   deductibleSETax?: number; // For state displays
-  adjustedGrossIncome: number;
+  adjustedGrossIncome: number; // Before the standard or itemized deduction
 
   // Deduction details
   deductionBreakdown: DeductionBreakdown;

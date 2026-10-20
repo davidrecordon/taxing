@@ -178,6 +178,55 @@ describe("calculateFederalTax", () => {
     });
   });
 
+  describe("adjusted gross income", () => {
+    it("reports AGI before the standard deduction", () => {
+      // $100,000 wages + $10,000 LTCG - $20,000 401(k) - $2,000 medical
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        longTermCapitalGains: 10000,
+        contributions401k: 20000,
+        preTaxMedical: 2000,
+        filingStatus: "single",
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData,
+      );
+
+      expect(result.grossIncome).toBe(110000);
+      expect(result.adjustedGrossIncome).toBe(88000);
+      // $78,000 ordinary - $16,100 std
+      expect(result.taxableOrdinaryIncome).toBe(61900);
+      expect(result.taxableLTCG).toBe(10000);
+    });
+
+    it("reduces AGI by capital losses used this year", () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        priorYearLongTermLossCarryover: 10000,
+        filingStatus: "single",
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData,
+      );
+
+      expect(result.adjustedGrossIncome).toBe(97000);
+    });
+  });
+
   describe("pre-tax medical deductions", () => {
     it("reduces taxable ordinary income by pre-tax medical contributions", () => {
       // $100,000 income - $10,000 (pre-tax medical) - $16,100 (std deduction) = $73,900 taxable
@@ -1697,13 +1746,16 @@ describe("calculateFederalTax", () => {
         ficaData,
       );
 
-      // Compare taxable income with and without QBI effect
-      // AGI should reflect QBI deduction
+      // QBI is taken after AGI, so it reduces taxable income but not AGI
+      const deductibleHalf =
+        resultWithSE.selfEmploymentTaxBreakdown!.deductibleHalf;
       expect(resultWithSE.qbiDeduction!.finalDeduction).toBeGreaterThan(0);
-      expect(resultWithSE.adjustedGrossIncome).toBeLessThan(
-        100000 -
-          resultWithSE.selfEmploymentTaxBreakdown!.deductibleHalf -
-          16100,
+      expect(resultWithSE.adjustedGrossIncome).toBeCloseTo(
+        100000 - deductibleHalf,
+        2,
+      );
+      expect(resultWithSE.taxableOrdinaryIncome).toBeLessThan(
+        100000 - deductibleHalf - 16100,
       );
     });
 
