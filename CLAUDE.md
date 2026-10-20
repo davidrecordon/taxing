@@ -87,7 +87,16 @@ The forms are progressive: a field that only matters once another has a value is
 5. Update calculators to use the new field
 6. Add tests
 
-Labels and hints should describe what to enter in plain terms. Do not refer to tax forms or box numbers (W-2, 1099): people use this to estimate before those forms exist.
+Write the label and hint following "Writing On-Screen Text" below.
+
+### Writing On-Screen Text
+
+This covers everything a person reads in the app: labels, hints, warnings, notes, dialog text and the result breakdowns.
+
+- Describe what to enter, or what happened, in plain terms: "Wages and salary", not "W-2 wages".
+- Do not refer to tax forms, schedules, line or box numbers (W-2, 1099, Schedule A). People use this to estimate before those forms exist.
+- Form names, statute references and sources belong in code comments and `data/VERIFICATION.md`, not on screen.
+- When a rule limits or changes a number, say so in a short note next to it, in the same plain terms.
 
 ### Modifying Tax Calculations
 

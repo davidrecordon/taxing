@@ -46,7 +46,7 @@ export default function IncomeInputs({
           label="Wages & Other Income"
           value={inputs.federalIncome}
           onChange={(v) => onUpdate("federalIncome", v)}
-          hint="W-2 wages, before 401(k) and other pre-tax deductions"
+          hint="Wages and salary, before 401(k) and other pre-tax deductions"
         />
         <CurrencyInput
           label={`${stateLabel} Income`}

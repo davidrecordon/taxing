@@ -15,7 +15,7 @@ A web-based tax estimation tool for calculating Federal and state income taxes. 
   - **New York**: State income tax with the tax benefit recapture for higher incomes, and optional NYC local tax with the school tax credit for city residents
   - **Washington**: Capital gains tax only (no wage income tax)
 - **Filing Statuses**: Single, Married Filing Jointly, Married Filing Separately
-- **Income Types**: W-2 wages, interest, ordinary and qualified dividends, short-term and long-term capital gains
+- **Income Types**: Wages, interest, ordinary and qualified dividends, short-term and long-term capital gains
 - **Deductions**: Automatic standard vs. itemized comparison
   - SALT (State and Local Taxes) with the AGI-based cap phasedown
   - Mortgage interest with balance-based limits

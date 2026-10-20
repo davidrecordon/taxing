@@ -58,6 +58,10 @@ TaxCalculator.tsx
           └─► States/*Breakdown
 ```
 
+## On-Screen Text
+
+For the wording of labels, hints, warnings and notes, follow "Writing On-Screen Text" in `CLAUDE.md`.
+
 ## Testing
 
 Tests are colocated with components in `__tests__/` subdirectories:

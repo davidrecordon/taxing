@@ -54,4 +54,12 @@ describe("TaxCalculator", () => {
     expect(row("Current")).toContain("Federal $0, State $198");
     expect(row("Double")).toContain("Federal $1,236, State $0");
   });
+
+  it("does not refer to tax forms anywhere on the page", () => {
+    render(<TaxCalculator />);
+
+    expect(document.body.textContent).not.toMatch(
+      /W-2|1099|1040|Schedule [A-Z]\b|\bbox \d/i,
+    );
+  });
 });
