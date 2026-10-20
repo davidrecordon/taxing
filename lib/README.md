@@ -82,7 +82,7 @@ Handles federal deduction logic:
 
 Shared state calculator utilities:
 
-- `calculateStateGrossIncome()` - Gross income and capital loss offsets for states that tax all income as ordinary
+- `calculateStateIncome()` - Wages, gross income, capital loss offsets and AGI for states that tax all income as ordinary
 - `calculatePaymentSummary()` - Withholding and payments
 - `calculateSafeHarbor()` - Safe harbor calculations
 

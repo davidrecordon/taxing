@@ -12,10 +12,9 @@ import {
 import { calculateDCDeductions } from "../deductionCalculator";
 import { calculateTaxByBrackets } from "../taxUtils";
 import {
-  calculateDeductibleSETax,
   calculatePaymentSummary,
   calculateSafeHarbor,
-  calculateStateGrossIncome,
+  calculateStateIncome,
 } from "./stateCalcUtils";
 
 /**
@@ -40,38 +39,21 @@ export function calculateDCTax(
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
 
-  // Use federal income if state income is not specified
-  const stateIncome = inputs.stateIncome || inputs.federalIncome;
-
-  const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
-
   // Interest, dividends, self-employment income, and all capital gains are
-  // taxed as ordinary income (capital losses follow federal Schedule D rules)
+  // taxed as ordinary income (capital losses follow federal Schedule D rules).
+  // AGI follows the federal above-the-line deductions.
   const {
+    adjustedGrossIncome,
+    deductibleSETax,
     grossIncome,
     interestIncome,
     longTermLossCarryoverOffset,
     ordinaryDividends,
+    selfEmploymentIncome,
     shortTermLossCarryoverOffset,
     shortTermLossCarryoverUnused,
-  } = calculateStateGrossIncome(inputs, stateIncome, sharedLimits);
-
-  // Step 2: Calculate AGI
-  // DC conforms to federal above-the-line deductions including deductible SE tax
-  const deductibleSETax = ficaData
-    ? calculateDeductibleSETax(
-        selfEmploymentIncome,
-        inputs.federalIncome,
-        ficaData,
-      )
-    : 0;
-  const preTaxDeductions =
-    inputs.contributions401k + inputs.preTaxMedical + deductibleSETax;
-  const adjustedGrossIncome =
-    grossIncome -
-    shortTermLossCarryoverOffset -
-    longTermLossCarryoverOffset -
-    preTaxDeductions;
+    stateIncome,
+  } = calculateStateIncome(inputs, sharedLimits, ficaData);
 
   // Step 3: Calculate deductions
   const deductionBreakdown = calculateDCDeductions(

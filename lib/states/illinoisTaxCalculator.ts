@@ -10,10 +10,9 @@ import {
 } from "../types";
 import { calculateTaxByBrackets } from "../taxUtils";
 import {
-  calculateDeductibleSETax,
   calculatePaymentSummary,
   calculateSafeHarbor,
-  calculateStateGrossIncome,
+  calculateStateIncome,
 } from "./stateCalcUtils";
 
 /**
@@ -38,39 +37,21 @@ export function calculateIllinoisTax(
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
 
-  // Use federal income if state income is not specified
-  const stateIncome = inputs.stateIncome || inputs.federalIncome;
-
-  const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
-
   // Interest, dividends, self-employment income, and all capital gains are
-  // taxed as ordinary income (capital losses follow federal Schedule D rules)
+  // taxed as ordinary income (capital losses follow federal Schedule D rules).
+  // AGI follows the federal above-the-line deductions.
   const {
+    adjustedGrossIncome,
+    deductibleSETax,
     grossIncome,
     interestIncome,
     longTermLossCarryoverOffset,
     ordinaryDividends,
+    selfEmploymentIncome,
     shortTermLossCarryoverOffset,
     shortTermLossCarryoverUnused,
-  } = calculateStateGrossIncome(inputs, stateIncome, sharedLimits);
-
-  // Step 2: Apply pre-tax deductions (401k, medical, and deductible SE tax)
-  // IL conforms to federal above-the-line deductions
-  const deductibleSETax = ficaData
-    ? calculateDeductibleSETax(
-        selfEmploymentIncome,
-        inputs.federalIncome,
-        ficaData,
-      )
-    : 0;
-  const preTaxDeductions =
-    inputs.contributions401k + inputs.preTaxMedical + deductibleSETax;
-
-  const adjustedGrossIncome =
-    grossIncome -
-    shortTermLossCarryoverOffset -
-    longTermLossCarryoverOffset -
-    preTaxDeductions;
+    stateIncome,
+  } = calculateStateIncome(inputs, sharedLimits, ficaData);
 
   // Step 3: Apply Illinois personal exemption (instead of standard deduction)
   // The exemption and the property tax credit are lost above the income limit

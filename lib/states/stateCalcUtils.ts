@@ -2,35 +2,41 @@ import { FicaData, SafeHarbor, SharedLimitsData, TaxInputs } from "../types";
 import { netCapitalGains, splitDividends, taxableInterest } from "../taxUtils";
 
 /**
- * Gross income and capital loss offsets for states that tax all income,
- * including capital gains, as ordinary income.
+ * Income figures shared by the states that tax all income, including capital
+ * gains, as ordinary income.
  */
-export interface StateGrossIncome {
+export interface StateIncome {
+  adjustedGrossIncome: number;
+  deductibleSETax: number;
   grossIncome: number;
   interestIncome: number;
   longTermLossCarryoverOffset: number;
   ordinaryDividends: number;
+  selfEmploymentIncome: number;
   shortTermLossCarryoverOffset: number;
   shortTermLossCarryoverUnused: number;
+  stateIncome: number; // Wages: the state override, or the federal amount
 }
 
 /**
- * Calculate gross income for states that tax interest, dividends,
+ * Calculate gross income and AGI for states that tax interest, dividends,
  * self-employment income, and all capital gains as ordinary income.
- * Capital losses are netted following federal Schedule D rules.
+ * Capital losses are netted following federal Schedule D rules, and AGI
+ * follows the federal above-the-line deductions (401(k), pre-tax medical,
+ * and the deductible half of self-employment tax).
  */
-export function calculateStateGrossIncome(
+export function calculateStateIncome(
   inputs: TaxInputs,
-  stateIncome: number,
   sharedLimits: SharedLimitsData,
-): StateGrossIncome {
+  ficaData?: FicaData,
+): StateIncome {
+  // Use federal income if state income is not specified
+  const stateIncome = inputs.stateIncome || inputs.federalIncome;
+  const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
   const interestIncome = taxableInterest(inputs);
   const ordinaryDividends = splitDividends(inputs).ordinary;
   const otherIncome =
-    stateIncome +
-    (inputs.selfEmploymentIncome ?? 0) +
-    interestIncome +
-    ordinaryDividends;
+    stateIncome + selfEmploymentIncome + interestIncome + ordinaryDividends;
 
   const capitalGains = netCapitalGains(
     inputs,
@@ -38,15 +44,34 @@ export function calculateStateGrossIncome(
     sharedLimits,
     otherIncome,
   );
+  const grossIncome =
+    otherIncome + capitalGains.shortTermGains + capitalGains.longTermGains;
+
+  const deductibleSETax = ficaData
+    ? calculateDeductibleSETax(
+        selfEmploymentIncome,
+        inputs.federalIncome,
+        ficaData,
+      )
+    : 0;
 
   return {
-    grossIncome:
-      otherIncome + capitalGains.shortTermGains + capitalGains.longTermGains,
+    adjustedGrossIncome:
+      grossIncome -
+      capitalGains.shortTermLossOffset -
+      capitalGains.longTermLossOffset -
+      inputs.contributions401k -
+      inputs.preTaxMedical -
+      deductibleSETax,
+    deductibleSETax,
+    grossIncome,
     interestIncome,
     longTermLossCarryoverOffset: capitalGains.longTermLossOffset,
     ordinaryDividends,
+    selfEmploymentIncome,
     shortTermLossCarryoverOffset: capitalGains.shortTermLossOffset,
     shortTermLossCarryoverUnused: capitalGains.shortTermLossUnused,
+    stateIncome,
   };
 }
 
