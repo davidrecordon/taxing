@@ -31,6 +31,32 @@ describe("PriorYearInputs", () => {
     expect(screen.getByText("Last year's New York tax")).toBeInTheDocument();
   });
 
+  describe("state balance paid sub-field", () => {
+    it("is hidden until last year's state tax is entered", () => {
+      renderPriorYear({ priorYearFederalTax: 20000 });
+
+      expect(
+        screen.queryByText(/balance paid this year/),
+      ).not.toBeInTheDocument();
+    });
+
+    it("appears once last year's state tax has a value", () => {
+      renderPriorYear({ priorYearStateTax: 9000, selectedState: "newyork" });
+
+      expect(
+        screen.getByText("New York balance paid this year"),
+      ).toBeInTheDocument();
+    });
+
+    it("is not offered where the state has no income tax", () => {
+      renderPriorYear({ priorYearStateTax: 9000, selectedState: "florida" });
+
+      expect(
+        screen.queryByText(/balance paid this year/),
+      ).not.toBeInTheDocument();
+    });
+  });
+
   describe("last year's income checkbox", () => {
     it("is hidden until a prior-year tax is entered", () => {
       renderPriorYear();

@@ -118,6 +118,27 @@ describe("calculateCaliforniaTax", () => {
     });
   });
 
+  describe("prior-year state balance", () => {
+    it("is not a payment toward this year's California tax", () => {
+      const calculate = (priorYearStateBalancePaid: number) =>
+        calculateCaliforniaTax(
+          createDefaultInputs({
+            federalIncome: 200000,
+            stateTaxWithheld: 10000,
+            priorYearStateBalancePaid,
+            filingStatus: "single",
+          }),
+          californiaBrackets,
+          californiaDeductions,
+          sharedLimits,
+          californiaLimits,
+        );
+
+      expect(calculate(6000).totalPaid).toBe(10000);
+      expect(calculate(6000).remainingOwed).toBe(calculate(0).remainingOwed);
+    });
+  });
+
   describe("itemized deductions", () => {
     const calculate = (overrides: Parameters<typeof createDefaultInputs>[0]) =>
       calculateCaliforniaTax(

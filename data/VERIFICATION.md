@@ -726,6 +726,12 @@ Same as 2025 (brackets not inflation-adjusted).
 
 ---
 
+## State Tax Paid for a Prior Year
+
+State income tax is deductible federally in the year it is paid. The [2025 Schedule A instructions](https://www.irs.gov/pub/irs-pdf/i1040sca.pdf), line 5a, include state and local income taxes "paid in 2025 for a prior year, such as taxes paid with your 2024 state or local income tax return", alongside withholding and estimated payments. The calculator adds the balance paid this year for last year's state return to the Federal deduction for state and local taxes (subject to the cap). It is not counted as a payment toward this year's state tax.
+
+---
+
 ## U.S. Treasury Interest
 
 Interest on U.S. Treasury obligations is taxable federally but exempt from state and local income tax ([31 U.S.C. 3124(a)](https://www.law.cornell.edu/uscode/text/31/3124): "Stocks and obligations of the United States Government are exempt from taxation by a State"). The calculator removes the Treasury portion of interest from income in California, DC, Illinois and New York, and subtracts it from federal taxable income for Colorado. Not modelled: the share of a mutual fund's dividends that comes from Treasuries, which states treat differently (California and New York require a minimum share of fund assets).

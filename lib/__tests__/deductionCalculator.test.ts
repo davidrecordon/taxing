@@ -29,6 +29,7 @@ interface DeductionInputs {
   charitableContributions: number;
   stateTaxWithheld: number;
   stateEstimatedPaid: number;
+  priorYearStateBalancePaid?: number;
 }
 
 function createDefaultDeductionInputs(
@@ -382,6 +383,43 @@ describe("calculateFederalDeductions SALT components", () => {
 
     expect(result.saltDeduction).toBe(8000);
     expect(result.saltCapped).toBe(false);
+  });
+});
+
+describe("calculateFederalDeductions prior-year state balance", () => {
+  it("counts a balance paid this year for last year's state tax as SALT", () => {
+    const deduct = (priorYearStateBalancePaid: number) =>
+      calculateFederalDeductions(
+        createDefaultDeductionInputs({
+          stateTaxWithheld: 12000,
+          propertyTaxesPaid: 8000,
+          priorYearStateBalancePaid,
+        }),
+        "single",
+        federalDeductions,
+        federalLimits,
+        LOW_AGI,
+      );
+
+    expect(deduct(0).saltDeduction).toBe(20000);
+    expect(deduct(6000).saltDeduction).toBe(26000);
+  });
+
+  it("is still subject to the SALT cap", () => {
+    const result = calculateFederalDeductions(
+      createDefaultDeductionInputs({
+        stateTaxWithheld: 30000,
+        propertyTaxesPaid: 8000,
+        priorYearStateBalancePaid: 6000,
+      }),
+      "single",
+      federalDeductions,
+      federalLimits,
+      LOW_AGI,
+    );
+
+    expect(result.saltDeduction).toBe(40400);
+    expect(result.saltCapped).toBe(true);
   });
 });
 

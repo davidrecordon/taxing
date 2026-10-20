@@ -126,6 +126,7 @@ export function createDefaultInputs(
     preTaxMedical: 0,
     priorYearFederalTax: 0,
     priorYearStateTax: 0,
+    priorYearStateBalancePaid: 0,
     priorYearShortTermLossCarryover: 0,
     priorYearLongTermLossCarryover: 0,
     selfEmploymentIncome: 0,

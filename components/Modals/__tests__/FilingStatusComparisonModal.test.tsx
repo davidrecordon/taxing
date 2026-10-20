@@ -32,6 +32,7 @@ describe("FilingStatusComparisonModal", () => {
     preTaxMedical: 5000,
     priorYearFederalTax: 40000,
     priorYearStateTax: 12000,
+    priorYearStateBalancePaid: 0,
     priorYearShortTermLossCarryover: 0,
     priorYearLongTermLossCarryover: 0,
     selfEmploymentIncome: 0,

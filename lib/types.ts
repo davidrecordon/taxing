@@ -414,6 +414,9 @@ export interface TaxInputs {
   // Prior year
   priorYearFederalTax: number;
   priorYearStateTax: number;
+  // State tax for last year that was paid this year with last year's return.
+  // Deductible federally this year; not a payment toward this year's state tax.
+  priorYearStateBalancePaid: number;
   // Whether last year's income was over the high-income threshold ($150,000,
   // $75,000 married filing separately). Treated as true when not set.
   priorYearIncomeOverThreshold?: boolean;

@@ -20,6 +20,13 @@ export default function PriorYearInputs({
   // Sub-field: appears once a prior-year tax has been entered
   const showPriorYearIncome =
     inputs.priorYearFederalTax > 0 || inputs.priorYearStateTax > 0;
+  // Sub-field: a balance paid this year for last year's state tax is part of
+  // this year's Federal deduction for state taxes
+  const stateTaxesIncome =
+    inputs.selectedState !== "florida" && inputs.selectedState !== "washington";
+  const showPriorYearStateBalance =
+    stateTaxesIncome &&
+    (inputs.priorYearStateTax > 0 || inputs.priorYearStateBalancePaid > 0);
   const highIncomeThreshold =
     inputs.filingStatus === "marriedFilingSeparately"
       ? sharedLimits.priorYearHighIncomeThreshold.marriedFilingSeparately
@@ -45,6 +52,15 @@ export default function PriorYearInputs({
           hint="Total tax for the year, not what you paid at filing or your refund"
         />
       </div>
+
+      {showPriorYearStateBalance && (
+        <CurrencyInput
+          label={`${stateLabel} balance paid this year`}
+          value={inputs.priorYearStateBalancePaid}
+          onChange={(v) => onUpdate("priorYearStateBalancePaid", v)}
+          hint="Paid this year with last year's return. Counts toward this year's Federal deduction."
+        />
+      )}
 
       {showPriorYearIncome && (
         <label className="flex items-center gap-2 cursor-pointer">

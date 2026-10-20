@@ -16,6 +16,7 @@ interface DeductionInputs {
   charitableContributions: number;
   stateTaxWithheld: number;
   stateEstimatedPaid: number;
+  priorYearStateBalancePaid?: number;
 }
 
 interface MortgageBalanceLimit {
@@ -91,9 +92,12 @@ export function calculateFederalDeductions(
   const standardDeduction = federalDeductions.standardDeduction[filingStatus];
 
   // Calculate SALT (State and Local Taxes)
+  // State income tax counts in the year it is paid, including a balance paid
+  // this year with last year's return
   const totalStateAndLocalTaxes =
     inputs.stateTaxWithheld +
     inputs.stateEstimatedPaid +
+    (inputs.priorYearStateBalancePaid ?? 0) +
     inputs.propertyTaxesPaid;
 
   // SALT cap phases down as AGI rises above the threshold

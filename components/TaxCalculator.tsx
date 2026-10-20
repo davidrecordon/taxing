@@ -70,6 +70,7 @@ const defaultInputs: TaxInputs = {
   preTaxMedical: 0,
   priorYearFederalTax: 0,
   priorYearStateTax: 0,
+  priorYearStateBalancePaid: 0,
   priorYearShortTermLossCarryover: 0,
   priorYearLongTermLossCarryover: 0,
   selfEmploymentIncome: 0,
@@ -155,6 +156,7 @@ function buildSpouseInputs(
     stateEstimatedPaid: inputs.stateEstimatedPaid * wages,
     priorYearFederalTax: inputs.priorYearFederalTax * wages,
     priorYearStateTax: inputs.priorYearStateTax * wages,
+    priorYearStateBalancePaid: inputs.priorYearStateBalancePaid * wages,
   };
 }
 
