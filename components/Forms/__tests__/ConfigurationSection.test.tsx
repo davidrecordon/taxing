@@ -14,6 +14,14 @@ describe("ConfigurationSection", () => {
     onTaxYearChange: vi.fn(),
   };
 
+  it("names each dropdown by its label", () => {
+    render(<ConfigurationSection {...defaultProps} />);
+
+    expect(screen.getByLabelText("Tax Year")).toHaveValue(TAX_YEAR);
+    expect(screen.getByLabelText("Filing Status")).toHaveValue("single");
+    expect(screen.getByLabelText("State")).toHaveValue("california");
+  });
+
   describe("tax year dropdown", () => {
     it("renders all supported years", () => {
       render(<ConfigurationSection {...defaultProps} />);

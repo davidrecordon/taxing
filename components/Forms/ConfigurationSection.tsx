@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { FilingStatus, TaxState } from "@/lib/types";
 import { SUPPORTED_YEARS, TaxYear } from "@/lib/config";
 
@@ -42,6 +43,11 @@ export default function ConfigurationSection({
   onCompareFilingStatus,
   onStateHover,
 }: Props) {
+  // Ties each label to its dropdown
+  const taxYearId = useId();
+  const filingStatusId = useId();
+  const stateId = useId();
+
   // Preload all state data when user focuses on state dropdown
   const handleStateFocus = () => {
     if (onStateHover) {
@@ -56,10 +62,14 @@ export default function ConfigurationSection({
     <div className="theme-card p-4">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-text-primary mb-2">
+          <label
+            htmlFor={taxYearId}
+            className="block text-sm font-medium text-text-primary mb-2"
+          >
             Tax Year
           </label>
           <select
+            id={taxYearId}
             value={taxYear}
             onChange={(e) => onTaxYearChange(e.target.value as TaxYear)}
             className="theme-input w-full px-3 py-2"
@@ -72,10 +82,14 @@ export default function ConfigurationSection({
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-text-primary mb-2">
+          <label
+            htmlFor={filingStatusId}
+            className="block text-sm font-medium text-text-primary mb-2"
+          >
             Filing Status
           </label>
           <select
+            id={filingStatusId}
             value={filingStatus}
             onChange={(e) =>
               onFilingStatusChange(e.target.value as FilingStatus)
@@ -98,10 +112,14 @@ export default function ConfigurationSection({
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium text-text-primary mb-2">
+          <label
+            htmlFor={stateId}
+            className="block text-sm font-medium text-text-primary mb-2"
+          >
             State
           </label>
           <select
+            id={stateId}
             value={selectedState}
             onChange={(e) => onStateChange(e.target.value as TaxState)}
             onFocus={handleStateFocus}
