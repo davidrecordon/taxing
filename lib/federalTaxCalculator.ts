@@ -263,6 +263,8 @@ export function calculateFederalTax(
   );
 
   // Step 7: Calculate FICA taxes (on W-2 wage income only, not investment income)
+  // Shown for information only: employers withhold these from each paycheck,
+  // so they are not part of the tax settled on the return
   const ficaBreakdown = ficaData
     ? calculateFicaTaxes(inputs.federalIncome, filingStatus, ficaData)
     : undefined;
@@ -294,14 +296,11 @@ export function calculateFederalTax(
         }
       : undefined;
 
-  // Step 8: Sum up taxes
+  // Step 8: Sum up the taxes settled on the return. Payroll tax on wages is
+  // excluded, including the Additional Medicare tax, which is assumed to be
+  // withheld by the employer.
   const seTax = selfEmploymentTaxBreakdown?.totalSETax ?? 0;
-  const totalTax =
-    ordinaryTax.total +
-    ltcgTax.total +
-    (ficaBreakdown?.totalFica ?? 0) +
-    seTax +
-    niitTax;
+  const totalTax = ordinaryTax.total + ltcgTax.total + seTax + niitTax;
 
   // Step 9: Calculate remaining owed using shared utility
   const { totalPaid, remainingOwed, refundDue } = calculatePaymentSummary(

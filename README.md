@@ -21,7 +21,7 @@ A web-based tax estimation tool for calculating Federal and state income taxes. 
   - Mortgage interest with balance-based limits
   - Charitable contributions
   - 401(k) pre-tax contributions
-- **FICA Taxes**: Social Security and Medicare calculations, including additional Medicare tax
+- **FICA Taxes**: Social Security and Medicare on wages, shown for information and kept out of the tax owed since employers withhold them
 - **Safe Harbor**: Estimated payment calculations to avoid underpayment penalties
 - **Capital Losses**: Schedule D netting of current year losses and prior year carryovers, including the $3,000 deduction against other income
 

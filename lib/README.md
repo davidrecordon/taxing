@@ -36,7 +36,8 @@ TaxInputs (user form data)
     │     ├─ Calculate AGI (before the standard or itemized deduction)
     │     ├─ Determine deduction (standard vs itemized)
     │     ├─ Calculate tax by bracket
-    │     ├─ Add LTCG / qualified dividend tax, FICA, and NIIT
+    │     ├─ Add LTCG / qualified dividend tax, SE tax, and NIIT
+    │     ├─ Calculate FICA on wages (informational, not in the total)
     │     └─ Calculate safe harbor
     │
     └─► {state}TaxCalculator.ts

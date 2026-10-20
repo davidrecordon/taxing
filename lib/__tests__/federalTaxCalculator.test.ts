@@ -103,6 +103,56 @@ describe("calculateFederalTax", () => {
     });
   });
 
+  describe("FICA and the tax owed", () => {
+    it("does not count FICA on wages as tax owed when income tax withholding is exact", () => {
+      // $100k wages: income tax $13,170, FICA $7,650 (withheld by employer)
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        federalTaxWithheld: 13170,
+        filingStatus: "single",
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData,
+      );
+
+      expect(result.ficaBreakdown!.totalFica).toBeCloseTo(7650, 2);
+      expect(result.totalTax).toBe(13170);
+      expect(result.remainingOwed).toBe(0);
+      expect(result.refundDue).toBe(0);
+    });
+
+    it("still counts self-employment tax as tax owed", () => {
+      const inputs = createDefaultInputs({
+        selfEmploymentIncome: 100000,
+        filingStatus: "single",
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData,
+      );
+
+      const seTax = result.selfEmploymentTaxBreakdown!.totalSETax;
+      expect(seTax).toBeGreaterThan(0);
+      expect(result.totalTax).toBeCloseTo(
+        result.ordinaryIncomeTax + result.ltcgTax + seTax,
+        2,
+      );
+    });
+  });
+
   describe("long-term capital gains", () => {
     it("applies preferential 0% rate for LTCG within bracket threshold", () => {
       // Single filer with $30,000 LTCG and no ordinary income
@@ -427,15 +477,14 @@ describe("calculateFederalTax", () => {
 
   describe("safe harbor calculations", () => {
     it("uses minimum of 90% current year and 110% prior year when prior year provided", () => {
-      // $100k income, tax is $13,170 + FICA
-      // FICA: $100k * 6.2% = $6,200 (SS) + $100k * 1.45% = $1,450 (Medicare) = $7,650
-      // Total tax = $13,170 + $7,650 = $20,820
-      // 90% of current year = $18,738
-      // Prior year tax = $15,000, so 110% = $16,500
-      // Safe harbor minimum should be $16,500 (the lesser of the two)
+      // $100k income, income tax is $13,170
+      // FICA ($7,650) is withheld by the employer and is not part of the test
+      // 90% of current year = $11,853
+      // Prior year tax = $10,000, so 110% = $11,000
+      // Safe harbor minimum should be $11,000 (the lesser of the two)
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        priorYearFederalTaxPaid: 15000,
+        priorYearFederalTaxPaid: 10000,
         filingStatus: "single",
       });
 
@@ -451,11 +500,11 @@ describe("calculateFederalTax", () => {
 
       expect(result.safeHarbor).toBeDefined();
       expect(result.safeHarbor!.currentYear90Percent).toBeCloseTo(
-        20820 * 0.9,
+        13170 * 0.9,
         2,
       );
-      expect(result.safeHarbor!.priorYearSafeHarbor).toBe(16500);
-      expect(result.safeHarbor!.minimum).toBe(16500);
+      expect(result.safeHarbor!.priorYearSafeHarbor).toBeCloseTo(11000, 2);
+      expect(result.safeHarbor!.minimum).toBeCloseTo(11000, 2);
     });
 
     it("uses only 90% current year when no prior year tax provided", () => {
@@ -1462,12 +1511,10 @@ describe("calculateFederalTax", () => {
         ficaData,
       );
 
-      // Total tax should include NIIT
+      // Total tax should include NIIT but not FICA on wages
       const expectedNiit = result.niitBreakdown!.tax;
-      const taxWithoutNiit =
-        result.ordinaryIncomeTax +
-        result.ltcgTax +
-        (result.ficaBreakdown?.totalFica ?? 0);
+      const taxWithoutNiit = result.ordinaryIncomeTax + result.ltcgTax;
+      expect(result.ficaBreakdown!.totalFica).toBeGreaterThan(0);
       expect(result.totalTax).toBeCloseTo(taxWithoutNiit + expectedNiit, 2);
     });
   });
@@ -1814,7 +1861,8 @@ describe("calculateFederalTax", () => {
       // MAGI = $200,000, threshold = $200,000
       // Not over threshold = $0 NIIT
       //
-      // Total tax = $19,094 + $7,500 + $11,475 = $38,069
+      // Total tax (FICA is withheld by the employer, not part of the total):
+      // $19,094 + $7,500 = $26,594
       const inputs = createDefaultInputs({
         federalIncome: 150000,
         longTermCapitalGains: 50000,
@@ -1848,7 +1896,7 @@ describe("calculateFederalTax", () => {
       expect(result.niitBreakdown).toBeUndefined();
 
       // Final total
-      expect(result.totalTax).toBe(38069);
+      expect(result.totalTax).toBe(26594);
     });
 
     it("calculates high-income return with NIIT - exact calculation", () => {
@@ -1884,7 +1932,8 @@ describe("calculateFederalTax", () => {
       // Net investment income = $100,000
       // NIIT = min($100,000, $200,000) × 3.8% = $3,800
       //
-      // Total tax = $68,134.25 + $15,000 + $16,689 + $3,800 = $103,623.25
+      // Total tax (FICA is withheld by the employer, not part of the total):
+      // $68,134.25 + $15,000 + $3,800 = $86,934.25
       const inputs = createDefaultInputs({
         federalIncome: 300000,
         longTermCapitalGains: 100000,
@@ -1916,7 +1965,7 @@ describe("calculateFederalTax", () => {
       expect(result.niitBreakdown!.netInvestmentIncome).toBe(100000);
       expect(result.niitBreakdown!.tax).toBe(3800);
 
-      expect(result.totalTax).toBeCloseTo(103623.25, 2);
+      expect(result.totalTax).toBeCloseTo(86934.25, 2);
     });
 
     it("calculates investment-heavy return with losses and carryovers - exact calculation", () => {
@@ -1958,7 +2007,8 @@ describe("calculateFederalTax", () => {
       // Net investment income = $10,000 + $150,000 - $3,000 = $157,000
       // NIIT = min($157,000, $137,000) x 3.8% = $5,206
       //
-      // Total tax = $40,814 + $18,000 + $13,770 + $5,206 = $77,790
+      // Total tax (FICA is withheld by the employer, not part of the total):
+      // $40,814 + $18,000 + $5,206 = $64,020
       const inputs = createDefaultInputs({
         federalIncome: 180000,
         interestIncome: 10000,
@@ -1999,7 +2049,7 @@ describe("calculateFederalTax", () => {
       expect(result.niitBreakdown!.magiOverThreshold).toBe(137000);
       expect(result.niitBreakdown!.tax).toBeCloseTo(5206, 2);
 
-      expect(result.totalTax).toBeCloseTo(77790, 2);
+      expect(result.totalTax).toBeCloseTo(64020, 2);
     });
 
     it("calculates SE income return with QBI - exact calculation", () => {

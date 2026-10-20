@@ -242,9 +242,13 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
       {/* FICA Taxes */}
       {result.ficaBreakdown && result.ficaBreakdown.totalFica > 0 && (
         <div className="bg-secondary p-3 rounded-[var(--radius-md)] mb-4">
-          <h3 className="font-medium text-text-primary mb-2">
+          <h3 className="font-medium text-text-primary">
             FICA Taxes (Social Security & Medicare)
           </h3>
+          <p className="text-xs text-text-muted mb-2">
+            Withheld from paychecks by your employer. Not included in the
+            Federal tax total below.
+          </p>
           <div className="text-sm space-y-1">
             <div className="flex justify-between text-text-secondary">
               <span>
