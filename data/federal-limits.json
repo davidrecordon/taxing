@@ -36,7 +36,8 @@
     },
     "safeHarbor": {
       "currentYearPercent": 0.9,
-      "priorYearPercent": 1.1
+      "highIncomePriorYearPercent": 1.1,
+      "priorYearPercent": 1.0
     },
     "saltLimit": {
       "floor": 10000,
@@ -85,7 +86,8 @@
     },
     "safeHarbor": {
       "currentYearPercent": 0.9,
-      "priorYearPercent": 1.1
+      "highIncomePriorYearPercent": 1.1,
+      "priorYearPercent": 1.0
     },
     "saltLimit": {
       "floor": 10000,

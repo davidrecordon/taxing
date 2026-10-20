@@ -355,7 +355,10 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
             {result.safeHarbor.priorYearSafeHarbor > 0 && (
               <div className="flex justify-between text-text-secondary">
                 <span>
-                  {formatPercent(federalLimits.safeHarbor.priorYearPercent)} of
+                  {formatPercent(
+                    result.safeHarbor.priorYearPercent ??
+                      federalLimits.safeHarbor.priorYearPercent,
+                  )} of
                   Prior Year Tax
                 </span>
                 <span className="font-mono text-text-primary">

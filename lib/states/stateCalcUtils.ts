@@ -125,7 +125,7 @@ export function calculatePaymentSummary(
 export interface SafeHarborConfig {
   /** Current year percentage (0.90 for federal/CA, 0.80 for WA) */
   currentYearPercent: number;
-  /** Prior year percentage (1.10 for federal, 1.00 for CA, undefined for WA) */
+  /** Share of last year's tax required (undefined when not used, as for WA) */
   priorYearPercent?: number;
   /** High income threshold for exception (CA only) */
   highIncomeThreshold?: number;
@@ -136,10 +136,10 @@ export interface SafeHarborConfig {
 /**
  * Calculate safe harbor for estimated tax penalty avoidance
  *
- * Rules by jurisdiction:
- * - Federal: 90% of current year tax OR 110% of prior year tax
- * - California: 90% current OR 100% prior (only 90% for high income AGI > $1M)
- * - Washington: 80% of current year only (no prior year comparison)
+ * The required amount is the lesser of a share of this year's tax and a share
+ * of last year's tax; the shares come from each jurisdiction's limits data
+ * (see selectPriorYearPercent). This is one annual comparison: the timing of
+ * individual installments is not modelled.
  */
 export function calculateSafeHarbor(
   totalTax: number,
@@ -176,6 +176,23 @@ export function calculateSafeHarbor(
     minimum,
     met: totalPaid >= minimum,
     remaining: Math.max(0, minimum - totalPaid),
+    priorYearPercent: config.priorYearPercent,
     highIncomeException: config.isHighIncome,
   };
+}
+
+/**
+ * Share of last year's tax required for the prior-year safe harbor. Most
+ * jurisdictions require more when last year's income was over $150,000
+ * ($75,000 married filing separately). The calculator cannot know last year's
+ * income, so the user says which side they were on; unanswered is treated as
+ * over, which is the safer assumption.
+ */
+export function selectPriorYearPercent(
+  safeHarbor: { highIncomePriorYearPercent?: number; priorYearPercent: number },
+  inputs: Pick<TaxInputs, "priorYearIncomeOverThreshold">,
+): number {
+  return (inputs.priorYearIncomeOverThreshold ?? true)
+    ? (safeHarbor.highIncomePriorYearPercent ?? safeHarbor.priorYearPercent)
+    : safeHarbor.priorYearPercent;
 }

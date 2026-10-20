@@ -10,6 +10,7 @@
     },
     "safeHarbor": {
       "currentYearPercent": 0.9,
+      "highIncomePriorYearPercent": 1.1,
       "priorYearPercent": 1.0
     }
   },
@@ -24,6 +25,7 @@
     },
     "safeHarbor": {
       "currentYearPercent": 0.9,
+      "highIncomePriorYearPercent": 1.1,
       "priorYearPercent": 1.0
     }
   }

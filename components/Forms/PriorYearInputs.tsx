@@ -1,15 +1,29 @@
 "use client";
 
-import { TaxInputs, STATE_LABELS } from "@/lib/types";
+import { formatCurrency } from "@/lib/formatters";
+import { SharedLimitsData, STATE_LABELS, TaxInputs } from "@/lib/types";
 import CurrencyInput from "../UI/CurrencyInput";
 
 interface Props {
   inputs: TaxInputs;
   onUpdate: <K extends keyof TaxInputs>(field: K, value: TaxInputs[K]) => void;
+  sharedLimits: SharedLimitsData;
 }
 
-export default function PriorYearInputs({ inputs, onUpdate }: Props) {
+export default function PriorYearInputs({
+  inputs,
+  onUpdate,
+  sharedLimits,
+}: Props) {
   const stateLabel = STATE_LABELS[inputs.selectedState] || "State";
+
+  // Sub-field: appears once a prior-year tax has been entered
+  const showPriorYearIncome =
+    inputs.priorYearFederalTax > 0 || inputs.priorYearStateTax > 0;
+  const highIncomeThreshold =
+    inputs.filingStatus === "marriedFilingSeparately"
+      ? sharedLimits.priorYearHighIncomeThreshold.marriedFilingSeparately
+      : sharedLimits.priorYearHighIncomeThreshold.default;
 
   return (
     <div className="theme-card p-4 space-y-4">
@@ -31,6 +45,26 @@ export default function PriorYearInputs({ inputs, onUpdate }: Props) {
           hint="Total tax for the year, not what you paid at filing or your refund"
         />
       </div>
+
+      {showPriorYearIncome && (
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={inputs.priorYearIncomeOverThreshold ?? true}
+            onChange={(e) =>
+              onUpdate("priorYearIncomeOverThreshold", e.target.checked)
+            }
+            className="w-4 h-4 accent-accent border-border rounded focus:ring-accent"
+          />
+          <span className="text-sm font-medium text-text-primary">
+            Last year&apos;s income was over{" "}
+            {formatCurrency(highIncomeThreshold)}
+          </span>
+          <span className="text-xs text-text-muted">
+            (raises the share of last year&apos;s tax you need to have paid)
+          </span>
+        </label>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CurrencyInput

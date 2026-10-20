@@ -507,6 +507,52 @@ describe("calculateFederalTax", () => {
       expect(result.safeHarbor!.minimum).toBeCloseTo(11000, 2);
     });
 
+    it("requires 100% of last year's tax when last year's income was not over $150,000", () => {
+      // Last year's tax $20,000; this year's is far higher
+      const result = calculateFederalTax(
+        createDefaultInputs({
+          federalIncome: 250000,
+          priorYearFederalTax: 20000,
+          priorYearIncomeOverThreshold: false,
+          federalTaxWithheld: 21000,
+          filingStatus: "single",
+        }),
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData,
+      );
+
+      expect(result.safeHarbor!.priorYearPercent).toBe(1);
+      expect(result.safeHarbor!.minimum).toBe(20000);
+      expect(result.safeHarbor!.met).toBe(true);
+    });
+
+    it("requires 110% when last year's income was over $150,000, and assumes so by default", () => {
+      const inputs = {
+        federalIncome: 250000,
+        priorYearFederalTax: 20000,
+        federalTaxWithheld: 21000,
+        filingStatus: "single" as const,
+      };
+      const safeHarborFor = (priorYearIncomeOverThreshold?: boolean) =>
+        calculateFederalTax(
+          createDefaultInputs({ ...inputs, priorYearIncomeOverThreshold }),
+          federalBrackets,
+          ltcgBrackets,
+          federalDeductions,
+          sharedLimits,
+          federalLimits,
+          ficaData,
+        ).safeHarbor!;
+
+      expect(safeHarborFor(true).minimum).toBeCloseTo(22000, 2);
+      expect(safeHarborFor(true).met).toBe(false);
+      expect(safeHarborFor(undefined).minimum).toBeCloseTo(22000, 2);
+    });
+
     it("uses only 90% current year when no prior year tax provided", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,

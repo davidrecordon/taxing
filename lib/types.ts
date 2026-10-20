@@ -66,6 +66,13 @@ export interface SharedLimitsData {
     catchUp50Plus: number;
     standard: number;
   };
+  // Prior-year income above which the higher prior-year safe harbor
+  // percentage applies (shown in the form; the user states which side they
+  // were on)
+  priorYearHighIncomeThreshold: {
+    default: number;
+    marriedFilingSeparately: number;
+  };
 }
 
 // Federal-specific limits
@@ -112,6 +119,7 @@ export interface FederalLimitsData {
   };
   safeHarbor: {
     currentYearPercent: number;
+    highIncomePriorYearPercent: number;
     priorYearPercent: number;
   };
   // SALT cap is reduced by phasedownRate for each dollar of MAGI over the
@@ -152,9 +160,13 @@ export interface CaliforniaLimitsData {
   };
   safeHarbor: {
     currentYearPercent: number;
-    highIncomeThreshold: number;
-    highIncomeThresholdMFS: number;
+    highIncomePriorYearPercent: number;
     priorYearPercent: number;
+    // At or above this current-year AGI the prior-year method is unavailable
+    priorYearUnavailableAgi: {
+      default: number;
+      marriedFilingSeparately: number;
+    };
   };
 }
 
@@ -228,9 +240,7 @@ export interface NewYorkLimitsData {
   };
   safeHarbor: {
     currentYearPercent: number;
-    highIncomePercent: number;
-    highIncomeThreshold: number;
-    highIncomeThresholdMFS: number;
+    highIncomePriorYearPercent: number;
     priorYearPercent: number;
   };
   // Tax benefit recapture (IT-201 tax computation worksheets): above the AGI
@@ -285,6 +295,7 @@ export interface ColoradoLimitsData {
   };
   safeHarbor: {
     currentYearPercent: number;
+    highIncomePriorYearPercent: number;
     priorYearPercent: number;
   };
 }
@@ -402,6 +413,9 @@ export interface TaxInputs {
   // Prior year
   priorYearFederalTax: number;
   priorYearStateTax: number;
+  // Whether last year's income was over the high-income threshold ($150,000,
+  // $75,000 married filing separately). Treated as true when not set.
+  priorYearIncomeOverThreshold?: boolean;
   priorYearShortTermLossCarryover: number;
   priorYearLongTermLossCarryover: number;
   selfEmploymentIncome: number;
@@ -489,8 +503,8 @@ export interface SafeHarbor {
   minimum: number;
   met: boolean;
   remaining: number;
-  highIncomeException?: boolean; // CA only - AGI over threshold
-  isHighIncome?: boolean; // NY - whether 110% rule applies
+  priorYearPercent?: number; // Share of last year's tax that was required
+  highIncomeException?: boolean; // CA only - prior-year method unavailable
 }
 
 export interface TaxCalculationResult {

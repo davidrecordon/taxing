@@ -248,9 +248,8 @@ export default memo(function NewYorkBreakdown({ result, taxYear }: Props) {
               <div className="flex justify-between text-text-secondary">
                 <span>
                   {formatPercent(
-                    result.safeHarbor.isHighIncome
-                      ? limits.safeHarbor.highIncomePercent
-                      : limits.safeHarbor.priorYearPercent,
+                    result.safeHarbor.priorYearPercent ??
+                      limits.safeHarbor.priorYearPercent,
                   )}{" "}
                   of Prior Year Tax
                 </span>

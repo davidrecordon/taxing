@@ -547,7 +547,11 @@ export default function TaxCalculator() {
               calculateCharitableScenario={calculateCharitableScenario}
             />
 
-            <PriorYearInputs inputs={inputs} onUpdate={updateInput} />
+            <PriorYearInputs
+              inputs={inputs}
+              onUpdate={updateInput}
+              sharedLimits={federalData.sharedLimits}
+            />
           </div>
 
           <ErrorBoundary>

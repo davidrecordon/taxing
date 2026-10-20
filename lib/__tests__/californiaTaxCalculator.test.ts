@@ -209,7 +209,65 @@ describe("calculateCaliforniaTax", () => {
       expect(result.safeHarbor!.minimum).toBeCloseTo(result.totalTax * 0.9, 2);
     });
 
-    it("can use 100% prior year method when AGI is under threshold", () => {
+    it("requires 110% of last year's tax when last year's income was over $150,000", () => {
+      // Last year's tax $20,000; this year's tax is far higher, so the
+      // prior-year amount sets the target: 110% x $20,000 = $22,000
+      const result = calculateCaliforniaTax(
+        createDefaultInputs({
+          federalIncome: 450000,
+          priorYearStateTax: 20000,
+          stateTaxWithheld: 20500,
+          filingStatus: "single",
+        }),
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits,
+      );
+
+      expect(result.safeHarbor!.priorYearPercent).toBe(1.1);
+      expect(result.safeHarbor!.minimum).toBeCloseTo(22000, 2);
+      expect(result.safeHarbor!.met).toBe(false);
+      expect(result.safeHarbor!.remaining).toBeCloseTo(1500, 2);
+    });
+
+    it("requires 100% of last year's tax when last year's income was not over $150,000", () => {
+      const result = calculateCaliforniaTax(
+        createDefaultInputs({
+          federalIncome: 450000,
+          priorYearStateTax: 20000,
+          priorYearIncomeOverThreshold: false,
+          stateTaxWithheld: 20500,
+          filingStatus: "single",
+        }),
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits,
+      );
+
+      expect(result.safeHarbor!.minimum).toBe(20000);
+      expect(result.safeHarbor!.met).toBe(true);
+    });
+
+    it("drops the prior-year method at exactly $1,000,000 of AGI", () => {
+      const result = calculateCaliforniaTax(
+        createDefaultInputs({
+          federalIncome: 1000000,
+          priorYearStateTax: 20000,
+          filingStatus: "single",
+        }),
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits,
+      );
+
+      expect(result.safeHarbor!.highIncomeException).toBe(true);
+      expect(result.safeHarbor!.minimum).toBeCloseTo(result.totalTax * 0.9, 2);
+    });
+
+    it("can use the prior year method when AGI is under threshold", () => {
       // Single filer with $500,000 income (under $1M threshold)
       const inputs = createDefaultInputs({
         federalIncome: 500000,

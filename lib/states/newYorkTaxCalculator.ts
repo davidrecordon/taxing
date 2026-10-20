@@ -15,6 +15,7 @@ import {
   calculatePaymentSummary,
   calculateSafeHarbor,
   calculateStateIncome,
+  selectPriorYearPercent,
 } from "./stateCalcUtils";
 
 /**
@@ -197,22 +198,18 @@ export function calculateNewYorkTax(
   );
 
   // Step 8: Calculate safe harbor
-  // NY uses 100% prior year (110% if high income)
-  const highIncomeThreshold =
-    filingStatus === "marriedFilingSeparately"
-      ? newYorkLimits.safeHarbor.highIncomeThresholdMFS
-      : newYorkLimits.safeHarbor.highIncomeThreshold;
-  const isHighIncome = adjustedGrossIncome > highIncomeThreshold;
-
+  // NY requires 100% of last year's tax, or 110% if last year's income was
+  // over $150,000
   const safeHarbor = calculateSafeHarbor(
     totalTax,
     totalPaid,
     inputs.priorYearStateTax,
     {
       currentYearPercent: newYorkLimits.safeHarbor.currentYearPercent,
-      priorYearPercent: isHighIncome
-        ? newYorkLimits.safeHarbor.highIncomePercent
-        : newYorkLimits.safeHarbor.priorYearPercent,
+      priorYearPercent: selectPriorYearPercent(
+        newYorkLimits.safeHarbor,
+        inputs,
+      ),
     },
   );
 
@@ -249,6 +246,6 @@ export function calculateNewYorkTax(
     totalPaid,
     remainingOwed,
     refundDue,
-    safeHarbor: { ...safeHarbor, isHighIncome },
+    safeHarbor,
   };
 }

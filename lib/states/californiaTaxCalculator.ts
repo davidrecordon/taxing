@@ -13,6 +13,7 @@ import {
   calculatePaymentSummary,
   calculateSafeHarbor,
   calculateStateIncome,
+  selectPriorYearPercent,
 } from "./stateCalcUtils";
 
 export function calculateCaliforniaTax(
@@ -80,13 +81,15 @@ export function calculateCaliforniaTax(
   );
 
   // Step 8: Calculate safe harbor using shared utility
-  // CA uses 100% prior year (not 110% like federal)
-  // High income exception: AGI > $1M (single/MFJ) or $500K (MFS) - only 90% current year applies
-  const highIncomeThreshold =
+  // CA requires 100% of last year's tax, or 110% if last year's income was
+  // over $150,000. At $1M or more of this year's AGI ($500K MFS) the
+  // prior-year method is unavailable and only 90% of this year's tax applies.
+  const priorYearUnavailableAgi =
     filingStatus === "marriedFilingSeparately"
-      ? californiaLimits.safeHarbor.highIncomeThresholdMFS
-      : californiaLimits.safeHarbor.highIncomeThreshold;
-  const isHighIncome = adjustedGrossIncome > highIncomeThreshold;
+      ? californiaLimits.safeHarbor.priorYearUnavailableAgi
+          .marriedFilingSeparately
+      : californiaLimits.safeHarbor.priorYearUnavailableAgi.default;
+  const isHighIncome = adjustedGrossIncome >= priorYearUnavailableAgi;
 
   const safeHarbor = calculateSafeHarbor(
     totalTax,
@@ -94,7 +97,10 @@ export function calculateCaliforniaTax(
     inputs.priorYearStateTax,
     {
       currentYearPercent: californiaLimits.safeHarbor.currentYearPercent,
-      priorYearPercent: californiaLimits.safeHarbor.priorYearPercent,
+      priorYearPercent: selectPriorYearPercent(
+        californiaLimits.safeHarbor,
+        inputs,
+      ),
       isHighIncome,
     },
   );

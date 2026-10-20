@@ -131,7 +131,28 @@ describe("calculateColoradoTax", () => {
         result.totalTax * 0.9,
         0,
       );
-      // 100% of prior year tax
+      // 110% of prior year tax (last year's income assumed over $150,000)
+      expect(result.safeHarbor!.priorYearSafeHarbor).toBeCloseTo(4400, 2);
+    });
+
+    it("requires 100% of last year's tax when last year's income was not over $150,000", () => {
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        priorYearStateTax: 4000,
+        priorYearIncomeOverThreshold: false,
+        selectedState: "colorado",
+        filingStatus: "single",
+      });
+
+      const result = calculateColoradoTax(
+        inputs,
+        coloradoBrackets,
+        sharedLimits,
+        coloradoLimits,
+        getFederalResult(inputs),
+        ficaData,
+      );
+
       expect(result.safeHarbor!.priorYearSafeHarbor).toBe(4000);
     });
   });

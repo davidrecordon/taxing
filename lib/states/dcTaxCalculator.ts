@@ -15,6 +15,7 @@ import {
   calculatePaymentSummary,
   calculateSafeHarbor,
   calculateStateIncome,
+  selectPriorYearPercent,
 } from "./stateCalcUtils";
 
 /**
@@ -95,7 +96,7 @@ export function calculateDCTax(
     inputs.priorYearStateTax,
     {
       currentYearPercent: dcLimits.safeHarbor.currentYearPercent,
-      priorYearPercent: dcLimits.safeHarbor.priorYearPercent,
+      priorYearPercent: selectPriorYearPercent(dcLimits.safeHarbor, inputs),
     },
   );
 

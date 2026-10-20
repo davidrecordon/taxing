@@ -13,6 +13,7 @@ import {
   calculatePaymentSummary,
   calculateSafeHarbor,
   calculateStateIncome,
+  selectPriorYearPercent,
 } from "./stateCalcUtils";
 
 /**
@@ -102,7 +103,10 @@ export function calculateIllinoisTax(
     inputs.priorYearStateTax,
     {
       currentYearPercent: illinoisLimits.safeHarbor.currentYearPercent,
-      priorYearPercent: illinoisLimits.safeHarbor.priorYearPercent,
+      priorYearPercent: selectPriorYearPercent(
+        illinoisLimits.safeHarbor,
+        inputs,
+      ),
     },
   );
 

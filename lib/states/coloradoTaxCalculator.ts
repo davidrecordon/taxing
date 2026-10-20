@@ -12,6 +12,7 @@ import {
   calculatePaymentSummary,
   calculateSafeHarbor,
   calculateStateIncome,
+  selectPriorYearPercent,
 } from "./stateCalcUtils";
 
 /**
@@ -135,7 +136,10 @@ export function calculateColoradoTax(
     inputs.priorYearStateTax,
     {
       currentYearPercent: coloradoLimits.safeHarbor.currentYearPercent,
-      priorYearPercent: coloradoLimits.safeHarbor.priorYearPercent,
+      priorYearPercent: selectPriorYearPercent(
+        coloradoLimits.safeHarbor,
+        inputs,
+      ),
     },
   );
 

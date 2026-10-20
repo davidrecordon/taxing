@@ -40,9 +40,7 @@
     },
     "safeHarbor": {
       "currentYearPercent": 0.9,
-      "highIncomePercent": 1.1,
-      "highIncomeThreshold": 150000,
-      "highIncomeThresholdMFS": 75000,
+      "highIncomePriorYearPercent": 1.1,
       "priorYearPercent": 1.0
     },
     "taxBenefitRecapture": {
@@ -156,9 +154,7 @@
     },
     "safeHarbor": {
       "currentYearPercent": 0.9,
-      "highIncomePercent": 1.1,
-      "highIncomeThreshold": 150000,
-      "highIncomeThresholdMFS": 75000,
+      "highIncomePriorYearPercent": 1.1,
       "priorYearPercent": 1.0
     },
     "taxBenefitRecapture": {

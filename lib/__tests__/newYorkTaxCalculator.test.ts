@@ -114,89 +114,45 @@ describe("calculateNewYorkTax", () => {
     });
   });
 
-  describe("safe harbor with high income rule", () => {
-    it("uses 110% prior year for high income (AGI > $150k)", () => {
-      const inputs = createDefaultInputs({
-        federalIncome: 200000,
-        priorYearStateTax: 10000,
-        filingStatus: "single",
-      });
-
-      const result = calculateNewYorkTax(
-        inputs,
+  describe("prior-year safe harbor", () => {
+    const safeHarborFor = (
+      overrides: Parameters<typeof createDefaultInputs>[0],
+    ) =>
+      calculateNewYorkTax(
+        createDefaultInputs({
+          federalIncome: 200000,
+          priorYearStateTax: 10000,
+          filingStatus: "single",
+          ...overrides,
+        }),
         newYorkBrackets,
         nycBrackets,
         newYorkDeductions,
         sharedLimits,
         newYorkLimits,
-      );
+      ).safeHarbor!;
 
-      expect(result.safeHarbor).toBeDefined();
-      expect(result.safeHarbor!.isHighIncome).toBe(true);
-      // 110% of $10k = $11k
-      expect(result.safeHarbor!.priorYearSafeHarbor).toBeCloseTo(11000, 2);
+    it("requires 110% of last year's tax when last year's income was over $150,000", () => {
+      const safeHarbor = safeHarborFor({ priorYearIncomeOverThreshold: true });
+
+      expect(safeHarbor.priorYearPercent).toBe(1.1);
+      expect(safeHarbor.priorYearSafeHarbor).toBeCloseTo(11000, 2);
     });
 
-    it("uses 100% prior year for income under $150k", () => {
-      const inputs = createDefaultInputs({
-        federalIncome: 100000,
-        priorYearStateTax: 5000,
-        filingStatus: "single",
-      });
+    it("requires 100% of last year's tax when last year's income was not over $150,000", () => {
+      // The test is on last year's income, whatever this year's income is
+      const safeHarbor = safeHarborFor({ priorYearIncomeOverThreshold: false });
 
-      const result = calculateNewYorkTax(
-        inputs,
-        newYorkBrackets,
-        nycBrackets,
-        newYorkDeductions,
-        sharedLimits,
-        newYorkLimits,
-      );
-
-      expect(result.safeHarbor).toBeDefined();
-      expect(result.safeHarbor!.isHighIncome).toBe(false);
-      // 100% of $5k = $5k
-      expect(result.safeHarbor!.priorYearSafeHarbor).toBeCloseTo(5000, 2);
+      expect(safeHarbor.priorYearPercent).toBe(1);
+      expect(safeHarbor.priorYearSafeHarbor).toBeCloseTo(10000, 2);
     });
 
-    it("uses $75k threshold for MFS high income", () => {
-      const inputs = createDefaultInputs({
-        federalIncome: 100000, // Over $75k for MFS
-        priorYearStateTax: 5000,
-        filingStatus: "marriedFilingSeparately",
-      });
-
-      const result = calculateNewYorkTax(
-        inputs,
-        newYorkBrackets,
-        nycBrackets,
-        newYorkDeductions,
-        sharedLimits,
-        newYorkLimits,
+    it("assumes last year's income was over the threshold when not stated", () => {
+      expect(safeHarborFor({}).priorYearPercent).toBe(1.1);
+      // This year's income does not change the answer
+      expect(safeHarborFor({ federalIncome: 100000 }).priorYearPercent).toBe(
+        1.1,
       );
-
-      expect(result.safeHarbor!.isHighIncome).toBe(true);
-      // 110% of $5k = $5.5k
-      expect(result.safeHarbor!.priorYearSafeHarbor).toBeCloseTo(5500, 2);
-    });
-
-    it("MFJ uses $150k threshold", () => {
-      const inputs = createDefaultInputs({
-        federalIncome: 140000, // Under $150k for MFJ
-        priorYearStateTax: 5000,
-        filingStatus: "marriedFilingJointly",
-      });
-
-      const result = calculateNewYorkTax(
-        inputs,
-        newYorkBrackets,
-        nycBrackets,
-        newYorkDeductions,
-        sharedLimits,
-        newYorkLimits,
-      );
-
-      expect(result.safeHarbor!.isHighIncome).toBe(false);
     });
   });
 
@@ -549,48 +505,6 @@ describe("calculateNewYorkTax", () => {
 
       expect(result.nycTax).toBe(0);
       expect(result.totalTax).toBe(0);
-    });
-
-    it("correctly identifies high income at exactly $150,001", () => {
-      const inputs = createDefaultInputs({
-        federalIncome: 150001,
-        priorYearStateTax: 1000,
-        filingStatus: "single",
-      });
-
-      const result = calculateNewYorkTax(
-        inputs,
-        newYorkBrackets,
-        nycBrackets,
-        newYorkDeductions,
-        sharedLimits,
-        newYorkLimits,
-      );
-
-      expect(result.safeHarbor!.isHighIncome).toBe(true);
-    });
-
-    it("correctly identifies non-high income at exactly $150,000", () => {
-      // Need to account for 401k and deductions to get AGI exactly at threshold
-      // With $8k std deduction, need $158k gross to get $150k AGI
-      const inputs = createDefaultInputs({
-        federalIncome: 158000,
-        priorYearStateTax: 1000,
-        filingStatus: "single",
-      });
-
-      const result = calculateNewYorkTax(
-        inputs,
-        newYorkBrackets,
-        nycBrackets,
-        newYorkDeductions,
-        sharedLimits,
-        newYorkLimits,
-      );
-
-      // AGI = $158k - deductions, threshold check is on nyAgi which doesn't include deductions
-      // nyAgi = grossIncome - carryovers - 401k = $158k
-      expect(result.safeHarbor!.isHighIncome).toBe(true);
     });
   });
 

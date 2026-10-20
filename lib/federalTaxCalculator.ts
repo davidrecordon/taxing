@@ -26,6 +26,7 @@ import {
 import {
   calculatePaymentSummary,
   calculateSafeHarbor,
+  selectPriorYearPercent,
 } from "./states/stateCalcUtils";
 
 function calculateFicaTaxes(
@@ -344,7 +345,10 @@ export function calculateFederalTax(
     inputs.priorYearFederalTax,
     {
       currentYearPercent: federalLimits.safeHarbor.currentYearPercent,
-      priorYearPercent: federalLimits.safeHarbor.priorYearPercent,
+      priorYearPercent: selectPriorYearPercent(
+        federalLimits.safeHarbor,
+        inputs,
+      ),
     },
   );
 

@@ -57,6 +57,9 @@ Federal-specific limits and thresholds.
 
 ```typescript
 {
+  // Each jurisdiction's limits file has a safeHarbor entry: currentYearPercent
+  // and priorYearPercent, plus highIncomePriorYearPercent where last year's
+  // income over $150,000 raises the prior-year share (federal, CA, NY, CO)
   charitableFloorRate: number,       // 0.5% of AGI from 2026, 0 before
   grandfatheredMortgageBalanceLimit: {   // Loans from on or before December 15, 2017
     default: number,

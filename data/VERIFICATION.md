@@ -719,6 +719,25 @@ Same as 2025 (brackets not inflation-adjusted).
 
 ---
 
+## Safe Harbor (2025 and 2026)
+
+The required amount is the lesser of a share of this year's tax and a share of last year's total tax. The calculator makes one annual comparison; installment timing is not modelled.
+
+| Jurisdiction | This year    | Last year | Last year, if last year's income was over $150,000 ($75,000 MFS)                   | Source                                                                                                                                                                         |
+| ------------ | ------------ | --------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Federal      | 90%          | 100%      | 110%                                                                               | [Form 2210 instructions](https://www.irs.gov/pub/irs-pdf/i2210.pdf), [Form 1040-ES](https://www.irs.gov/pub/irs-pdf/f1040es.pdf)                                               |
+| California   | 90%          | 100%      | 110%; no prior-year method at $1,000,000 or more of this year's AGI ($500,000 MFS) | [FTB 5805 instructions](https://www.ftb.ca.gov/forms/2025/2025-5805-instructions.html), [540-ES instructions](https://www.ftb.ca.gov/forms/2026/2026-540-es-instructions.html) |
+| New York     | 90%          | 100%      | 110%                                                                               | [IT-2105.9 instructions](https://www.tax.ny.gov/pdf/current_forms/it/it2105_9i.pdf)                                                                                            |
+| Colorado     | see Colorado | 100%      | 110%                                                                               | [DR 0204](https://tax.colorado.gov/sites/default/files/documents/DR0204_2025.pdf)                                                                                              |
+| DC           | 90%          | 110%      | 110% (no income tier)                                                              | D-2210 in the 2025 D-40 booklet                                                                                                                                                |
+| Illinois     | 90%          | 100%      | 100% (no income tier)                                                              | [IL-2210 instructions](https://tax.illinois.gov/content/dam/soi/en/web/tax/forms/incometax/documents/currentyear/individual/il-2210-instr.pdf)                                 |
+
+**Notes:** The prior-year figure is last year's total tax (for federal, Form 1040 "total tax" less refundable credits), not the amount paid. The higher percentage depends on last year's income, which the calculator cannot know, so a checkbox asks; it starts ticked. One checkbox stands in for federal, California and New York income, which differ slightly. Not modelled: no penalty when last year's tax was zero, the small-balance exemptions (federal under $1,000 after withholding, California $500, New York $300, DC $100, Illinois and Colorado $1,000), installment timing, and changes of filing status between years.
+
+**Correction (2026-10-19):** The calculator previously required 110% federally regardless of last year's income, 100% in California and Colorado regardless of it, and tested New York's threshold against this year's income.
+
+---
+
 ## Discrepancies Fixed (2026-10-19)
 
 1. **Federal QBI thresholds and SALT cap (2025 and 2026):** thresholds were the 2024 amounts; the SALT cap is now one amount for all filers with a 30% phasedown, halved for married filing separately after the phasedown.
@@ -728,3 +747,4 @@ Same as 2025 (brackets not inflation-adjusted).
 5. **Illinois:** the personal exemption is disallowed above the income limit, and the 5% property tax credit is applied.
 6. **Washington:** the 9.9% tier now starts after the standard deduction.
 7. **New York:** added the tax benefit recapture for NY AGI over $107,650 and the New York City school tax credit.
+8. **Safe harbor:** the prior-year share now depends on last year's income for federal, California, New York and Colorado.

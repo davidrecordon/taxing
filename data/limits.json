@@ -7,6 +7,10 @@
     "contribution401k": {
       "catchUp50Plus": 7500,
       "standard": 23500
+    },
+    "priorYearHighIncomeThreshold": {
+      "default": 150000,
+      "marriedFilingSeparately": 75000
     }
   },
   "2026": {
@@ -17,6 +21,10 @@
     "contribution401k": {
       "catchUp50Plus": 8000,
       "standard": 24500
+    },
+    "priorYearHighIncomeThreshold": {
+      "default": 150000,
+      "marriedFilingSeparately": 75000
     }
   }
 }
