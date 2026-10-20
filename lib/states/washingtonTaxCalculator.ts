@@ -14,8 +14,9 @@ import { calculatePaymentSummary, calculateSafeHarbor } from "./stateCalcUtils";
  * Washington has NO income tax on wages or short-term capital gains.
  * Long-term capital gains are taxed with the following tiered structure:
  * - $0 - $278,000: Exempt (0%)
- * - $278,001 - $1,000,000: 7%
- * - Over $1,000,000: 9.9% (7% + 2.9% surtax)
+ * - $278,001 - $1,278,000: 7%
+ * - Over $1,278,000: 9.9% (7% + 2.9% surtax on taxable gains over $1,000,000,
+ *   measured after the standard deduction)
  *
  * Exempt from WA capital gains tax:
  * - Real estate

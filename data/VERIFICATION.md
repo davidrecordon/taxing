@@ -232,6 +232,8 @@ This document verifies that all tax data in the JSON files matches official gove
 
 **Note:** SB 5813 (signed May 20, 2025) added the 9.9% tier for gains over $1M, retroactive to January 1, 2025.
 
+**Correction (2026-10-19):** The $1,000,000 surtax threshold applies to Washington capital gains after the standard deduction (RCW 82.87.040(1)(b) with RCW 82.87.060; the DOR notice refers to "your first $1 million in taxable Washington capital gains"). The 9.9% tier in `washington-brackets.json` therefore starts at $1,278,000 of gains (the deduction plus $1,000,000), not $1,000,000. The 2026 tier must move with the 2026 deduction once it is published.
+
 ---
 
 ## Illinois (2025)

@@ -111,12 +111,32 @@ describe("calculateWashingtonTax", () => {
       expect(result.totalTax).toBeCloseTo(15540, 2);
     });
 
-    it("applies 9.9% surtax on LTCG over $1M - exact calculation", () => {
-      // $1,200,000 LTCG
+    it("applies 9.9% surtax on taxable gains over $1M - exact calculation", () => {
+      // $1,500,000 LTCG. The $1M surtax threshold is measured after the
+      // $278,000 standard deduction, so it starts at $1,278,000 of gains.
       // Tier 1: $0 - $278,000 @ 0% = $0
-      // Tier 2: $278,000 - $1,000,000 @ 7% = $722,000 × 0.07 = $50,540
-      // Tier 3: $1,000,000 - $1,200,000 @ 9.9% = $200,000 × 0.099 = $19,800
-      // Total tax: $50,540 + $19,800 = $70,340
+      // Tier 2: $278,000 - $1,278,000 @ 7% = $1,000,000 × 0.07 = $70,000
+      // Tier 3: $1,278,000 - $1,500,000 @ 9.9% = $222,000 × 0.099 = $21,978
+      // Total tax: $70,000 + $21,978 = $91,978
+      const inputs = createDefaultInputs({
+        federalIncome: 0,
+        longTermCapitalGains: 1500000,
+        filingStatus: "single",
+      });
+
+      const result = calculateWashingtonTax(
+        inputs,
+        washingtonBrackets,
+        washingtonLimits,
+      );
+
+      expect(result.taxableLTCG).toBe(1222000); // $1.5M - $278k exemption
+      expect(result.ltcgTax).toBeCloseTo(91978, 2);
+      expect(result.totalTax).toBeCloseTo(91978, 2);
+    });
+
+    it("applies only 7% to $1.2M of gains (under $1M taxable)", () => {
+      // $1,200,000 LTCG - $278,000 = $922,000 taxable, all at 7% = $64,540
       const inputs = createDefaultInputs({
         federalIncome: 0,
         longTermCapitalGains: 1200000,
@@ -129,19 +149,17 @@ describe("calculateWashingtonTax", () => {
         washingtonLimits,
       );
 
-      expect(result.taxableLTCG).toBe(922000); // $1.2M - $278k exemption
-      expect(result.ltcgTax).toBe(70340);
-      expect(result.totalTax).toBe(70340);
+      expect(result.ltcgTax).toBeCloseTo(64540, 2);
     });
 
-    it("applies 7% at exactly $1M - boundary test", () => {
-      // $1,000,000 LTCG exactly
+    it("applies 7% at exactly $1M taxable - boundary test", () => {
+      // $1,278,000 LTCG exactly = $1,000,000 taxable
       // Tier 1: $0 - $278,000 @ 0% = $0
-      // Tier 2: $278,000 - $1,000,000 @ 7% = $722,000 × 0.07 = $50,540
+      // Tier 2: $278,000 - $1,278,000 @ 7% = $70,000
       // No surtax (at boundary, not over)
       const inputs = createDefaultInputs({
         federalIncome: 0,
-        longTermCapitalGains: 1000000,
+        longTermCapitalGains: 1278000,
         filingStatus: "single",
       });
 
@@ -151,19 +169,19 @@ describe("calculateWashingtonTax", () => {
         washingtonLimits,
       );
 
-      expect(result.ltcgTax).toBeCloseTo(50540, 2);
-      expect(result.totalTax).toBeCloseTo(50540, 2);
+      expect(result.ltcgTax).toBeCloseTo(70000, 2);
+      expect(result.totalTax).toBeCloseTo(70000, 2);
     });
 
-    it("applies 9.9% starting at $1,000,001 - boundary test", () => {
-      // $1,000,001 LTCG (one dollar over)
+    it("applies 9.9% starting one dollar over $1M taxable - boundary test", () => {
+      // $1,278,001 LTCG (one dollar over)
       // Tier 1: $0 - $278,000 @ 0% = $0
-      // Tier 2: $278,000 - $1,000,000 @ 7% = $722,000 × 0.07 = $50,540
+      // Tier 2: $278,000 - $1,278,000 @ 7% = $70,000
       // Tier 3: $1 @ 9.9% = $0.099 (rounds to ~$0.10)
-      // Total: $50,540.10
+      // Total: $70,000.10
       const inputs = createDefaultInputs({
         federalIncome: 0,
-        longTermCapitalGains: 1000001,
+        longTermCapitalGains: 1278001,
         filingStatus: "single",
       });
 
@@ -173,7 +191,7 @@ describe("calculateWashingtonTax", () => {
         washingtonLimits,
       );
 
-      expect(result.ltcgTax).toBeCloseTo(50540.1, 2);
+      expect(result.ltcgTax).toBeCloseTo(70000.1, 2);
     });
   });
 
@@ -428,9 +446,9 @@ describe("calculateWashingtonTax", () => {
     });
 
     it("bracket breakdown shows correct structure", () => {
-      // $1,200,000 LTCG - should have 3 bracket entries
+      // $1,500,000 LTCG - should have 3 bracket entries
       const inputs = createDefaultInputs({
-        longTermCapitalGains: 1200000,
+        longTermCapitalGains: 1500000,
         filingStatus: "single",
       });
 
@@ -448,16 +466,16 @@ describe("calculateWashingtonTax", () => {
       expect(result.ltcgBracketBreakdown[0].taxForBracket).toBe(0);
 
       expect(result.ltcgBracketBreakdown[1].rate).toBe(0.07);
-      expect(result.ltcgBracketBreakdown[1].incomeInBracket).toBe(722000);
+      expect(result.ltcgBracketBreakdown[1].incomeInBracket).toBe(1000000);
       expect(result.ltcgBracketBreakdown[1].taxForBracket).toBeCloseTo(
-        50540,
+        70000,
         2,
       );
 
       expect(result.ltcgBracketBreakdown[2].rate).toBe(0.099);
-      expect(result.ltcgBracketBreakdown[2].incomeInBracket).toBe(200000);
+      expect(result.ltcgBracketBreakdown[2].incomeInBracket).toBe(222000);
       expect(result.ltcgBracketBreakdown[2].taxForBracket).toBeCloseTo(
-        19800,
+        21978,
         2,
       );
     });
@@ -534,10 +552,10 @@ describe.each(SUPPORTED_YEARS)(
       expect(result.ltcgTax).toBeCloseTo(expectedTax[year], 2);
     });
 
-    it("applies 9.9% surtax on LTCG over $1M", () => {
+    it("applies 9.9% surtax on taxable gains over $1M", () => {
       const inputs = createDefaultInputs({
         federalIncome: 0,
-        longTermCapitalGains: 1200000,
+        longTermCapitalGains: 1500000,
         filingStatus: "single",
       });
 
@@ -548,15 +566,15 @@ describe.each(SUPPORTED_YEARS)(
       );
 
       // Tax structure unchanged between years
-      // Tier 2: $722k @ 7% = $50,540
-      // Tier 3: $200k @ 9.9% = $19,800
-      // Total: $70,340
+      // Tier 2: $1M taxable @ 7% = $70,000
+      // Tier 3: $222k @ 9.9% = $21,978
+      // Total: $91,978
       const expectedTax = {
-        "2025": 70340,
-        "2026": 70340,
+        "2025": 91978,
+        "2026": 91978,
       };
 
-      expect(result.ltcgTax).toBe(expectedTax[year]);
+      expect(result.ltcgTax).toBeCloseTo(expectedTax[year], 2);
     });
   },
 );
