@@ -1,11 +1,27 @@
 {
   "2025": {
+    "charitableSubtractionFloor": 500,
+    "deductionAddback": {
+      "agiThreshold": 300000,
+      "limit": {
+        "default": 12000,
+        "marriedFilingJointly": 16000
+      }
+    },
     "safeHarbor": {
       "currentYearPercent": 0.9,
       "priorYearPercent": 1.0
     }
   },
   "2026": {
+    "charitableSubtractionFloor": 500,
+    "deductionAddback": {
+      "agiThreshold": 300000,
+      "limit": {
+        "default": 1000,
+        "marriedFilingJointly": 2000
+      }
+    },
     "safeHarbor": {
       "currentYearPercent": 0.9,
       "priorYearPercent": 1.0

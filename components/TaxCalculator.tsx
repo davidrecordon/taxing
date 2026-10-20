@@ -190,7 +190,7 @@ function calculateStateTaxWithData(
         brackets,
         sharedLimits,
         limits,
-        federal.taxableOrdinaryIncome + federal.taxableLTCG,
+        federal,
         ficaData,
       );
     case "dc":

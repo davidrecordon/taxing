@@ -215,6 +215,17 @@ export interface IllinoisLimitsData {
 
 // Colorado-specific limits
 export interface ColoradoLimitsData {
+  // Non-itemizers subtract charitable contributions above this amount
+  charitableSubtractionFloor: number;
+  // At or above the AGI threshold, federal deductions above the limit are
+  // added back
+  deductionAddback: {
+    agiThreshold: number;
+    limit: {
+      default: number;
+      marriedFilingJointly: number;
+    };
+  };
   safeHarbor: {
     currentYearPercent: number;
     priorYearPercent: number;
@@ -407,6 +418,13 @@ export interface SelfEmploymentTaxBreakdown {
   totalSETax: number;
 }
 
+// Colorado additions to and subtractions from federal taxable income
+export interface ColoradoAdjustments {
+  charitableSubtraction: number;
+  deductionAddback: number; // State income tax and high-income deduction addback
+  federalTaxableIncome: number;
+}
+
 export interface SafeHarbor {
   currentYear90Percent: number;
   priorYearSafeHarbor: number;
@@ -453,6 +471,7 @@ export interface TaxCalculationResult {
   ordinaryIncomeTax: number;
   ltcgTax: number;
   caMentalHealthTax?: number; // California only - 1% on income over $1M
+  coloradoAdjustments?: ColoradoAdjustments; // Colorado only
   propertyTaxCredit?: number; // Illinois only - credit for property tax paid
   nycTax?: number; // New York City local tax
   nycBracketBreakdown?: BracketBreakdown[]; // NYC tax bracket breakdown

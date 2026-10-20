@@ -17,6 +17,8 @@ export default memo(function ColoradoBreakdown({ result, taxYear }: Props) {
     [taxYear],
   );
 
+  const adjustments = result.coloradoAdjustments;
+
   return (
     <div className="theme-card p-4">
       <h2 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 font-display">
@@ -25,15 +27,40 @@ export default memo(function ColoradoBreakdown({ result, taxYear }: Props) {
 
       {/* Federal Taxable Income as Starting Point */}
       <div className="bg-secondary p-3 rounded-[var(--radius-md)] mb-4 space-y-2">
-        <div className="flex justify-between font-medium text-text-primary">
+        <div className="flex justify-between text-text-primary">
           <span>Federal Taxable Income</span>
+          <span className="font-mono">
+            {formatCurrency(
+              adjustments?.federalTaxableIncome ?? result.taxableOrdinaryIncome,
+            )}
+          </span>
+        </div>
+        {(adjustments?.deductionAddback ?? 0) > 0 && (
+          <div className="flex justify-between text-text-primary">
+            <span>Add: Federal Deduction Addback</span>
+            <span className="font-mono">
+              {formatCurrency(adjustments!.deductionAddback)}
+            </span>
+          </div>
+        )}
+        {(adjustments?.charitableSubtraction ?? 0) > 0 && (
+          <div className="flex justify-between text-positive">
+            <span>Less: Charitable Contribution Subtraction</span>
+            <span className="font-mono">
+              -{formatCurrency(adjustments!.charitableSubtraction)}
+            </span>
+          </div>
+        )}
+        <div className="flex justify-between font-medium border-t border-border pt-1 text-text-primary">
+          <span>Colorado Taxable Income</span>
           <span className="font-mono">
             {formatCurrency(result.taxableOrdinaryIncome)}
           </span>
         </div>
         <p className="text-xs text-text-muted">
-          Colorado uses your federal taxable income (after federal deductions)
-          as the starting point for state taxes.
+          Colorado starts from your federal taxable income (after federal
+          deductions), then adds back state income tax deducted federally and,
+          for higher incomes, most of the federal deduction.
         </p>
       </div>
 
@@ -59,7 +86,9 @@ export default memo(function ColoradoBreakdown({ result, taxYear }: Props) {
       {/* Safe Harbor Section */}
       {result.safeHarbor && result.remainingOwed > 0 && (
         <div className="bg-warning-bg p-3 rounded-[var(--radius-md)] space-y-2">
-          <h3 className="font-medium text-text-primary">Safe Harbor (Penalty Avoidance)</h3>
+          <h3 className="font-medium text-text-primary">
+            Safe Harbor (Penalty Avoidance)
+          </h3>
           <div className="text-sm space-y-1">
             <div className="flex justify-between text-text-secondary">
               <span>
@@ -103,7 +132,9 @@ export default memo(function ColoradoBreakdown({ result, taxYear }: Props) {
             </div>
           ) : (
             <div className="flex justify-between font-bold pt-2 border-t border-warning">
-              <span className="text-text-primary">Still Needed for Safe Harbor</span>
+              <span className="text-text-primary">
+                Still Needed for Safe Harbor
+              </span>
               <span className="text-warning font-mono">
                 {formatCurrency(result.safeHarbor.remaining)}
               </span>

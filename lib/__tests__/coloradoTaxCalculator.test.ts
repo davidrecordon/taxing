@@ -16,10 +16,8 @@ import {
   TestDataForYear,
 } from "./testData";
 
-// Helper to get federal taxable income for Colorado
-function getFederalTaxableIncome(
-  inputs: ReturnType<typeof createDefaultInputs>,
-) {
+// Helper to get the federal result Colorado starts from
+function getFederalResult(inputs: ReturnType<typeof createDefaultInputs>) {
   const federal = calculateFederalTax(
     inputs,
     federalBrackets,
@@ -29,7 +27,7 @@ function getFederalTaxableIncome(
     federalLimits,
     ficaData,
   );
-  return federal.taxableOrdinaryIncome + federal.taxableLTCG;
+  return federal;
 }
 
 describe("calculateColoradoTax", () => {
@@ -41,13 +39,13 @@ describe("calculateColoradoTax", () => {
         filingStatus: "single",
       });
 
-      const federalTaxableIncome = getFederalTaxableIncome(inputs);
+      const federal = getFederalResult(inputs);
       const result = calculateColoradoTax(
         inputs,
         coloradoBrackets,
         sharedLimits,
         coloradoLimits,
-        federalTaxableIncome,
+        federal,
         ficaData,
       );
 
@@ -65,13 +63,13 @@ describe("calculateColoradoTax", () => {
         filingStatus: "marriedFilingJointly",
       });
 
-      const federalTaxableIncome = getFederalTaxableIncome(inputs);
+      const federal = getFederalResult(inputs);
       const result = calculateColoradoTax(
         inputs,
         coloradoBrackets,
         sharedLimits,
         coloradoLimits,
-        federalTaxableIncome,
+        federal,
         ficaData,
       );
 
@@ -92,13 +90,13 @@ describe("calculateColoradoTax", () => {
         filingStatus: "single",
       });
 
-      const federalTaxableIncome = getFederalTaxableIncome(inputs);
+      const federal = getFederalResult(inputs);
       const result = calculateColoradoTax(
         inputs,
         coloradoBrackets,
         sharedLimits,
         coloradoLimits,
-        federalTaxableIncome,
+        federal,
         ficaData,
       );
 
@@ -117,13 +115,13 @@ describe("calculateColoradoTax", () => {
         filingStatus: "single",
       });
 
-      const federalTaxableIncome = getFederalTaxableIncome(inputs);
+      const federal = getFederalResult(inputs);
       const result = calculateColoradoTax(
         inputs,
         coloradoBrackets,
         sharedLimits,
         coloradoLimits,
-        federalTaxableIncome,
+        federal,
         ficaData,
       );
 
@@ -148,13 +146,13 @@ describe("calculateColoradoTax", () => {
         filingStatus: "single",
       });
 
-      const federalTaxableIncome = getFederalTaxableIncome(inputs);
+      const federal = getFederalResult(inputs);
       const result = calculateColoradoTax(
         inputs,
         coloradoBrackets,
         sharedLimits,
         coloradoLimits,
-        federalTaxableIncome,
+        federal,
         ficaData,
       );
 
@@ -172,13 +170,13 @@ describe("calculateColoradoTax", () => {
         filingStatus: "single",
       });
 
-      const federalTaxableIncome = getFederalTaxableIncome(inputs);
+      const federal = getFederalResult(inputs);
       const result = calculateColoradoTax(
         inputs,
         coloradoBrackets,
         sharedLimits,
         coloradoLimits,
-        federalTaxableIncome,
+        federal,
         ficaData,
       );
 
@@ -199,7 +197,7 @@ describe("calculateColoradoTax", () => {
         coloradoBrackets,
         sharedLimits,
         coloradoLimits,
-        0,
+        getFederalResult(inputs),
         ficaData,
       );
 
@@ -217,13 +215,13 @@ describe("calculateColoradoTax", () => {
         filingStatus: "marriedFilingJointly",
       });
 
-      const federalTaxableIncome = getFederalTaxableIncome(inputs);
+      const federal = getFederalResult(inputs);
       const result = calculateColoradoTax(
         inputs,
         coloradoBrackets,
         sharedLimits,
         coloradoLimits,
-        federalTaxableIncome,
+        federal,
         ficaData,
       );
 
@@ -233,6 +231,121 @@ describe("calculateColoradoTax", () => {
       expect(result.taxableOrdinaryIncome).toBe(161000);
       expect(result.ordinaryIncomeTax).toBeCloseTo(7084, 0);
     });
+  });
+});
+
+describe("calculateColoradoTax additions and subtractions", () => {
+  const calculateForYear = (
+    year: TaxYear,
+    overrides: Parameters<typeof createDefaultInputs>[0],
+  ) => {
+    const data = loadTestDataForYear(year);
+    const inputs = createDefaultInputs({
+      selectedState: "colorado",
+      ...overrides,
+    });
+    const federal = calculateFederalTax(
+      inputs,
+      data.federalBrackets,
+      data.ltcgBrackets,
+      data.federalDeductions,
+      data.sharedLimits,
+      data.federalLimits,
+      data.ficaData,
+    );
+    return calculateColoradoTax(
+      inputs,
+      data.coloradoBrackets,
+      data.sharedLimits,
+      data.coloradoLimits,
+      federal,
+      data.ficaData,
+    );
+  };
+
+  it("adds back state income tax deducted on the federal return", () => {
+    // 2025 single: itemized $24,000 ($10,000 SALT + $12,000 + $2,000) vs
+    // $15,750 standard, federal taxable $126,000.
+    // Addback: min($10,000 SALT - $4,000 property tax, $24,000 - $15,750)
+    const result = calculateForYear("2025", {
+      federalIncome: 150000,
+      stateTaxWithheld: 6000,
+      propertyTaxesPaid: 4000,
+      mortgageInterestPaid: 12000,
+      charitableContributions: 2000,
+      filingStatus: "single",
+    });
+
+    expect(result.coloradoAdjustments!.federalTaxableIncome).toBe(126000);
+    expect(result.coloradoAdjustments!.deductionAddback).toBe(6000);
+    expect(result.taxableOrdinaryIncome).toBe(132000);
+    expect(result.totalTax).toBeCloseTo(5808, 2);
+  });
+
+  it("limits the state income tax addback to the benefit of itemizing", () => {
+    // 2025 single: itemized $17,000 vs $15,750 standard, so only $1,250
+    const result = calculateForYear("2025", {
+      federalIncome: 150000,
+      stateTaxWithheld: 6000,
+      mortgageInterestPaid: 11000,
+      filingStatus: "single",
+    });
+
+    expect(result.coloradoAdjustments!.deductionAddback).toBe(1250);
+  });
+
+  it("adds back the standard deduction above the limit at $300,000 of AGI", () => {
+    // MFJ, AGI $400,000: 2025 $31,500 - $16,000; 2026 $32,200 - $2,000
+    const inputs = {
+      federalIncome: 400000,
+      filingStatus: "marriedFilingJointly" as const,
+    };
+
+    expect(
+      calculateForYear("2025", inputs).coloradoAdjustments!.deductionAddback,
+    ).toBe(15500);
+    expect(
+      calculateForYear("2026", inputs).coloradoAdjustments!.deductionAddback,
+    ).toBe(30200);
+  });
+
+  it("does not add back the standard deduction below $300,000 of AGI", () => {
+    const result = calculateForYear("2026", {
+      federalIncome: 299999,
+      filingStatus: "single",
+    });
+
+    expect(result.coloradoAdjustments!.deductionAddback).toBe(0);
+  });
+
+  it("uses the larger of the two addbacks for a high-income itemizer", () => {
+    // 2025 MFJ, AGI $600,000: SALT cap $10,000, itemized $50,000, federal
+    // taxable $550,000. State tax addback is $0 (property tax uses the cap);
+    // high-income addback is $50,000 - $16,000 = $34,000.
+    const result = calculateForYear("2025", {
+      federalIncome: 600000,
+      stateTaxWithheld: 25000,
+      propertyTaxesPaid: 15000,
+      mortgageInterestPaid: 25000,
+      charitableContributions: 15000,
+      filingStatus: "marriedFilingJointly",
+    });
+
+    expect(result.coloradoAdjustments!.deductionAddback).toBe(34000);
+    expect(result.taxableOrdinaryIncome).toBe(584000);
+    expect(result.totalTax).toBeCloseTo(25696, 2);
+  });
+
+  it("subtracts charitable contributions over $500 for non-itemizers", () => {
+    const result = calculateForYear("2025", {
+      federalIncome: 120000,
+      charitableContributions: 3000,
+      filingStatus: "marriedFilingJointly",
+    });
+
+    expect(result.coloradoAdjustments!.charitableSubtraction).toBe(2500);
+    // $120,000 - $31,500 standard - $2,500
+    expect(result.taxableOrdinaryIncome).toBe(86000);
   });
 });
 
@@ -246,8 +359,8 @@ describe.each(SUPPORTED_YEARS)(
       data = loadTestDataForYear(year);
     });
 
-    // Helper to get federal taxable income for a specific year
-    function getFederalTaxableIncomeForYear(
+    // Helper to get the federal result for a specific year
+    function getFederalResultForYear(
       inputs: ReturnType<typeof createDefaultInputs>,
     ) {
       const federal = calculateFederalTax(
@@ -259,7 +372,7 @@ describe.each(SUPPORTED_YEARS)(
         data.federalLimits,
         data.ficaData,
       );
-      return federal.taxableOrdinaryIncome + federal.taxableLTCG;
+      return federal;
     }
 
     it("calculates tax at 4.4% flat rate correctly", () => {
@@ -269,13 +382,13 @@ describe.each(SUPPORTED_YEARS)(
         filingStatus: "single",
       });
 
-      const federalTaxableIncome = getFederalTaxableIncomeForYear(inputs);
+      const federal = getFederalResultForYear(inputs);
       const result = calculateColoradoTax(
         inputs,
         data.coloradoBrackets,
         data.sharedLimits,
         data.coloradoLimits,
-        federalTaxableIncome,
+        federal,
         data.ficaData,
       );
 
@@ -298,13 +411,13 @@ describe.each(SUPPORTED_YEARS)(
         filingStatus: "single",
       });
 
-      const federalTaxableIncome = getFederalTaxableIncomeForYear(inputs);
+      const federal = getFederalResultForYear(inputs);
       const result = calculateColoradoTax(
         inputs,
         data.coloradoBrackets,
         data.sharedLimits,
         data.coloradoLimits,
-        federalTaxableIncome,
+        federal,
         data.ficaData,
       );
 

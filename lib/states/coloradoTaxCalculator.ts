@@ -23,6 +23,11 @@ import {
  * - Federal standard/itemized deductions are already applied
  * - 401k and pre-tax medical are already deducted
  *
+ * Colorado then adds back (DR 0104 lines 2 to 4):
+ * - State income tax deducted on federal Schedule A
+ * - Federal deductions above a small limit when AGI is $300,000 or more
+ * and subtracts charitable contributions over $500 for non-itemizers.
+ *
  * All capital gains are taxed as ordinary income at the flat rate.
  *
  * Safe harbor: 90% of current year tax OR 100% of prior year tax
@@ -32,7 +37,7 @@ export function calculateColoradoTax(
   coloradoBrackets: TaxBracketsData,
   sharedLimits: SharedLimitsData,
   coloradoLimits: ColoradoLimitsData,
-  federalTaxableIncome: number,
+  federal: TaxCalculationResult,
   ficaData?: FicaData,
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
@@ -63,8 +68,60 @@ export function calculateColoradoTax(
     : 0;
 
   // Colorado uses federal taxable income as the starting point
-  // This already includes federal deductions, so we just apply the flat rate
-  const taxableIncome = Math.max(0, federalTaxableIncome);
+  const federalTaxableIncome = Math.max(
+    0,
+    federal.taxableOrdinaryIncome + federal.taxableLTCG,
+  );
+  const federalDeduction = federal.deductionBreakdown;
+  const federalAgi = federal.adjustedGrossIncome;
+  const isJoint = filingStatus === "marriedFilingJointly";
+
+  // State income tax addback (itemizers): the state income tax deducted on
+  // Schedule A, where property tax is treated as using the SALT cap first,
+  // limited to the amount by which itemizing beat the standard deduction
+  const stateIncomeTaxAddback =
+    federalDeduction.deductionUsed === "itemized"
+      ? Math.min(
+          Math.max(
+            0,
+            federalDeduction.saltDeduction - inputs.propertyTaxesPaid,
+          ),
+          Math.max(
+            0,
+            federalDeduction.deductionAmount -
+              federalDeduction.standardDeduction,
+          ),
+        )
+      : 0;
+
+  // High-income addback: federal deductions above the limit. It is reduced
+  // by the state income tax addback, so the larger of the two applies.
+  const { agiThreshold, limit } = coloradoLimits.deductionAddback;
+  const highIncomeAddback =
+    federalAgi >= agiThreshold
+      ? Math.max(
+          0,
+          federalDeduction.deductionAmount -
+            (isJoint ? limit.marriedFilingJointly : limit.default),
+        )
+      : 0;
+  const deductionAddback = Math.max(stateIncomeTaxAddback, highIncomeAddback);
+
+  // Charitable subtraction for taxpayers who take the federal standard
+  // deduction
+  const charitableSubtraction =
+    federalDeduction.deductionUsed === "standard"
+      ? Math.max(
+          0,
+          inputs.charitableContributions -
+            coloradoLimits.charitableSubtractionFloor,
+        )
+      : 0;
+
+  const taxableIncome = Math.max(
+    0,
+    federalTaxableIncome + deductionAddback - charitableSubtraction,
+  );
 
   // Calculate tax using flat rate (single bracket)
   const ordinaryTax = calculateTaxByBrackets(
@@ -127,6 +184,11 @@ export function calculateColoradoTax(
       inputs.preTaxMedical -
       deductibleSETax,
     deductionBreakdown: emptyDeductionBreakdown,
+    coloradoAdjustments: {
+      charitableSubtraction,
+      deductionAddback,
+      federalTaxableIncome,
+    },
     taxableOrdinaryIncome: taxableIncome,
     taxableLTCG: 0, // CO doesn't have separate LTCG treatment
     ordinaryIncomeBracketBreakdown: ordinaryTax.breakdown,

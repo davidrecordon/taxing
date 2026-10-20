@@ -335,6 +335,22 @@ This document verifies that all tax data in the JSON files matches official gove
 
 **Note:** Colorado uses federal taxable income as the starting point for state tax calculation. Capital gains are taxed at the same 4.4% flat rate as ordinary income.
 
+### Additions and Subtractions
+
+**Source:** [CO DOR Individual Income Tax Guide (Jan 2026)](https://tax.colorado.gov/sites/default/files/documents/Individual_Income_Tax_Guide_January_2026.pdf), [Income Tax Topics: State Income Tax Addback (Nov 2025)](https://tax.colorado.gov/sites/default/files/documents/ITT_State_Income_Tax_Addback_Nov_2025.pdf), [DR 0104 (2025)](https://tax.colorado.gov/sites/default/files/documents/DR0104_2025.pdf) lines 2 and 4, [DR 0104AD (2025)](https://tax.colorado.gov/sites/default/files/documents/DR0104AD_2025.pdf) line 12
+
+| Item                                           | Our Data | Official | Match |
+| ---------------------------------------------- | -------- | -------- | ----- |
+| State income tax addback for itemizers         | Yes      | Yes      | Yes   |
+| Deduction addback applies at federal AGI of    | $300,000 | $300,000 | Yes   |
+| Deduction addback limit (Single/MFS)           | $12,000  | $12,000  | Yes   |
+| Deduction addback limit (MFJ)                  | $16,000  | $16,000  | Yes   |
+| Charitable subtraction floor for non-itemizers | $500     | $500     | Yes   |
+
+**Notes:** The state income tax addback is the smaller of (a) the capped federal SALT deduction less property tax and (b) itemized deductions less the standard deduction. The high-income addback is reduced by the state income tax addback, so the larger of the two applies. Not modelled: the QBI deduction addback above $500,000 ($1,000,000 joint) of AGI, because this calculator's QBI deduction is already fully phased out below those incomes.
+
+**Correction (2026-10-19):** The calculator previously applied the flat rate to federal taxable income with no Colorado additions or subtractions.
+
 ### Safe Harbor
 
 | Item         | Our Data | Official | Match |
@@ -553,6 +569,17 @@ NY enacted 0.1% rate reductions for the bottom 5 brackets effective 2026:
 | Flat Rate | 4.4%     | 4.4%     | Yes   |
 
 **Note:** Unchanged from 2025.
+
+### Additions and Subtractions (2026)
+
+**Source:** [CO DOR Individual Income Tax Guide (Jan 2026)](https://tax.colorado.gov/sites/default/files/documents/Individual_Income_Tax_Guide_January_2026.pdf), [Proposition MM text](https://www.leg.colorado.gov/ballots/increase-state-taxes-for-school-meals-and-food-assistance-programs/files/text-of-measure)
+
+| Item                                 | Our Data | Official | Match |
+| ------------------------------------ | -------- | -------- | ----- |
+| Deduction addback limit (Single/MFS) | $1,000   | $1,000   | Yes   |
+| Deduction addback limit (MFJ)        | $2,000   | $2,000   | Yes   |
+
+**Note:** Proposition MM (November 2025) lowered the limits from $12,000/$16,000 for 2026 and later. The other rules are unchanged from 2025. The 2026 federal changes (charitable floor, 2/37 limit) flow in through federal taxable income.
 
 ---
 

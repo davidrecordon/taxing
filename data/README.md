@@ -228,6 +228,11 @@ Colorado-specific limits and thresholds.
 
 ```typescript
 {
+  charitableSubtractionFloor: number,  // Non-itemizers subtract giving above this
+  deductionAddback: {
+    agiThreshold: number,              // Applies at or above this federal AGI
+    limit: { default: number, marriedFilingJointly: number }
+  },
   safeHarbor: {
     currentYearPercent: number,  // 90% of current year tax
     priorYearPercent: number     // 100% of prior year tax
