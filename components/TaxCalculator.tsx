@@ -7,6 +7,7 @@ import {
   TaxState,
   CalculationResults,
   STATE_LABELS,
+  TaxCalculationResult,
   SharedLimitsData,
   FederalLimitsData,
   FicaData,
@@ -72,6 +73,88 @@ const defaultInputs: TaxInputs = {
   priorYearLongTermLossCarryover: 0,
   selfEmploymentIncome: 0,
 };
+
+// Placeholder state result used while state data is loading
+const EMPTY_STATE_RESULT: TaxCalculationResult = {
+  wageIncome: 0,
+  shortTermCapitalGains: 0,
+  longTermCapitalGains: 0,
+  grossIncome: 0,
+  adjustedGrossIncome: 0,
+  taxableOrdinaryIncome: 0,
+  taxableLTCG: 0,
+  ordinaryIncomeTax: 0,
+  ltcgTax: 0,
+  ordinaryIncomeBracketBreakdown: [],
+  ltcgBracketBreakdown: [],
+  deductionBreakdown: {
+    standardDeduction: 0,
+    itemizedDeduction: 0,
+    deductionAmount: 0,
+    deductionUsed: "standard",
+    saltDeduction: 0,
+    saltCapped: false,
+    mortgageInterest: 0,
+    charitableContributions: 0,
+  },
+  totalTax: 0,
+  withheld: 0,
+  estimatedPaid: 0,
+  totalPaid: 0,
+  remainingOwed: 0,
+  refundDue: 0,
+  contributions401k: 0,
+  preTaxMedical: 0,
+  shortTermLossCarryoverOffset: 0,
+  longTermLossCarryoverOffset: 0,
+};
+
+// Build one spouse's inputs for the married-filing-separately comparison.
+// Each split is spouse 1's percentage; spouse 2 gets the remainder.
+function buildSpouseInputs(
+  inputs: TaxInputs,
+  splits: SplitConfig,
+  isSpouse1: boolean,
+): TaxInputs {
+  const share = (spouse1Percent: number) =>
+    (isSpouse1 ? spouse1Percent : 100 - spouse1Percent) / 100;
+  const contributions401k = share(splits.contributions401k);
+  const deductions = share(splits.deductions);
+  const dividends = share(splits.dividends);
+  const ltcg = share(splits.ltcg);
+  const preTaxMedical = share(splits.preTaxMedical);
+  const stcg = share(splits.stcg);
+  const wages = share(splits.wages);
+
+  return {
+    ...inputs,
+    filingStatus: "marriedFilingSeparately",
+    federalIncome: inputs.federalIncome * wages,
+    stateIncome: inputs.stateIncome * wages,
+    selfEmploymentIncome: (inputs.selfEmploymentIncome || 0) * wages,
+    shortTermCapitalGains: inputs.shortTermCapitalGains * stcg,
+    longTermCapitalGains: inputs.longTermCapitalGains * ltcg,
+    interestIncome: inputs.interestIncome * dividends,
+    ordinaryDividends: inputs.ordinaryDividends * dividends,
+    qualifiedDividends: inputs.qualifiedDividends * dividends,
+    contributions401k: inputs.contributions401k * contributions401k,
+    preTaxMedical: inputs.preTaxMedical * preTaxMedical,
+    mortgageInterestPaid: inputs.mortgageInterestPaid * deductions,
+    mortgageBalance: inputs.mortgageBalance * deductions,
+    propertyTaxesPaid: inputs.propertyTaxesPaid * deductions,
+    charitableContributions: inputs.charitableContributions * deductions,
+    priorYearShortTermLossCarryover:
+      inputs.priorYearShortTermLossCarryover * stcg,
+    priorYearLongTermLossCarryover:
+      inputs.priorYearLongTermLossCarryover * ltcg,
+    federalTaxWithheld: inputs.federalTaxWithheld * wages,
+    stateTaxWithheld: inputs.stateTaxWithheld * wages,
+    federalEstimatedPaid: inputs.federalEstimatedPaid * wages,
+    stateEstimatedPaid: inputs.stateEstimatedPaid * wages,
+    priorYearFederalTaxPaid: inputs.priorYearFederalTaxPaid * wages,
+    priorYearStateTaxPaid: inputs.priorYearStateTaxPaid * wages,
+  };
+}
 
 // Helper to calculate state tax with loaded data
 function calculateStateTaxWithData(
@@ -170,6 +253,21 @@ export default function TaxCalculator() {
     [taxYear],
   );
 
+  // Federal calculation bound to the selected year's data
+  const calculateFederal = useCallback(
+    (federalInputs: TaxInputs) =>
+      calculateFederalTax(
+        federalInputs,
+        federalData.federalBrackets,
+        federalData.ltcgBrackets,
+        federalData.federalDeductions,
+        federalData.sharedLimits,
+        federalData.federalLimits,
+        federalData.ficaData,
+      ),
+    [federalData],
+  );
+
   // Derive loading state from whether data exists for the selected state+year
   const stateDataKey = `${inputs.selectedState}-${taxYear}`;
   const isLoadingState = !loadedStateData.has(stateDataKey);
@@ -197,53 +295,13 @@ export default function TaxCalculator() {
   const currentStateData = loadedStateData.get(stateDataKey);
 
   const results: CalculationResults = useMemo(() => {
-    const federal = calculateFederalTax(
-      inputs,
-      federalData.federalBrackets,
-      federalData.ltcgBrackets,
-      federalData.federalDeductions,
-      federalData.sharedLimits,
-      federalData.federalLimits,
-      federalData.ficaData,
-    );
+    const federal = calculateFederal(inputs);
 
     // If state data isn't loaded yet, return a placeholder state result
     if (!currentStateData) {
       return {
         federal,
-        state: {
-          wageIncome: 0,
-          shortTermCapitalGains: 0,
-          longTermCapitalGains: 0,
-          grossIncome: 0,
-          adjustedGrossIncome: 0,
-          taxableOrdinaryIncome: 0,
-          taxableLTCG: 0,
-          ordinaryIncomeTax: 0,
-          ltcgTax: 0,
-          ordinaryIncomeBracketBreakdown: [],
-          ltcgBracketBreakdown: [],
-          deductionBreakdown: {
-            standardDeduction: 0,
-            itemizedDeduction: 0,
-            deductionAmount: 0,
-            deductionUsed: "standard" as const,
-            saltDeduction: 0,
-            saltCapped: false,
-            mortgageInterest: 0,
-            charitableContributions: 0,
-          },
-          totalTax: 0,
-          withheld: 0,
-          estimatedPaid: 0,
-          totalPaid: 0,
-          remainingOwed: 0,
-          refundDue: 0,
-          contributions401k: 0,
-          preTaxMedical: 0,
-          shortTermLossCarryoverOffset: 0,
-          longTermLossCarryoverOffset: 0,
-        },
+        state: EMPTY_STATE_RESULT,
         selectedState: inputs.selectedState,
       };
     }
@@ -260,7 +318,7 @@ export default function TaxCalculator() {
     );
 
     return { federal, state, selectedState: inputs.selectedState };
-  }, [inputs, currentStateData, federalData]);
+  }, [inputs, currentStateData, federalData, calculateFederal]);
 
   const updateInput = <K extends keyof TaxInputs>(
     field: K,
@@ -284,15 +342,7 @@ export default function TaxCalculator() {
         ...inputs,
         charitableContributions: contributions,
       };
-      const scenarioResult = calculateFederalTax(
-        modifiedInputs,
-        federalData.federalBrackets,
-        federalData.ltcgBrackets,
-        federalData.federalDeductions,
-        federalData.sharedLimits,
-        federalData.federalLimits,
-        federalData.ficaData,
-      );
+      const scenarioResult = calculateFederal(modifiedInputs);
       return {
         totalTax: scenarioResult.totalTax,
         remainingOwed: scenarioResult.remainingOwed,
@@ -302,7 +352,7 @@ export default function TaxCalculator() {
             : 0,
       };
     },
-    [inputs, federalData],
+    [inputs, calculateFederal],
   );
 
   // Extract federal results for the modal
@@ -325,49 +375,9 @@ export default function TaxCalculator() {
       const stateData = loadedStateData.get(key);
       if (!stateData) {
         // Return zero result if state data not loaded (shouldn't happen in practice)
-        return {
-          wageIncome: 0,
-          shortTermCapitalGains: 0,
-          longTermCapitalGains: 0,
-          grossIncome: 0,
-          adjustedGrossIncome: 0,
-          taxableOrdinaryIncome: 0,
-          taxableLTCG: 0,
-          ordinaryIncomeTax: 0,
-          ltcgTax: 0,
-          ordinaryIncomeBracketBreakdown: [],
-          ltcgBracketBreakdown: [],
-          deductionBreakdown: {
-            standardDeduction: 0,
-            itemizedDeduction: 0,
-            deductionAmount: 0,
-            deductionUsed: "standard" as const,
-            saltDeduction: 0,
-            saltCapped: false,
-            mortgageInterest: 0,
-            charitableContributions: 0,
-          },
-          totalTax: 0,
-          withheld: 0,
-          estimatedPaid: 0,
-          totalPaid: 0,
-          remainingOwed: 0,
-          refundDue: 0,
-          contributions401k: 0,
-          preTaxMedical: 0,
-          shortTermLossCarryoverOffset: 0,
-          longTermLossCarryoverOffset: 0,
-        };
+        return EMPTY_STATE_RESULT;
       }
-      const federalResult = calculateFederalTax(
-        stateInputs,
-        federalData.federalBrackets,
-        federalData.ltcgBrackets,
-        federalData.federalDeductions,
-        federalData.sharedLimits,
-        federalData.federalLimits,
-        federalData.ficaData,
-      );
+      const federalResult = calculateFederal(stateInputs);
       return calculateStateTaxWithData(
         stateInputs,
         stateData,
@@ -377,7 +387,7 @@ export default function TaxCalculator() {
         federalResult.taxableOrdinaryIncome + federalResult.taxableLTCG,
       );
     },
-    [loadedStateData, taxYear, federalData],
+    [loadedStateData, taxYear, federalData, calculateFederal],
   );
 
   // Calculate MFJ scenario results for filing status comparison
@@ -386,133 +396,25 @@ export default function TaxCalculator() {
       ...inputs,
       filingStatus: "marriedFilingJointly" as const,
     };
-    const federal = calculateFederalTax(
-      mfjInputs,
-      federalData.federalBrackets,
-      federalData.ltcgBrackets,
-      federalData.federalDeductions,
-      federalData.sharedLimits,
-      federalData.federalLimits,
-      federalData.ficaData,
-    );
+    const federal = calculateFederal(mfjInputs);
     const state = calculateStateForInputs(mfjInputs);
     return {
       federalTax: federal.totalTax,
       stateTax: state.totalTax,
       totalTax: federal.totalTax + state.totalTax,
     };
-  }, [inputs, calculateStateForInputs, federalData]);
+  }, [inputs, calculateStateForInputs, calculateFederal]);
 
   // Calculate MFS scenario with spouse splits
   const calculateMFSScenario = useCallback(
     (splits: SplitConfig): MFSScenarioResult => {
-      // Build Spouse 1 inputs
-      const spouse1Inputs: TaxInputs = {
-        ...inputs,
-        filingStatus: "marriedFilingSeparately",
-        federalIncome: inputs.federalIncome * (splits.wages / 100),
-        stateIncome: inputs.stateIncome * (splits.wages / 100),
-        selfEmploymentIncome:
-          (inputs.selfEmploymentIncome || 0) * (splits.wages / 100),
-        shortTermCapitalGains:
-          inputs.shortTermCapitalGains * (splits.stcg / 100),
-        longTermCapitalGains: inputs.longTermCapitalGains * (splits.ltcg / 100),
-        interestIncome: inputs.interestIncome * (splits.dividends / 100),
-        ordinaryDividends: inputs.ordinaryDividends * (splits.dividends / 100),
-        qualifiedDividends:
-          inputs.qualifiedDividends * (splits.dividends / 100),
-        contributions401k:
-          inputs.contributions401k * (splits.contributions401k / 100),
-        preTaxMedical: inputs.preTaxMedical * (splits.preTaxMedical / 100),
-        mortgageInterestPaid:
-          inputs.mortgageInterestPaid * (splits.deductions / 100),
-        mortgageBalance: inputs.mortgageBalance * (splits.deductions / 100),
-        propertyTaxesPaid: inputs.propertyTaxesPaid * (splits.deductions / 100),
-        charitableContributions:
-          inputs.charitableContributions * (splits.deductions / 100),
-        priorYearShortTermLossCarryover:
-          inputs.priorYearShortTermLossCarryover * (splits.stcg / 100),
-        priorYearLongTermLossCarryover:
-          inputs.priorYearLongTermLossCarryover * (splits.ltcg / 100),
-        federalTaxWithheld: inputs.federalTaxWithheld * (splits.wages / 100),
-        stateTaxWithheld: inputs.stateTaxWithheld * (splits.wages / 100),
-        federalEstimatedPaid:
-          inputs.federalEstimatedPaid * (splits.wages / 100),
-        stateEstimatedPaid: inputs.stateEstimatedPaid * (splits.wages / 100),
-        priorYearFederalTaxPaid:
-          inputs.priorYearFederalTaxPaid * (splits.wages / 100),
-        priorYearStateTaxPaid:
-          inputs.priorYearStateTaxPaid * (splits.wages / 100),
-      };
-
-      // Build Spouse 2 inputs (inverse percentages)
-      const spouse2Inputs: TaxInputs = {
-        ...inputs,
-        filingStatus: "marriedFilingSeparately",
-        federalIncome: inputs.federalIncome * ((100 - splits.wages) / 100),
-        stateIncome: inputs.stateIncome * ((100 - splits.wages) / 100),
-        selfEmploymentIncome:
-          (inputs.selfEmploymentIncome || 0) * ((100 - splits.wages) / 100),
-        shortTermCapitalGains:
-          inputs.shortTermCapitalGains * ((100 - splits.stcg) / 100),
-        longTermCapitalGains:
-          inputs.longTermCapitalGains * ((100 - splits.ltcg) / 100),
-        interestIncome:
-          inputs.interestIncome * ((100 - splits.dividends) / 100),
-        ordinaryDividends:
-          inputs.ordinaryDividends * ((100 - splits.dividends) / 100),
-        qualifiedDividends:
-          inputs.qualifiedDividends * ((100 - splits.dividends) / 100),
-        contributions401k:
-          inputs.contributions401k * ((100 - splits.contributions401k) / 100),
-        preTaxMedical:
-          inputs.preTaxMedical * ((100 - splits.preTaxMedical) / 100),
-        mortgageInterestPaid:
-          inputs.mortgageInterestPaid * ((100 - splits.deductions) / 100),
-        mortgageBalance:
-          inputs.mortgageBalance * ((100 - splits.deductions) / 100),
-        propertyTaxesPaid:
-          inputs.propertyTaxesPaid * ((100 - splits.deductions) / 100),
-        charitableContributions:
-          inputs.charitableContributions * ((100 - splits.deductions) / 100),
-        priorYearShortTermLossCarryover:
-          inputs.priorYearShortTermLossCarryover * ((100 - splits.stcg) / 100),
-        priorYearLongTermLossCarryover:
-          inputs.priorYearLongTermLossCarryover * ((100 - splits.ltcg) / 100),
-        federalTaxWithheld:
-          inputs.federalTaxWithheld * ((100 - splits.wages) / 100),
-        stateTaxWithheld:
-          inputs.stateTaxWithheld * ((100 - splits.wages) / 100),
-        federalEstimatedPaid:
-          inputs.federalEstimatedPaid * ((100 - splits.wages) / 100),
-        stateEstimatedPaid:
-          inputs.stateEstimatedPaid * ((100 - splits.wages) / 100),
-        priorYearFederalTaxPaid:
-          inputs.priorYearFederalTaxPaid * ((100 - splits.wages) / 100),
-        priorYearStateTaxPaid:
-          inputs.priorYearStateTaxPaid * ((100 - splits.wages) / 100),
-      };
+      const spouse1Inputs = buildSpouseInputs(inputs, splits, true);
+      const spouse2Inputs = buildSpouseInputs(inputs, splits, false);
 
       // Calculate each spouse's taxes
-      const spouse1Federal = calculateFederalTax(
-        spouse1Inputs,
-        federalData.federalBrackets,
-        federalData.ltcgBrackets,
-        federalData.federalDeductions,
-        federalData.sharedLimits,
-        federalData.federalLimits,
-        federalData.ficaData,
-      );
+      const spouse1Federal = calculateFederal(spouse1Inputs);
       const spouse1State = calculateStateForInputs(spouse1Inputs);
-      const spouse2Federal = calculateFederalTax(
-        spouse2Inputs,
-        federalData.federalBrackets,
-        federalData.ltcgBrackets,
-        federalData.federalDeductions,
-        federalData.sharedLimits,
-        federalData.federalLimits,
-        federalData.ficaData,
-      );
+      const spouse2Federal = calculateFederal(spouse2Inputs);
       const spouse2State = calculateStateForInputs(spouse2Inputs);
 
       return {
@@ -537,7 +439,7 @@ export default function TaxCalculator() {
         },
       };
     },
-    [inputs, calculateStateForInputs, federalData],
+    [inputs, calculateStateForInputs, calculateFederal],
   );
 
   const stateLabel = STATE_LABELS[inputs.selectedState];
