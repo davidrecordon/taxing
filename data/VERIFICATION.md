@@ -726,6 +726,12 @@ Same as 2025 (brackets not inflation-adjusted).
 
 ---
 
+## U.S. Treasury Interest
+
+Interest on U.S. Treasury obligations is taxable federally but exempt from state and local income tax ([31 U.S.C. 3124(a)](https://www.law.cornell.edu/uscode/text/31/3124): "Stocks and obligations of the United States Government are exempt from taxation by a State"). The calculator removes the Treasury portion of interest from income in California, DC, Illinois and New York, and subtracts it from federal taxable income for Colorado. Not modelled: the share of a mutual fund's dividends that comes from Treasuries, which states treat differently (California and New York require a minimum share of fund assets).
+
+---
+
 ## Safe Harbor (2025 and 2026)
 
 The required amount is the lesser of a share of this year's tax and a share of last year's total tax. The calculator makes one annual comparison; installment timing is not modelled.

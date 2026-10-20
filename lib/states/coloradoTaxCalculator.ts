@@ -7,7 +7,11 @@ import {
   DeductionBreakdown,
   FicaData,
 } from "../types";
-import { calculateTaxByBrackets } from "../taxUtils";
+import {
+  calculateTaxByBrackets,
+  stateTaxableInterest,
+  taxableInterest,
+} from "../taxUtils";
 import {
   calculatePaymentSummary,
   calculateSafeHarbor,
@@ -109,9 +113,17 @@ export function calculateColoradoTax(
         )
       : 0;
 
+  // U.S. Treasury interest is in federal taxable income but exempt from
+  // Colorado tax
+  const treasuryInterestSubtraction =
+    taxableInterest(inputs) - stateTaxableInterest(inputs);
+
   const taxableIncome = Math.max(
     0,
-    federalTaxableIncome + deductionAddback - charitableSubtraction,
+    federalTaxableIncome +
+      deductionAddback -
+      charitableSubtraction -
+      treasuryInterestSubtraction,
   );
 
   // Calculate tax using flat rate (single bracket)
@@ -176,6 +188,7 @@ export function calculateColoradoTax(
       charitableSubtraction,
       deductionAddback,
       federalTaxableIncome,
+      treasuryInterestSubtraction,
     },
     taxableOrdinaryIncome: taxableIncome,
     taxableLTCG: 0, // CO doesn't have separate LTCG treatment

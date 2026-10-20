@@ -38,6 +38,39 @@ describe("IncomeInputs", () => {
     });
   });
 
+  describe("U.S. Treasury interest sub-field", () => {
+    const label = "Of which U.S. Treasury";
+
+    it("is hidden until interest is entered", () => {
+      renderIncome();
+
+      expect(screen.queryByText(label)).not.toBeInTheDocument();
+    });
+
+    it("appears once interest has a value", () => {
+      renderIncome({ interestIncome: 5000, selectedState: "california" });
+
+      expect(screen.getByText(label)).toBeInTheDocument();
+      expect(screen.getByText(/Not taxed by California/)).toBeInTheDocument();
+    });
+
+    it("warns when it exceeds total interest", () => {
+      renderIncome({ interestIncome: 5000, treasuryInterest: 9000 });
+
+      expect(screen.getByText(/Cannot exceed interest/)).toBeInTheDocument();
+    });
+
+    it("is not offered where the state has no income tax", () => {
+      renderIncome({ interestIncome: 5000, selectedState: "florida" });
+      expect(screen.queryByText(label)).not.toBeInTheDocument();
+    });
+
+    it("is not offered for Washington", () => {
+      renderIncome({ interestIncome: 5000, selectedState: "washington" });
+      expect(screen.queryByText(label)).not.toBeInTheDocument();
+    });
+  });
+
   describe("capital loss hint", () => {
     it("shows the $3,000 limit for a negative entry", () => {
       renderIncome({ longTermCapitalGains: -5000 });

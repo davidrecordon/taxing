@@ -1,5 +1,9 @@
 import { FicaData, SafeHarbor, SharedLimitsData, TaxInputs } from "../types";
-import { netCapitalGains, splitDividends, taxableInterest } from "../taxUtils";
+import {
+  netCapitalGains,
+  splitDividends,
+  stateTaxableInterest,
+} from "../taxUtils";
 
 /**
  * Income figures shared by the states that tax all income, including capital
@@ -33,7 +37,8 @@ export function calculateStateIncome(
   // Use federal income if state income is not specified
   const stateIncome = inputs.stateIncome || inputs.federalIncome;
   const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
-  const interestIncome = taxableInterest(inputs);
+  // U.S. Treasury interest is exempt from state income tax
+  const interestIncome = stateTaxableInterest(inputs);
   const ordinaryDividends = splitDividends(inputs).ordinary;
   const otherIncome =
     stateIncome + selfEmploymentIncome + interestIncome + ordinaryDividends;

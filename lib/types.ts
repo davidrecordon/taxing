@@ -387,6 +387,7 @@ export interface TaxInputs {
   shortTermCapitalGains: number;
   longTermCapitalGains: number;
   interestIncome: number; // 1099-INT box 1 (taxable interest)
+  treasuryInterest: number; // Portion of interestIncome from U.S. Treasuries (exempt from state tax)
   ordinaryDividends: number; // 1099-DIV box 1a (total, includes qualified)
   qualifiedDividends: number; // 1099-DIV box 1b (subset of ordinary)
 
@@ -493,6 +494,7 @@ export interface SelfEmploymentTaxBreakdown {
 // Colorado additions to and subtractions from federal taxable income
 export interface ColoradoAdjustments {
   charitableSubtraction: number;
+  treasuryInterestSubtraction: number;
   deductionAddback: number; // State income tax and high-income deduction addback
   federalTaxableIncome: number;
 }

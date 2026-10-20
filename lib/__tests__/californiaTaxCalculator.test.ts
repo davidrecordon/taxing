@@ -93,6 +93,31 @@ describe("calculateCaliforniaTax", () => {
     });
   });
 
+  describe("U.S. Treasury interest", () => {
+    it("is excluded from California income", () => {
+      const calculate = (treasuryInterest: number) =>
+        calculateCaliforniaTax(
+          createDefaultInputs({
+            federalIncome: 100000,
+            interestIncome: 20000,
+            treasuryInterest,
+            filingStatus: "single",
+          }),
+          californiaBrackets,
+          californiaDeductions,
+          sharedLimits,
+          californiaLimits,
+        );
+
+      expect(calculate(0).grossIncome).toBe(120000);
+      expect(calculate(12000).grossIncome).toBe(108000);
+      expect(calculate(12000).interestIncome).toBe(8000);
+      expect(calculate(12000).taxableOrdinaryIncome).toBe(
+        calculate(0).taxableOrdinaryIncome - 12000,
+      );
+    });
+  });
+
   describe("itemized deductions", () => {
     const calculate = (overrides: Parameters<typeof createDefaultInputs>[0]) =>
       calculateCaliforniaTax(

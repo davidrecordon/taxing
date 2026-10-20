@@ -147,6 +147,20 @@ export function taxableInterest(
 }
 
 /**
+ * Interest that states may tax. Interest on U.S. Treasury obligations is
+ * taxable federally but exempt from state income tax (31 U.S.C. 3124), so the
+ * Treasury portion is removed; any excess over total interest is ignored.
+ */
+export function stateTaxableInterest(
+  inputs: Pick<TaxInputs, "interestIncome" | "treasuryInterest">,
+): number {
+  const interest = taxableInterest(inputs);
+  return (
+    interest - Math.min(interest, Math.max(0, inputs.treasuryInterest ?? 0))
+  );
+}
+
+/**
  * Split dividends into the portion taxed at ordinary rates and the portion
  * taxed at long-term capital gains rates. Qualified dividends are a subset of
  * ordinary dividends (1099-DIV box 1b is included in box 1a), so any excess

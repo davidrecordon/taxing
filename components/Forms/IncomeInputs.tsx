@@ -26,6 +26,12 @@ export default function IncomeInputs({
 
   // Sub-fields appear once their parent has a value, and never hide while
   // they hold a value of their own
+  // Treasury interest only matters where the state taxes income
+  const stateTaxesIncome =
+    inputs.selectedState !== "florida" && inputs.selectedState !== "washington";
+  const showTreasuryInterest =
+    stateTaxesIncome &&
+    (inputs.interestIncome > 0 || inputs.treasuryInterest > 0);
   const showQualifiedDividends =
     inputs.ordinaryDividends > 0 || inputs.qualifiedDividends > 0;
 
@@ -64,12 +70,27 @@ export default function IncomeInputs({
       <h3 className="text-md font-medium text-text-primary pt-2">
         Interest & Dividends
       </h3>
-      <CurrencyInput
-        label="Interest"
-        value={inputs.interestIncome}
-        onChange={(v) => onUpdate("interestIncome", v)}
-        hint="Taxable interest from savings, CDs and bonds"
-      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <CurrencyInput
+          label="Interest"
+          value={inputs.interestIncome}
+          onChange={(v) => onUpdate("interestIncome", v)}
+          hint="Taxable interest from savings, CDs and bonds"
+        />
+        {showTreasuryInterest && (
+          <CurrencyInput
+            label="Of which U.S. Treasury"
+            value={inputs.treasuryInterest}
+            onChange={(v) => onUpdate("treasuryInterest", v)}
+            hint={`Treasury bills, notes and bonds. Not taxed by ${stateLabel}.`}
+            warning={
+              inputs.treasuryInterest > inputs.interestIncome
+                ? "Cannot exceed interest. The excess is ignored."
+                : undefined
+            }
+          />
+        )}
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CurrencyInput
           label="Ordinary Dividends"

@@ -5,6 +5,7 @@ import {
   calculateLTCGTaxWithStacking,
   netCapitalGains,
   splitDividends,
+  stateTaxableInterest,
 } from "../taxUtils";
 import { sharedLimits } from "./testData";
 import { TaxCalculationResult, TaxBracket } from "../types";
@@ -260,6 +261,26 @@ describe("calculateLTCGTaxWithStacking", () => {
     expect(result.breakdown[0].rate).toBe(0.2);
     expect(result.breakdown[0].incomeInBracket).toBe(50000);
     expect(result.total).toBeCloseTo(50000 * 0.2, 2);
+  });
+});
+
+describe("stateTaxableInterest", () => {
+  it("removes the U.S. Treasury portion", () => {
+    expect(
+      stateTaxableInterest({ interestIncome: 20000, treasuryInterest: 12000 }),
+    ).toBe(8000);
+  });
+
+  it("ignores Treasury interest above total interest", () => {
+    expect(
+      stateTaxableInterest({ interestIncome: 5000, treasuryInterest: 9000 }),
+    ).toBe(0);
+  });
+
+  it("returns all interest when none is from Treasuries", () => {
+    expect(
+      stateTaxableInterest({ interestIncome: 5000, treasuryInterest: 0 }),
+    ).toBe(5000);
   });
 });
 

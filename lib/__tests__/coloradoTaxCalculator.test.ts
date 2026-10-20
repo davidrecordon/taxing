@@ -379,6 +379,21 @@ describe("calculateColoradoTax additions and subtractions", () => {
     expect(result.totalTax).toBeCloseTo(25696, 2);
   });
 
+  it("subtracts U.S. Treasury interest from federal taxable income", () => {
+    // 2025 single: $100,000 wages + $20,000 interest - $15,750 standard
+    // = $104,250 federal taxable; $12,000 of the interest is from Treasuries
+    const result = calculateForYear("2025", {
+      federalIncome: 100000,
+      interestIncome: 20000,
+      treasuryInterest: 12000,
+      filingStatus: "single",
+    });
+
+    expect(result.coloradoAdjustments!.federalTaxableIncome).toBe(104250);
+    expect(result.coloradoAdjustments!.treasuryInterestSubtraction).toBe(12000);
+    expect(result.taxableOrdinaryIncome).toBe(92250);
+  });
+
   it("subtracts charitable contributions over $500 for non-itemizers", () => {
     const result = calculateForYear("2025", {
       federalIncome: 120000,

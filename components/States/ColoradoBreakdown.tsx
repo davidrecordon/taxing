@@ -51,6 +51,14 @@ export default memo(function ColoradoBreakdown({ result, taxYear }: Props) {
             </span>
           </div>
         )}
+        {(adjustments?.treasuryInterestSubtraction ?? 0) > 0 && (
+          <div className="flex justify-between text-positive">
+            <span>Less: U.S. Treasury Interest</span>
+            <span className="font-mono">
+              -{formatCurrency(adjustments!.treasuryInterestSubtraction)}
+            </span>
+          </div>
+        )}
         <div className="flex justify-between font-medium border-t border-border pt-1 text-text-primary">
           <span>Colorado Taxable Income</span>
           <span className="font-mono">
@@ -105,8 +113,8 @@ export default memo(function ColoradoBreakdown({ result, taxYear }: Props) {
                   {formatPercent(
                     result.safeHarbor.priorYearPercent ??
                       limits.safeHarbor.priorYearPercent,
-                  )} of Prior
-                  Year Tax
+                  )}{" "}
+                  of Prior Year Tax
                 </span>
                 <span className="font-mono text-text-primary">
                   {formatCurrency(result.safeHarbor.priorYearSafeHarbor)}

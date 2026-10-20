@@ -1304,6 +1304,21 @@ describe("calculateFederalTax", () => {
       expect(result.niitBreakdown!.tax).toBeCloseTo(1900, 2);
     });
 
+    it("taxes U.S. Treasury interest federally like other interest", () => {
+      const withTreasury = calculate({
+        federalIncome: 250000,
+        interestIncome: 50000,
+        treasuryInterest: 30000,
+      });
+      const withoutTreasury = calculate({
+        federalIncome: 250000,
+        interestIncome: 50000,
+      });
+
+      expect(withTreasury.totalTax).toBe(withoutTreasury.totalTax);
+      expect(withTreasury.niitBreakdown!.netInvestmentIncome).toBe(50000);
+    });
+
     it("limits qualified dividends to ordinary dividends", () => {
       const result = calculate({
         federalIncome: 100000,

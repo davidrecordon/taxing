@@ -109,6 +109,7 @@ export function createDefaultInputs(
     shortTermCapitalGains: 0,
     longTermCapitalGains: 0,
     interestIncome: 0,
+    treasuryInterest: 0,
     ordinaryDividends: 0,
     qualifiedDividends: 0,
     federalTaxWithheld: 0,

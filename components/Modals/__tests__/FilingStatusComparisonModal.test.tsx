@@ -15,6 +15,7 @@ describe("FilingStatusComparisonModal", () => {
     shortTermCapitalGains: 10000,
     longTermCapitalGains: 50000,
     interestIncome: 0,
+    treasuryInterest: 0,
     ordinaryDividends: 0,
     qualifiedDividends: 0,
     federalTaxWithheld: 30000,
