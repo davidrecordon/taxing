@@ -63,6 +63,11 @@ export default function DeductionInputs({
     ? grandfatheredMortgageLimit
     : standardMortgageLimit;
 
+  // Sub-fields appear once their parent has a value, and never hide while
+  // they hold a value of their own
+  const showMortgageBalance =
+    inputs.mortgageInterestPaid > 0 || inputs.mortgageBalance > 0;
+
   const contribution401kLimit =
     inputs.filingStatus === "marriedFilingJointly"
       ? sharedLimits.contribution401k.standard * 2
@@ -111,17 +116,19 @@ export default function DeductionInputs({
           onChange={(v) => onUpdate("mortgageInterestPaid", v)}
           hint="Fully deducted if balance is blank. Otherwise prorated based on limits."
         />
-        <CurrencyInput
-          label="Mortgage Balance"
-          value={inputs.mortgageBalance}
-          onChange={(v) => onUpdate("mortgageBalance", v)}
-          hint="Average balance across the year."
-          warning={
-            inputs.mortgageBalance > applicableMortgageLimit
-              ? `Interest deduction will be prorated based on mortgage limits.`
-              : undefined
-          }
-        />
+        {showMortgageBalance && (
+          <CurrencyInput
+            label="Mortgage Balance"
+            value={inputs.mortgageBalance}
+            onChange={(v) => onUpdate("mortgageBalance", v)}
+            hint="Average balance across the year."
+            warning={
+              inputs.mortgageBalance > applicableMortgageLimit
+                ? `Interest deduction will be prorated based on mortgage limits.`
+                : undefined
+            }
+          />
+        )}
       </div>
 
       {inputs.mortgageBalance > standardMortgageLimit && (

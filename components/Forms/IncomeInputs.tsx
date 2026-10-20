@@ -24,6 +24,11 @@ export default function IncomeInputs({
       : sharedLimits.capitalLossLimit.default,
   );
 
+  // Sub-fields appear once their parent has a value, and never hide while
+  // they hold a value of their own
+  const showQualifiedDividends =
+    inputs.ordinaryDividends > 0 || inputs.qualifiedDividends > 0;
+
   return (
     <div className="theme-card p-4 space-y-4">
       <h2 className="text-lg font-semibold text-text-primary border-b border-border pb-2 font-display">
@@ -72,17 +77,19 @@ export default function IncomeInputs({
           onChange={(v) => onUpdate("ordinaryDividends", v)}
           hint="All dividends for the year, including qualified"
         />
-        <CurrencyInput
-          label="Qualified Dividends"
-          value={inputs.qualifiedDividends}
-          onChange={(v) => onUpdate("qualifiedDividends", v)}
-          hint="The portion taxed at long-term rates"
-          warning={
-            inputs.qualifiedDividends > inputs.ordinaryDividends
-              ? "Cannot exceed ordinary dividends. The excess is ignored."
-              : undefined
-          }
-        />
+        {showQualifiedDividends && (
+          <CurrencyInput
+            label="Qualified Dividends"
+            value={inputs.qualifiedDividends}
+            onChange={(v) => onUpdate("qualifiedDividends", v)}
+            hint="The portion taxed at long-term rates"
+            warning={
+              inputs.qualifiedDividends > inputs.ordinaryDividends
+                ? "Cannot exceed ordinary dividends. The excess is ignored."
+                : undefined
+            }
+          />
+        )}
       </div>
 
       <h3 className="text-md font-medium text-text-primary pt-2">
