@@ -1633,9 +1633,9 @@ describe("calculateFederalTax", () => {
     });
 
     it("phases out QBI for high income single filer", () => {
-      // $400,000 SE income, taxable well above $191,950 threshold
-      // Phaseout range is $50,000 for single
-      // At $241,950+, QBI is fully phased out
+      // $400,000 SE income, taxable well above $201,750 threshold
+      // Phaseout range is $75,000 for single
+      // At $276,750+, QBI is fully phased out
       const inputs = createDefaultInputs({
         selfEmploymentIncome: 400000,
         filingStatus: "single",
@@ -1660,7 +1660,7 @@ describe("calculateFederalTax", () => {
     });
 
     it("uses higher phaseout threshold for MFJ", () => {
-      // $300,000 SE income for MFJ - under $383,900 threshold
+      // $300,000 SE income for MFJ - under $403,500 threshold
       // Should get full QBI without phaseout
       const inputs = createDefaultInputs({
         selfEmploymentIncome: 300000,
@@ -2007,29 +2007,23 @@ describe("calculateFederalTax", () => {
 
   describe("QBI phaseout exact verification", () => {
     it("calculates partial phaseout with exact math", () => {
-      // Single filer with taxable income in phaseout range ($191,950 - $241,950)
-      // Using $200,000 SE income to land in phaseout range
-      //
-      // SE net earnings: $200,000 × 0.9235 = $184,700
-      // SE SS: $184,500 × 0.124 = $22,878 (capped at wage base)
-      // SE Medicare: $184,700 × 0.029 = $5,356.30
-      // Total SE tax: $28,234.30
-      // Deductible half: $14,117.15
-      //
-      // Taxable before QBI: $200,000 - $14,117.15 - $16,100 = $169,782.85
-      // This is UNDER the phaseout threshold of $191,950 - no phaseout!
-      //
-      // Let's use a higher income to land IN the phaseout range.
+      // Single filer with taxable income in phaseout range ($201,750 - $276,750)
       // Using $300,000 SE income:
       // SE net earnings: $300,000 × 0.9235 = $277,050
-      // SE SS: $184,500 × 0.124 = $22,878 (capped)
+      // SE SS: $184,500 × 0.124 = $22,878 (capped at wage base)
       // SE Medicare: $277,050 × 0.029 = $8,034.45
       // Total SE tax: $30,912.45
       // Deductible half: $15,456.23
       //
       // Taxable before QBI: $300,000 - $15,456.23 - $16,100 = $268,443.77
-      // This is ABOVE the full phaseout threshold of $241,950
-      // So QBI is fully phased out for high SE income
+      //
+      // Phaseout calculation:
+      // Excess over $201,750: $268,443.77 - $201,750 = $66,693.77
+      // Phaseout ratio: $66,693.77 / $75,000 = 0.88925
+      //
+      // Tentative QBI: $300,000 × 20% = $60,000
+      // Taxable income limit: $268,443.77 × 20% = $53,688.75
+      // Final QBI: $53,688.75 × (1 - 0.88925) = $5,946.01
       const inputs = createDefaultInputs({
         selfEmploymentIncome: 300000,
         filingStatus: "single",
@@ -2046,7 +2040,27 @@ describe("calculateFederalTax", () => {
       );
 
       expect(result.qbiDeduction!.phaseoutApplied).toBe(true);
-      // Above $241,950, QBI is fully phased out
+      expect(result.qbiDeduction!.finalDeduction).toBeCloseTo(5946.01, 1);
+    });
+
+    it("fully phases out QBI above the phaseout range", () => {
+      // $400,000 SE income: taxable before QBI is well above $276,750
+      const inputs = createDefaultInputs({
+        selfEmploymentIncome: 400000,
+        filingStatus: "single",
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData,
+      );
+
+      expect(result.qbiDeduction!.phaseoutApplied).toBe(true);
       expect(result.qbiDeduction!.finalDeduction).toBe(0);
     });
 
@@ -2055,7 +2069,7 @@ describe("calculateFederalTax", () => {
       // Deductible half of SE tax: $7,064.78
       // Taxable ordinary before QBI: $100,000 - $7,064.78 - $16,100 = $76,835.22
       // Total taxable before QBI: $376,835.22, above the full phaseout
-      // point of $241,950, so QBI is fully phased out
+      // point of $276,750, so QBI is fully phased out
       const inputs = createDefaultInputs({
         selfEmploymentIncome: 100000,
         ordinaryDividends: 300000,
@@ -2080,7 +2094,7 @@ describe("calculateFederalTax", () => {
 
     it("excludes qualified dividends from the 20% taxable income limit", () => {
       // Single filer, $100,000 SE income + $50,000 qualified dividends
-      // Total taxable before QBI: $126,835.22, under the $191,950 threshold
+      // Total taxable before QBI: $126,835.22, under the $201,750 threshold
       // Limit: 20% x $76,835.22 ordinary taxable income = $15,367.04
       const inputs = createDefaultInputs({
         selfEmploymentIncome: 100000,
@@ -2117,12 +2131,12 @@ describe("calculateFederalTax", () => {
       // Taxable before QBI: $175,000 + $50,000 - $1,258.54 - $16,100 = $207,641.46
       //
       // Phaseout calculation:
-      // Excess over $191,950: $207,641.46 - $191,950 = $15,691.46
-      // Phaseout ratio: $15,691.46 / $50,000 = 0.3138
-      // Reduction = 31.38%
+      // Excess over $201,750: $207,641.46 - $201,750 = $5,891.46
+      // Phaseout ratio: $5,891.46 / $75,000 = 0.07855
+      // Reduction = 7.86%
       //
       // Tentative QBI: $50,000 × 20% = $10,000
-      // Final QBI: $10,000 × (1 - 0.3138) = $6,862
+      // Final QBI: $10,000 × (1 - 0.07855) = $9,214.47
       const inputs = createDefaultInputs({
         federalIncome: 175000,
         selfEmploymentIncome: 50000,
@@ -2144,15 +2158,14 @@ describe("calculateFederalTax", () => {
       // Verify partial phaseout (not zero, not full)
       expect(result.qbiDeduction!.finalDeduction).toBeGreaterThan(0);
       expect(result.qbiDeduction!.finalDeduction).toBeLessThan(10000);
-      // Approximately $6,862 based on phaseout math
-      expect(result.qbiDeduction!.finalDeduction).toBeCloseTo(6862, -2);
+      expect(result.qbiDeduction!.finalDeduction).toBeCloseTo(9214.47, 1);
     });
 
-    it("uses higher phaseout range for MFJ ($383,900 - $483,900)", () => {
+    it("uses higher phaseout range for MFJ ($403,500 - $553,500)", () => {
       // MFJ with $300,000 SE income - under MFJ threshold
       // SE calculations same as before
       // Taxable before QBI: $300,000 - $15,456.23 - $32,200 = $252,343.77
-      // MFJ threshold is $383,900, so NO phaseout
+      // MFJ threshold is $403,500, so NO phaseout
       const inputs = createDefaultInputs({
         selfEmploymentIncome: 300000,
         filingStatus: "marriedFilingJointly",

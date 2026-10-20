@@ -73,7 +73,7 @@ Shared utilities:
 Handles federal deduction logic:
 
 - Standard vs itemized comparison
-- SALT cap application (with AGI-based elevated limits)
+- SALT cap application (`calculateSaltLimit()`: cap phases down above an AGI threshold, to a floor)
 - Mortgage interest limits
 - Charitable contribution limits
 

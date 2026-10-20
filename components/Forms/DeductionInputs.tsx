@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { TaxInputs, SharedLimitsData, FederalLimitsData } from "@/lib/types";
+import { calculateSaltLimit } from "@/lib/deductionCalculator";
 import { formatCurrency } from "@/lib/formatters";
 import CurrencyInput from "../UI/CurrencyInput";
 import CharitableWhatIfModal from "../Modals/CharitableWhatIfModal";
@@ -36,18 +37,20 @@ export default function DeductionInputs({
   // Calculate rough pre-deduction AGI to determine applicable SALT limit
   const roughAgi =
     inputs.federalIncome +
+    inputs.selfEmploymentIncome +
+    inputs.interestIncome +
+    inputs.ordinaryDividends +
     inputs.shortTermCapitalGains +
     inputs.longTermCapitalGains -
     inputs.contributions401k -
     inputs.preTaxMedical;
 
-  // Select SALT limit based on AGI threshold
-  const applicableSaltLimit =
-    roughAgi < federalLimits.saltLimit.elevatedAgiThreshold
-      ? federalLimits.saltLimit.elevated[inputs.filingStatus]
-      : inputs.filingStatus === "marriedFilingSeparately"
-        ? federalLimits.saltLimit.marriedFilingSeparately
-        : federalLimits.saltLimit.default;
+  // SALT limit phases down as AGI rises above the threshold
+  const applicableSaltLimit = calculateSaltLimit(
+    inputs.filingStatus,
+    federalLimits,
+    roughAgi,
+  );
 
   // Generate SALT warning message
   const getSaltWarning = (): string | undefined => {

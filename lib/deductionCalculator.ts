@@ -30,6 +30,27 @@ function calculateDeductibleMortgageInterest(
   return (balanceLimit / balance) * interestPaid;
 }
 
+/**
+ * Federal SALT deduction cap for the year. The cap is reduced by a percentage
+ * of modified AGI over the threshold, but never below the floor. Married
+ * filing separately uses half of each amount.
+ */
+export function calculateSaltLimit(
+  filingStatus: FilingStatus,
+  federalLimits: FederalLimitsData,
+  agi: number,
+): number {
+  const { floor, limit, phasedownRate, phasedownThreshold } =
+    federalLimits.saltLimit;
+  const key =
+    filingStatus === "marriedFilingSeparately"
+      ? "marriedFilingSeparately"
+      : "default";
+
+  const reduction = Math.max(0, agi - phasedownThreshold[key]) * phasedownRate;
+  return Math.max(floor[key], limit[key] - reduction);
+}
+
 export function calculateFederalDeductions(
   inputs: DeductionInputs,
   filingStatus: FilingStatus,
@@ -45,15 +66,8 @@ export function calculateFederalDeductions(
     inputs.stateEstimatedPaid +
     inputs.propertyTaxesPaid;
 
-  // SALT cap is AGI-dependent:
-  // - AGI < $500k: elevated limits ($40k MFJ, $20k Single/MFS)
-  // - AGI >= $500k: standard limits ($10k default, $5k MFS)
-  const saltLimit =
-    agi < federalLimits.saltLimit.elevatedAgiThreshold
-      ? federalLimits.saltLimit.elevated[filingStatus]
-      : filingStatus === "marriedFilingSeparately"
-        ? federalLimits.saltLimit.marriedFilingSeparately
-        : federalLimits.saltLimit.default;
+  // SALT cap phases down as AGI rises above the threshold
+  const saltLimit = calculateSaltLimit(filingStatus, federalLimits, agi);
 
   const saltDeduction = Math.min(totalStateAndLocalTaxes, saltLimit);
   const saltCapped = totalStateAndLocalTaxes > saltLimit;

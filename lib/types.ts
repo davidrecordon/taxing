@@ -99,15 +99,22 @@ export interface FederalLimitsData {
     currentYearPercent: number;
     priorYearPercent: number;
   };
+  // SALT cap is reduced by phasedownRate for each dollar of MAGI over the
+  // threshold, but never below the floor
   saltLimit: {
-    default: number;
-    elevated: {
-      marriedFilingJointly: number;
+    floor: {
+      default: number;
       marriedFilingSeparately: number;
-      single: number;
     };
-    elevatedAgiThreshold: number;
-    marriedFilingSeparately: number;
+    limit: {
+      default: number;
+      marriedFilingSeparately: number;
+    };
+    phasedownRate: number;
+    phasedownThreshold: {
+      default: number;
+      marriedFilingSeparately: number;
+    };
   };
 }
 

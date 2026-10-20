@@ -58,14 +58,10 @@ Federal-specific limits and thresholds.
 ```typescript
 {
   saltLimit: {
-    default: number,
-    marriedFilingSeparately: number,
-    elevated: {
-      marriedFilingJointly: number,
-      single: number,
-      marriedFilingSeparately: number
-    },
-    elevatedAgiThreshold: number
+    floor: { default: number, marriedFilingSeparately: number },
+    limit: { default: number, marriedFilingSeparately: number },
+    phasedownRate: number,
+    phasedownThreshold: { default: number, marriedFilingSeparately: number }
   },
   mortgageBalanceLimit: {
     default: number,

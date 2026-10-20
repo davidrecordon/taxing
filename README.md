@@ -17,7 +17,7 @@ A web-based tax estimation tool for calculating Federal and state income taxes. 
 - **Filing Statuses**: Single, Married Filing Jointly, Married Filing Separately
 - **Income Types**: W-2 wages, interest, ordinary and qualified dividends, short-term and long-term capital gains
 - **Deductions**: Automatic standard vs. itemized comparison
-  - SALT (State and Local Taxes) with AGI-dependent caps
+  - SALT (State and Local Taxes) with the AGI-based cap phasedown
   - Mortgage interest with balance-based limits
   - Charitable contributions
   - 401(k) pre-tax contributions

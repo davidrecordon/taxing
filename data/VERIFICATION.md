@@ -1,6 +1,6 @@
 # Tax Data Verification
 
-Last verified: 2026-10-05
+Last verified: 2026-10-19
 
 This document verifies that all tax data in the JSON files matches official government sources.
 
@@ -59,17 +59,28 @@ This document verifies that all tax data in the JSON files matches official gove
 
 ### Other Federal Limits
 
-**Source:** [IRS Pub 17](https://www.irs.gov/publications/p17), IRC sections
+**Source:** [IRS Pub 17](https://www.irs.gov/publications/p17), [IRS Rev. Proc. 2024-40](https://www.irs.gov/pub/irs-drop/rp-24-40.pdf) section 3.27 (QBI), [26 U.S.C. 164(b)(7)](https://www.law.cornell.edu/uscode/text/26/164) (SALT), IRC sections
 
-| Item                    | Our Data | Official | Match |
-| ----------------------- | -------- | -------- | ----- |
-| NIIT Rate               | 3.8%     | 3.8%     | Yes   |
-| NIIT Threshold (Single) | $200,000 | $200,000 | Yes   |
-| NIIT Threshold (MFJ)    | $250,000 | $250,000 | Yes   |
-| SALT Cap                | $10,000  | $10,000  | Yes   |
-| 401(k) Limit            | $23,500  | $23,500  | Yes   |
-| 401(k) Catch-up (50+)   | $7,500   | $7,500   | Yes   |
-| QBI Deduction Rate      | 20%      | 20%      | Yes   |
+| Item                            | Our Data         | Official         | Match |
+| ------------------------------- | ---------------- | ---------------- | ----- |
+| NIIT Rate                       | 3.8%             | 3.8%             | Yes   |
+| NIIT Threshold (Single)         | $200,000         | $200,000         | Yes   |
+| NIIT Threshold (MFJ)            | $250,000         | $250,000         | Yes   |
+| SALT Cap (Single/MFJ)           | $40,000          | $40,000          | Yes   |
+| SALT Cap (MFS)                  | $20,000          | $20,000          | Yes   |
+| SALT Phasedown Threshold        | $500,000         | $500,000         | Yes   |
+| SALT Phasedown Threshold (MFS)  | $250,000         | $250,000         | Yes   |
+| SALT Phasedown Rate             | 30%              | 30%              | Yes   |
+| SALT Cap Floor (MFS)            | $10,000 ($5,000) | $10,000 ($5,000) | Yes   |
+| 401(k) Limit                    | $23,500          | $23,500          | Yes   |
+| 401(k) Catch-up (50+)           | $7,500           | $7,500           | Yes   |
+| QBI Deduction Rate              | 20%              | 20%              | Yes   |
+| QBI Threshold (Single/MFS)      | $197,300         | $197,300         | Yes   |
+| QBI Threshold (MFJ)             | $394,600         | $394,600         | Yes   |
+| QBI Phase-in Range (Single/MFS) | $50,000          | $50,000          | Yes   |
+| QBI Phase-in Range (MFJ)        | $100,000         | $100,000         | Yes   |
+
+**Correction (2026-10-19):** The QBI thresholds were previously recorded as $191,950 and $383,900 (the 2024 amounts). The SALT cap was previously recorded as $40,000 for MFJ and $20,000 for Single, dropping straight to $10,000 at $500,000 of AGI. The One Big Beautiful Bill Act sets one cap for all filers (half for MFS) and reduces it by 30% of modified AGI over the threshold, down to a $10,000 floor.
 
 ---
 
@@ -105,17 +116,29 @@ This document verifies that all tax data in the JSON files matches official gove
 
 ### Other Federal Limits (2026)
 
-**Source:** IRC sections (statutory, not inflation-adjusted)
+**Source:** [IRS Rev. Proc. 2025-32](https://www.irs.gov/pub/irs-drop/rp-25-32.pdf) section 4.26 (QBI), [26 U.S.C. 164(b)(7)](https://www.law.cornell.edu/uscode/text/26/164) (SALT), IRC sections
 
-| Item                    | Our Data | Official | Match |
-| ----------------------- | -------- | -------- | ----- |
-| NIIT Rate               | 3.8%     | 3.8%     | Yes   |
-| NIIT Threshold (Single) | $200,000 | $200,000 | Yes   |
-| NIIT Threshold (MFJ)    | $250,000 | $250,000 | Yes   |
-| SALT Cap                | $10,000  | $10,000  | Yes   |
-| QBI Deduction Rate      | 20%      | 20%      | Yes   |
+| Item                            | Our Data         | Official         | Match |
+| ------------------------------- | ---------------- | ---------------- | ----- |
+| NIIT Rate                       | 3.8%             | 3.8%             | Yes   |
+| NIIT Threshold (Single)         | $200,000         | $200,000         | Yes   |
+| NIIT Threshold (MFJ)            | $250,000         | $250,000         | Yes   |
+| SALT Cap (Single/MFJ)           | $40,400          | $40,400          | Yes   |
+| SALT Cap (MFS)                  | $20,200          | $20,200          | Yes   |
+| SALT Phasedown Threshold        | $505,000         | $505,000         | Yes   |
+| SALT Phasedown Threshold (MFS)  | $252,500         | $252,500         | Yes   |
+| SALT Phasedown Rate             | 30%              | 30%              | Yes   |
+| SALT Cap Floor (MFS)            | $10,000 ($5,000) | $10,000 ($5,000) | Yes   |
+| QBI Deduction Rate              | 20%              | 20%              | Yes   |
+| QBI Threshold (Single)          | $201,750         | $201,750         | Yes   |
+| QBI Threshold (MFS)             | $201,775         | $201,775         | Yes   |
+| QBI Threshold (MFJ)             | $403,500         | $403,500         | Yes   |
+| QBI Phase-in Range (Single/MFS) | $75,000          | $75,000          | Yes   |
+| QBI Phase-in Range (MFJ)        | $150,000         | $150,000         | Yes   |
 
-**Note:** NIIT thresholds, SALT cap, and QBI rate are statutory and do not adjust for inflation.
+**Note:** NIIT thresholds and the QBI rate are statutory and do not adjust for inflation. The SALT cap and its phasedown threshold are set by statute and rise 1% a year through 2029. The QBI phase-in range is stored as a width (the Rev. Proc. lists the end of the range: $276,750, $276,775, and $553,500).
+
+**Correction (2026-10-19):** The QBI thresholds and phase-in ranges were previously the 2024 amounts ($191,950 / $383,900 with $50,000 / $100,000 ranges), and the SALT cap was the 2025 amount with the same errors described under Federal (2025).
 
 ---
 
@@ -362,17 +385,17 @@ This document verifies that all tax data in the JSON files matches official gove
 
 NY enacted 0.1% rate reductions for the bottom 5 brackets effective 2026:
 
-| Rate (2025) | Rate (2026) | Single             | MFJ                | Match |
-| ----------- | ----------- | ------------------ | ------------------ | ----- |
-| 4.0%        | 3.9%        | $0-$8,500          | $0-$17,150         | Yes   |
-| 4.5%        | 4.4%        | $8,500-$11,700     | $17,150-$23,600    | Yes   |
-| 5.25%       | 5.15%       | $11,700-$13,900    | $23,600-$27,900    | Yes   |
-| 5.5%        | 5.4%        | $13,900-$80,650    | $27,900-$161,550   | Yes   |
-| 6.0%        | 5.9%        | $80,650-$215,400   | $161,550-$323,200  | Yes   |
-| 6.85%       | 6.85%       | $215,400-$1,077,550| $323,200-$2,155,350| Yes   |
-| 9.65%       | 9.65%       | $1,077,550-$5M     | $2,155,350-$5M     | Yes   |
-| 10.3%       | 10.3%       | $5M-$25M           | $5M-$25M           | Yes   |
-| 10.9%       | 10.9%       | $25M+              | $25M+              | Yes   |
+| Rate (2025) | Rate (2026) | Single              | MFJ                 | Match |
+| ----------- | ----------- | ------------------- | ------------------- | ----- |
+| 4.0%        | 3.9%        | $0-$8,500           | $0-$17,150          | Yes   |
+| 4.5%        | 4.4%        | $8,500-$11,700      | $17,150-$23,600     | Yes   |
+| 5.25%       | 5.15%       | $11,700-$13,900     | $23,600-$27,900     | Yes   |
+| 5.5%        | 5.4%        | $13,900-$80,650     | $27,900-$161,550    | Yes   |
+| 6.0%        | 5.9%        | $80,650-$215,400    | $161,550-$323,200   | Yes   |
+| 6.85%       | 6.85%       | $215,400-$1,077,550 | $323,200-$2,155,350 | Yes   |
+| 9.65%       | 9.65%       | $1,077,550-$5M      | $2,155,350-$5M      | Yes   |
+| 10.3%       | 10.3%       | $5M-$25M            | $5M-$25M            | Yes   |
+| 10.9%       | 10.9%       | $25M+               | $25M+               | Yes   |
 
 **Note:** Brackets remain unchanged; only the rates for the bottom 5 brackets were reduced by 0.1 percentage points.
 
@@ -391,12 +414,12 @@ NY enacted 0.1% rate reductions for the bottom 5 brackets effective 2026:
 
 **Source:** [WA DOR Capital Gains Tax](https://dor.wa.gov/taxes-rates/other-taxes/capital-gains-tax)
 
-| Item             | Our Data   | Official   | Match                    |
-| ---------------- | ---------- | ---------- | ------------------------ |
+| Item             | Our Data   | Official   | Match                      |
+| ---------------- | ---------- | ---------- | -------------------------- |
 | Exemption        | $278,000   | TBD        | WAITING - using 2025 value |
-| Base Rate        | 7%         | 7%         | Yes                      |
-| Surtax Rate      | 9.9%       | 9.9%       | Yes                      |
-| Surtax Threshold | $1,000,000 | $1,000,000 | Yes                      |
+| Base Rate        | 7%         | 7%         | Yes                        |
+| Surtax Rate      | 9.9%       | 9.9%       | Yes                        |
+| Surtax Threshold | $1,000,000 | $1,000,000 | Yes                        |
 
 **Note:** The 2026 exemption threshold has NOT been announced by WA DOR as of 2026-10-05. Currently using the 2025 value ($278,000) as a placeholder. The exemption is adjusted annually for inflation per RCW 82.87.150. Check the WA DOR website for the official 2026 amount when published.
 
@@ -470,16 +493,16 @@ Same as 2025 (brackets not inflation-adjusted).
 **Note:** Updated 2026-10-05 from the $15,000/$30,000 placeholders (the 2025 amounts). OTR's booklet is the only official source found; some third-party calculators show $15,700/$31,400. Re-check against the 2026 D-40 instructions when published.
 
 ------------- | -------- | -------- | -------------------------- |
-| Single        | $15,000  | TBD      | WAITING - using 2025 value |
-| MFJ           | $30,000  | TBD      | WAITING - using 2025 value |
-| MFS           | $15,000  | TBD      | WAITING - using 2025 value |
+| Single | $15,000 | TBD | WAITING - using 2025 value |
+| MFJ | $30,000 | TBD | WAITING - using 2025 value |
+| MFS | $15,000 | TBD | WAITING - using 2025 value |
 
 **Note:** The 2026 amounts are unresolved as of 2026-10-05, and the $15,000/$30,000 placeholders are almost certainly too low. [D.C. Act 26-214](https://code.dccouncil.gov/us/dc/council/acts/26-214) sets the 2025 base at $15,000/$30,000 with annual COLA adjustments for 2026+. The [OTR 2026 D-40ES booklet](https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2026_D40ES_Book_wLinks04012026.pdf) (rev. 03/2026) worksheet uses $16,100 single/MFS and $32,200 MFJ, while some third-party calculators show $15,700/$31,400. No second official source confirms either, so the data was left unchanged. Check the 2026 D-40 instructions when published.
 
 ------------- | -------- | -------- | ----- |
-| Single        | $15,000  | $15,000  | Yes   |
-| MFJ           | $30,000  | TBD      | WAITING - using 2025 base |
-| MFS           | $15,000  | $15,000  | Yes   |
+| Single | $15,000 | $15,000 | Yes |
+| MFJ | $30,000 | TBD | WAITING - using 2025 base |
+| MFS | $15,000 | $15,000 | Yes |
 
 **Note:** DC 2026 MFJ standard deduction has NOT been published by DC OTR as of 2026-02-06. [D.C. Act 26-214](https://code.dccouncil.gov/us/dc/council/acts/26-214) sets the 2025 MFJ base at $30,000 with annual COLA adjustments for 2026+. Currently using the $30,000 base as a placeholder. Check the DC OTR website for the official 2026 D-40 forms when published.
 

@@ -100,11 +100,11 @@ Each state calculator tests:
 
 ### Deductions (`deductionCalculator.test.ts`)
 
-- **SALT cap and standard vs itemized** - $10,000 cap, automatic comparison
+- **SALT cap and standard vs itemized** - Fully phased-down $10,000 cap, automatic comparison
 - **mortgage interest proration** - Balance limits ($750k/$375k MFS)
 - **MFS edge cases** - Half limits for married filing separately
 - **boundary cases** - Exact threshold testing
-- **AGI-dependent SALT cap** - Elevated caps for AGI < $500k
+- **AGI-dependent SALT cap** - Full cap, 30% phasedown above the threshold, floor, by tax year
 
 ### Utilities
 

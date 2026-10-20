@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
-  calculateFederalDeductions,
   calculateCaliforniaDeductions,
+  calculateFederalDeductions,
+  calculateSaltLimit,
 } from "../deductionCalculator";
 import { DeductionsData, FederalLimitsData } from "../types";
 import {
@@ -9,6 +10,7 @@ import {
   californiaDeductions,
   federalLimits,
   californiaLimits,
+  loadTestDataForYear,
 } from "./testData";
 
 interface DeductionInputs {
@@ -34,16 +36,16 @@ function createDefaultDeductionInputs(
   };
 }
 
-// Default high AGI for tests that should use standard (lower) SALT cap
-const HIGH_AGI = 600000;
-// Low AGI for tests that should use elevated SALT cap
+// AGI high enough that the SALT cap is fully phased down to its floor
+const HIGH_AGI = 700000;
+// AGI below the phasedown threshold, so the full SALT cap applies
 const LOW_AGI = 400000;
 
 describe("calculateFederalDeductions", () => {
   describe("SALT cap and standard vs itemized", () => {
-    it("caps SALT at $10,000 when AGI >= $500k and chooses itemized when higher than standard", () => {
+    it("caps SALT at $10,000 when fully phased down and chooses itemized when higher than standard", () => {
       // $15,000 CA tax withheld + $8,000 property tax = $23,000 total SALT
-      // Capped at $10,000 (AGI >= $500k)
+      // Capped at $10,000 (fully phased down)
       // $20,000 mortgage interest + $5,000 charitable = $25,000
       // Total itemized: $10,000 + $25,000 = $35,000 > $15,000 standard
       const inputs = createDefaultDeductionInputs({
@@ -154,7 +156,7 @@ describe("calculateFederalDeductions", () => {
 });
 
 describe("calculateFederalDeductions MFS edge cases", () => {
-  it("uses $5,000 SALT cap for MFS when AGI >= $500k", () => {
+  it("uses $5,000 SALT cap for MFS when fully phased down", () => {
     const inputs = createDefaultDeductionInputs({
       stateTaxWithheld: 8000,
       propertyTaxesPaid: 5000, // Total $13,000 SALT
@@ -171,7 +173,7 @@ describe("calculateFederalDeductions MFS edge cases", () => {
       HIGH_AGI,
     );
 
-    // SALT capped at $5,000 for MFS when AGI >= $500k
+    // SALT capped at $5,000 for MFS when fully phased down
     expect(result.saltDeduction).toBe(5000);
     expect(result.saltCapped).toBe(true);
   });
@@ -309,7 +311,7 @@ describe("calculateFederalDeductions MFJ", () => {
     expect(result.deductionAmount).toBe(32200);
   });
 
-  it("uses $10,000 SALT cap for MFJ when AGI >= $500k", () => {
+  it("uses $10,000 SALT cap for MFJ when fully phased down", () => {
     const inputs = createDefaultDeductionInputs({
       stateTaxWithheld: 20000,
       propertyTaxesPaid: 15000,
@@ -561,74 +563,53 @@ describe("mortgage interest edge cases across both jurisdictions", () => {
 });
 
 describe("calculateFederalDeductions AGI-dependent SALT cap", () => {
-  describe("elevated SALT cap when AGI < $500k", () => {
-    it("uses $20,000 SALT cap for Single when AGI < $500k", () => {
-      const inputs = createDefaultDeductionInputs({
-        stateTaxWithheld: 15000,
-        propertyTaxesPaid: 10000, // Total $25,000 SALT
-        mortgageInterestPaid: 20000,
-        mortgageBalance: 500000,
-      });
+  // $50,000 of state and local taxes, well above every cap
+  const highSaltInputs = createDefaultDeductionInputs({
+    stateTaxWithheld: 30000,
+    propertyTaxesPaid: 20000,
+    mortgageInterestPaid: 20000,
+    mortgageBalance: 500000,
+  });
 
-      const result = calculateFederalDeductions(
-        inputs,
-        "single",
-        federalDeductions as DeductionsData,
-        federalLimits as FederalLimitsData,
-        LOW_AGI,
-      );
+  const saltDeductionAt = (
+    filingStatus: Parameters<typeof calculateFederalDeductions>[1],
+    agi: number,
+  ) =>
+    calculateFederalDeductions(
+      highSaltInputs,
+      filingStatus,
+      federalDeductions,
+      federalLimits,
+      agi,
+    );
 
-      // SALT capped at $20,000 for Single when AGI < $500k
-      expect(result.saltDeduction).toBe(20000);
+  describe("full SALT cap below the phasedown threshold", () => {
+    it("uses $40,400 SALT cap for Single", () => {
+      const result = saltDeductionAt("single", LOW_AGI);
+
+      expect(result.saltDeduction).toBe(40400);
       expect(result.saltCapped).toBe(true);
     });
 
-    it("uses $40,000 SALT cap for MFJ when AGI < $500k", () => {
-      const inputs = createDefaultDeductionInputs({
-        stateTaxWithheld: 30000,
-        propertyTaxesPaid: 20000, // Total $50,000 SALT
-        mortgageInterestPaid: 25000,
-        mortgageBalance: 600000,
-      });
+    it("uses the same $40,400 SALT cap for MFJ", () => {
+      const result = saltDeductionAt("marriedFilingJointly", LOW_AGI);
 
-      const result = calculateFederalDeductions(
-        inputs,
-        "marriedFilingJointly",
-        federalDeductions as DeductionsData,
-        federalLimits as FederalLimitsData,
-        LOW_AGI,
-      );
-
-      // SALT capped at $40,000 for MFJ when AGI < $500k
-      expect(result.saltDeduction).toBe(40000);
+      expect(result.saltDeduction).toBe(40400);
       expect(result.saltCapped).toBe(true);
     });
 
-    it("uses $20,000 SALT cap for MFS when AGI < $500k", () => {
-      const inputs = createDefaultDeductionInputs({
-        stateTaxWithheld: 15000,
-        propertyTaxesPaid: 10000, // Total $25,000 SALT
-        mortgageInterestPaid: 10000,
-        mortgageBalance: 300000,
-      });
+    it("uses half the cap ($20,200) for MFS", () => {
+      // MFS threshold is $252,500, so use an AGI below it
+      const result = saltDeductionAt("marriedFilingSeparately", 200000);
 
-      const result = calculateFederalDeductions(
-        inputs,
-        "marriedFilingSeparately",
-        federalDeductions as DeductionsData,
-        federalLimits as FederalLimitsData,
-        LOW_AGI,
-      );
-
-      // SALT capped at $20,000 for MFS when AGI < $500k
-      expect(result.saltDeduction).toBe(20000);
+      expect(result.saltDeduction).toBe(20200);
       expect(result.saltCapped).toBe(true);
     });
 
-    it("does not cap SALT below elevated limit", () => {
+    it("does not cap SALT below the limit", () => {
       const inputs = createDefaultDeductionInputs({
         stateTaxWithheld: 10000,
-        propertyTaxesPaid: 5000, // Total $15,000 SALT (below $20k limit)
+        propertyTaxesPaid: 5000, // Total $15,000 SALT (below $40,400 limit)
         mortgageInterestPaid: 10000,
         mortgageBalance: 500000,
       });
@@ -636,8 +617,8 @@ describe("calculateFederalDeductions AGI-dependent SALT cap", () => {
       const result = calculateFederalDeductions(
         inputs,
         "single",
-        federalDeductions as DeductionsData,
-        federalLimits as FederalLimitsData,
+        federalDeductions,
+        federalLimits,
         LOW_AGI,
       );
 
@@ -646,45 +627,52 @@ describe("calculateFederalDeductions AGI-dependent SALT cap", () => {
     });
   });
 
-  describe("AGI threshold boundary", () => {
-    it("uses elevated cap when AGI is $499,999", () => {
-      const inputs = createDefaultDeductionInputs({
-        stateTaxWithheld: 15000,
-        propertyTaxesPaid: 10000, // Total $25,000 SALT
-        mortgageInterestPaid: 20000,
-        mortgageBalance: 500000,
-      });
-
-      const result = calculateFederalDeductions(
-        inputs,
-        "single",
-        federalDeductions as DeductionsData,
-        federalLimits as FederalLimitsData,
-        499999,
-      );
-
-      // AGI < $500k, so elevated $20k cap applies
-      expect(result.saltDeduction).toBe(20000);
+  describe("phasedown above the threshold", () => {
+    it("uses the full cap when AGI is exactly $505,000", () => {
+      expect(saltDeductionAt("single", 505000).saltDeduction).toBe(40400);
     });
 
-    it("uses standard cap when AGI is exactly $500,000", () => {
-      const inputs = createDefaultDeductionInputs({
-        stateTaxWithheld: 15000,
-        propertyTaxesPaid: 10000, // Total $25,000 SALT
-        mortgageInterestPaid: 20000,
-        mortgageBalance: 500000,
-      });
+    it("reduces the cap by 30% of AGI over the threshold", () => {
+      // $520,000 - $505,000 = $15,000 over, x 30% = $4,500 reduction
+      expect(saltDeductionAt("single", 520000).saltDeduction).toBe(35900);
+    });
 
-      const result = calculateFederalDeductions(
-        inputs,
-        "single",
-        federalDeductions as DeductionsData,
-        federalLimits as FederalLimitsData,
-        500000,
-      );
+    it("does not reduce the cap below the $10,000 floor", () => {
+      // $650,000 - $505,000 = $145,000 over, x 30% = $43,500 reduction
+      expect(saltDeductionAt("single", 650000).saltDeduction).toBe(10000);
+    });
 
-      // AGI >= $500k, so standard $10k cap applies
-      expect(result.saltDeduction).toBe(10000);
+    it("starts the MFS phasedown at half the threshold", () => {
+      // $262,500 - $252,500 = $10,000 over, x 30% = $3,000 reduction
+      expect(
+        saltDeductionAt("marriedFilingSeparately", 262500).saltDeduction,
+      ).toBe(17200);
+    });
+  });
+
+  describe("calculateSaltLimit by tax year", () => {
+    it("uses $40,000 and a $500,000 threshold for 2025", () => {
+      const limits2025 = loadTestDataForYear("2025").federalLimits;
+
+      expect(calculateSaltLimit("single", limits2025, 400000)).toBe(40000);
+      // $515,000 - $500,000 = $15,000 over, x 30% = $4,500 reduction
+      expect(calculateSaltLimit("single", limits2025, 515000)).toBe(35500);
+      expect(
+        calculateSaltLimit("marriedFilingSeparately", limits2025, 200000),
+      ).toBe(20000);
+      expect(
+        calculateSaltLimit("marriedFilingSeparately", limits2025, 700000),
+      ).toBe(5000);
+    });
+
+    it("uses $40,400 and a $505,000 threshold for 2026", () => {
+      const limits2026 = loadTestDataForYear("2026").federalLimits;
+
+      expect(calculateSaltLimit("single", limits2026, 400000)).toBe(40400);
+      expect(calculateSaltLimit("single", limits2026, 515000)).toBe(37400);
+      expect(
+        calculateSaltLimit("marriedFilingSeparately", limits2026, 200000),
+      ).toBe(20200);
     });
   });
 });
