@@ -89,6 +89,7 @@ export function calculateResults(
           data.sharedLimits,
           data.illinoisLimits,
           data.ficaData,
+          federal.adjustedGrossIncome,
         );
       case "newyork":
         return calculateNewYorkTax(

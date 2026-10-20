@@ -35,6 +35,7 @@ export function calculateIllinoisTax(
   sharedLimits: SharedLimitsData,
   illinoisLimits: IllinoisLimitsData,
   ficaData?: FicaData,
+  federalAgi?: number,
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
 
@@ -60,7 +61,10 @@ export function calculateIllinoisTax(
     filingStatus === "marriedFilingJointly"
       ? illinoisLimits.incomeLimit.marriedFilingJointly
       : illinoisLimits.incomeLimit.default;
-  const overIncomeLimit = adjustedGrossIncome > incomeLimit;
+  // The limit is on federal AGI, which can differ from Illinois income (it
+  // includes U.S. Treasury interest, and wages entered for Illinois may be
+  // lower). Illinois AGI stands in when the federal figure is not supplied.
+  const overIncomeLimit = (federalAgi ?? adjustedGrossIncome) > incomeLimit;
   const personalExemption = overIncomeLimit
     ? 0
     : illinoisDeductions.personalExemption[filingStatus];

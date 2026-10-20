@@ -227,6 +227,7 @@ function calculateStateTaxWithData(
         sharedLimits,
         limits,
         ficaData,
+        federal.adjustedGrossIncome,
       );
     case "newyork":
       return calculateNewYorkTax(

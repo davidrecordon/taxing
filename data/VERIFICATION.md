@@ -360,7 +360,7 @@ Above $107,650 of NY AGI the benefit of the lower brackets is phased out over th
 | Exemption and credit income limit (MFJ) | $500,000 | $500,000 | Yes   |
 | Property tax credit rate                | 5%       | 5%       | Yes   |
 
-**Note:** No exemption or property tax credit is allowed when federal AGI exceeds the limit (a cliff, not a phaseout). The credit is nonrefundable and applies only to an Illinois principal residence; the calculator assumes the property tax entered qualifies. The limits are statutory, so the same values are used for 2026.
+**Note:** No exemption or property tax credit is allowed when federal AGI exceeds the limit (a cliff, not a phaseout). The calculator tests the limit against the federal AGI it has already worked out, not Illinois income, since the two differ when there is U.S. Treasury interest or lower Illinois wages. The credit is nonrefundable and applies only to an Illinois principal residence; the calculator assumes the property tax entered qualifies. The limits are statutory, so the same values are used for 2026.
 
 ---
 
