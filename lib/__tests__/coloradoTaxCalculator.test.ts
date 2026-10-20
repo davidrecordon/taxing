@@ -126,13 +126,35 @@ describe("calculateColoradoTax", () => {
       );
 
       expect(result.safeHarbor).toBeDefined();
-      // 90% of current year tax
+      // Colorado requires 70% of current year tax
       expect(result.safeHarbor!.currentYear90Percent).toBeCloseTo(
-        result.totalTax * 0.9,
-        0,
+        result.totalTax * 0.7,
+        2,
       );
       // 110% of prior year tax (last year's income assumed over $150,000)
       expect(result.safeHarbor!.priorYearSafeHarbor).toBeCloseTo(4400, 2);
+    });
+
+    it("is met by paying 70% of this year's tax", () => {
+      // $100,000 wages: Colorado tax is 4.4% x $83,900 = $3,691.60
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        stateTaxWithheld: 2600,
+        selectedState: "colorado",
+        filingStatus: "single",
+      });
+
+      const result = calculateColoradoTax(
+        inputs,
+        coloradoBrackets,
+        sharedLimits,
+        coloradoLimits,
+        getFederalResult(inputs),
+        ficaData,
+      );
+
+      expect(result.safeHarbor!.minimum).toBeCloseTo(2584.12, 2);
+      expect(result.safeHarbor!.met).toBe(true);
     });
 
     it("requires 100% of last year's tax when last year's income was not over $150,000", () => {

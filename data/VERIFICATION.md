@@ -392,10 +392,15 @@ Above $107,650 of NY AGI the benefit of the lower brackets is phased out over th
 
 ### Safe Harbor
 
-| Item         | Our Data | Official | Match |
-| ------------ | -------- | -------- | ----- |
-| Current Year | 90%      | 90%      | Yes   |
-| Prior Year   | 100%     | 100%     | Yes   |
+| Item                                                            | Our Data | Official | Match |
+| --------------------------------------------------------------- | -------- | -------- | ----- |
+| Current Year                                                    | 70%      | 70%      | Yes   |
+| Prior Year                                                      | 100%     | 100%     | Yes   |
+| Prior Year, last year's federal AGI over $150,000 ($75,000 MFS) | 110%     | 110%     | Yes   |
+
+**Source:** [DR 0204 (rev. 09/25/25)](https://tax.colorado.gov/sites/default/files/documents/DR0204_2025.pdf): "The required annual amount to be paid is the lesser of: 70% of actual current year net Colorado tax liability, or 100% of preceding year's net Colorado tax liability ... or 110% of preceding year's net Colorado tax liability." The 2026 DR 0104EP has the same wording.
+
+**Correction (2026-10-19):** The current-year share was previously recorded as 90%.
 
 ---
 
