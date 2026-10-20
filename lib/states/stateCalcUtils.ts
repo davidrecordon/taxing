@@ -175,12 +175,17 @@ export function calculateSafeHarbor(
     minimum = currentYearSafeHarbor;
   }
 
+  // Compared to the cent: tax that is not a whole number of cents in binary
+  // can leave the minimum a hair above a payment that meets it
+  const shortfall = minimum - totalPaid;
+  const met = shortfall < 0.005;
+
   return {
     currentYear90Percent: currentYearSafeHarbor,
     priorYearSafeHarbor,
     minimum,
-    met: totalPaid >= minimum,
-    remaining: Math.max(0, minimum - totalPaid),
+    met,
+    remaining: met ? 0 : shortfall,
     priorYearPercent: config.priorYearPercent,
     highIncomeException: config.isHighIncome,
   };
