@@ -30,13 +30,13 @@ lib/
 TaxInputs (user form data)
     │
     ├─► federalTaxCalculator.ts
-    │     ├─ Calculate gross income (wages + capital gains)
-    │     ├─ Apply loss carryovers
+    │     ├─ Calculate gross income (wages + interest + dividends + capital gains)
+    │     ├─ Net capital gains, losses, and carryovers (Schedule D)
     │     ├─ Apply pre-tax deductions (401k, medical)
     │     ├─ Calculate AGI
     │     ├─ Determine deduction (standard vs itemized)
     │     ├─ Calculate tax by bracket
-    │     ├─ Add LTCG tax and FICA
+    │     ├─ Add LTCG / qualified dividend tax, FICA, and NIIT
     │     └─ Calculate safe harbor
     │
     └─► {state}TaxCalculator.ts
@@ -64,6 +64,9 @@ Shared utilities:
 - `calculateTaxByBracket()` - Progressive tax calculation
 - `calculateIncomeInBrackets()` - Bracket breakdown
 - `calculateEffectiveRates()` - Effective rate calculations
+- `netCapitalGains()` - Schedule D netting of gains, losses, and carryovers (used by federal and state calculators). Known approximation: at very low incomes the carryover to next year can be understated by up to the annual deduction limit; see the function comment.
+- `splitDividends()` - Qualified vs non-qualified dividend split
+- `taxableInterest()` - Taxable interest, ignoring negative entries
 
 ### deductionCalculator.ts
 
@@ -78,6 +81,7 @@ Handles federal deduction logic:
 
 Shared state calculator utilities:
 
+- `calculateStateGrossIncome()` - Gross income and capital loss offsets for states that tax all income as ordinary
 - `calculatePaymentSummary()` - Withholding and payments
 - `calculateSafeHarbor()` - Safe harbor calculations
 

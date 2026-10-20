@@ -243,6 +243,9 @@ export interface TaxInputs {
   stateIncome: number;
   shortTermCapitalGains: number;
   longTermCapitalGains: number;
+  interestIncome: number; // 1099-INT box 1 (taxable interest)
+  ordinaryDividends: number; // 1099-DIV box 1a (total, includes qualified)
+  qualifiedDividends: number; // 1099-DIV box 1b (subset of ordinary)
 
   // Withholding and estimated payments
   federalTaxWithheld: number;
@@ -272,6 +275,20 @@ export interface TaxInputs {
 }
 
 // Calculation Result Types
+
+// Result of Schedule D netting (see netCapitalGains in taxUtils.ts)
+export interface CapitalGainsNetting {
+  longTermGains: number; // Current year long-term gains (0 if a loss)
+  longTermLossOffset: number; // Long-term losses used this year
+  longTermLossUnused: number; // Long-term carryover to next year
+  netLongTermGain: number; // Long-term gain left after netting
+  netShortTermGain: number; // Short-term gain left after netting
+  ordinaryIncomeDeduction: number; // Net loss deducted from other income
+  shortTermGains: number; // Current year short-term gains (0 if a loss)
+  shortTermLossOffset: number; // Short-term losses used this year
+  shortTermLossUnused: number; // Short-term carryover to next year
+}
+
 export interface BracketBreakdown {
   bracketMin: number;
   bracketMax: number | null;
@@ -337,11 +354,16 @@ export interface TaxCalculationResult {
   wageIncome: number;
   shortTermCapitalGains: number;
   longTermCapitalGains: number;
+  interestIncome?: number; // Taxable interest
+  ordinaryDividends?: number; // Total dividends, including qualified
+  qualifiedDividends?: number; // Portion of ordinaryDividends taxed at LTCG rates
   grossIncome: number;
+  // Loss offsets cover current year losses and prior year carryovers, whether
+  // used against gains or deducted from other income (up to the annual limit)
   shortTermLossCarryoverOffset: number;
-  shortTermLossCarryoverUnused?: number; // Preserved for future years
+  shortTermLossCarryoverUnused?: number; // Carries over to next year
   longTermLossCarryoverOffset: number;
-  longTermLossCarryoverUnused?: number; // Preserved for future years (0% bracket optimization)
+  longTermLossCarryoverUnused?: number; // Carries over to next year
   contributions401k: number;
   preTaxMedical: number;
   selfEmploymentIncome?: number; // For state displays
@@ -353,7 +375,7 @@ export interface TaxCalculationResult {
 
   // Taxable income
   taxableOrdinaryIncome: number;
-  taxableLTCG: number;
+  taxableLTCG: number; // Federal: net long-term gains plus qualified dividends
 
   // Tax by bracket
   ordinaryIncomeBracketBreakdown: BracketBreakdown[];

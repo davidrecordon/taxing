@@ -51,6 +51,9 @@ const defaultInputs: TaxInputs = {
   stateIncome: 0,
   shortTermCapitalGains: 0,
   longTermCapitalGains: 0,
+  interestIncome: 0,
+  ordinaryDividends: 0,
+  qualifiedDividends: 0,
   federalTaxWithheld: 0,
   stateTaxWithheld: 0,
   federalEstimatedPaid: 0,
@@ -414,6 +417,10 @@ export default function TaxCalculator() {
         shortTermCapitalGains:
           inputs.shortTermCapitalGains * (splits.stcg / 100),
         longTermCapitalGains: inputs.longTermCapitalGains * (splits.ltcg / 100),
+        interestIncome: inputs.interestIncome * (splits.dividends / 100),
+        ordinaryDividends: inputs.ordinaryDividends * (splits.dividends / 100),
+        qualifiedDividends:
+          inputs.qualifiedDividends * (splits.dividends / 100),
         contributions401k:
           inputs.contributions401k * (splits.contributions401k / 100),
         preTaxMedical: inputs.preTaxMedical * (splits.preTaxMedical / 100),
@@ -450,6 +457,12 @@ export default function TaxCalculator() {
           inputs.shortTermCapitalGains * ((100 - splits.stcg) / 100),
         longTermCapitalGains:
           inputs.longTermCapitalGains * ((100 - splits.ltcg) / 100),
+        interestIncome:
+          inputs.interestIncome * ((100 - splits.dividends) / 100),
+        ordinaryDividends:
+          inputs.ordinaryDividends * ((100 - splits.dividends) / 100),
+        qualifiedDividends:
+          inputs.qualifiedDividends * ((100 - splits.dividends) / 100),
         contributions401k:
           inputs.contributions401k * ((100 - splits.contributions401k) / 100),
         preTaxMedical:
@@ -614,7 +627,11 @@ export default function TaxCalculator() {
         {/* Row 2: Inputs + Breakdowns */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-6">
-            <IncomeInputs inputs={inputs} onUpdate={updateInput} />
+            <IncomeInputs
+              inputs={inputs}
+              onUpdate={updateInput}
+              sharedLimits={federalData.sharedLimits}
+            />
 
             <WithholdingInputs inputs={inputs} onUpdate={updateInput} />
 

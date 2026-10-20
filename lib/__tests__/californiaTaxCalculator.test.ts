@@ -41,6 +41,35 @@ describe("calculateCaliforniaTax", () => {
     });
   });
 
+  describe("interest and dividends", () => {
+    it("taxes interest and dividends as ordinary income without offsetting them with carryovers", () => {
+      // $100,000 wages + $10,000 interest + $50,000 dividends, $40,000 LT loss carryover
+      // Only $3,000 of the carryover is deductible against other income
+      const inputs = createDefaultInputs({
+        federalIncome: 100000,
+        interestIncome: 10000,
+        ordinaryDividends: 50000,
+        qualifiedDividends: 50000,
+        priorYearLongTermLossCarryover: 40000,
+        filingStatus: "single",
+      });
+
+      const result = calculateCaliforniaTax(
+        inputs,
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits,
+      );
+
+      expect(result.grossIncome).toBe(160000);
+      expect(result.longTermLossCarryoverOffset).toBe(3000);
+      expect(result.taxableOrdinaryIncome).toBe(
+        160000 - 3000 - result.deductionBreakdown.deductionAmount,
+      );
+    });
+  });
+
   describe("mental health tax", () => {
     it("applies 1% mental health tax on income above $1M", () => {
       // Single filer with $1,100,000 income

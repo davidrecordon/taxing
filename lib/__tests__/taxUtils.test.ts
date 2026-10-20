@@ -3,7 +3,10 @@ import {
   calculateEffectiveRate,
   calculateEffectiveRates,
   calculateLTCGTaxWithStacking,
+  netCapitalGains,
+  splitDividends,
 } from "../taxUtils";
+import { sharedLimits } from "./testData";
 import { TaxCalculationResult, TaxBracket } from "../types";
 
 describe("calculateEffectiveRate", () => {
@@ -257,5 +260,126 @@ describe("calculateLTCGTaxWithStacking", () => {
     expect(result.breakdown[0].rate).toBe(0.2);
     expect(result.breakdown[0].incomeInBracket).toBe(50000);
     expect(result.total).toBeCloseTo(50000 * 0.2, 2);
+  });
+});
+
+describe("splitDividends", () => {
+  it("separates qualified from non-qualified dividends", () => {
+    expect(
+      splitDividends({ ordinaryDividends: 20000, qualifiedDividends: 15000 }),
+    ).toEqual({ ordinary: 20000, qualified: 15000, nonQualified: 5000 });
+  });
+
+  it("limits qualified dividends to the ordinary total", () => {
+    expect(
+      splitDividends({ ordinaryDividends: 10000, qualifiedDividends: 25000 }),
+    ).toEqual({ ordinary: 10000, qualified: 10000, nonQualified: 0 });
+  });
+});
+
+describe("netCapitalGains", () => {
+  const net = (
+    overrides: Partial<Parameters<typeof netCapitalGains>[0]>,
+    filingStatus: Parameters<typeof netCapitalGains>[1] = "single",
+    otherIncome = 100000,
+  ) =>
+    netCapitalGains(
+      {
+        longTermCapitalGains: 0,
+        priorYearLongTermLossCarryover: 0,
+        priorYearShortTermLossCarryover: 0,
+        shortTermCapitalGains: 0,
+        ...overrides,
+      },
+      filingStatus,
+      sharedLimits,
+      otherIncome,
+    );
+
+  it("passes gains through when there are no losses", () => {
+    const result = net({
+      longTermCapitalGains: 30000,
+      shortTermCapitalGains: 10000,
+    });
+
+    expect(result.netShortTermGain).toBe(10000);
+    expect(result.netLongTermGain).toBe(30000);
+    expect(result.ordinaryIncomeDeduction).toBe(0);
+  });
+
+  it("offsets long-term gains with a net short-term loss", () => {
+    const result = net({
+      longTermCapitalGains: 30000,
+      shortTermCapitalGains: -10000,
+    });
+
+    expect(result.netShortTermGain).toBe(0);
+    expect(result.netLongTermGain).toBe(20000);
+    expect(result.shortTermLossOffset).toBe(10000);
+    expect(result.ordinaryIncomeDeduction).toBe(0);
+  });
+
+  it("offsets short-term gains with a net long-term loss", () => {
+    const result = net({
+      longTermCapitalGains: -4000,
+      shortTermCapitalGains: 30000,
+    });
+
+    expect(result.netShortTermGain).toBe(26000);
+    expect(result.netLongTermGain).toBe(0);
+    expect(result.longTermLossOffset).toBe(4000);
+    expect(result.longTermLossUnused).toBe(0);
+  });
+
+  it("applies carryovers to same-term gains before cross-term gains", () => {
+    const result = net({
+      longTermCapitalGains: 25000,
+      priorYearLongTermLossCarryover: 10000,
+      priorYearShortTermLossCarryover: 20000,
+      shortTermCapitalGains: 15000,
+    });
+
+    expect(result.netShortTermGain).toBe(0);
+    expect(result.netLongTermGain).toBe(10000);
+    expect(result.shortTermLossOffset).toBe(20000);
+    expect(result.longTermLossOffset).toBe(10000);
+  });
+
+  it("deducts a long-term carryover from other income up to the limit", () => {
+    const result = net({ priorYearLongTermLossCarryover: 10000 });
+
+    expect(result.ordinaryIncomeDeduction).toBe(3000);
+    expect(result.longTermLossOffset).toBe(3000);
+    expect(result.longTermLossUnused).toBe(7000);
+  });
+
+  it("uses short-term losses first for the other income deduction", () => {
+    const result = net({
+      priorYearLongTermLossCarryover: 5000,
+      priorYearShortTermLossCarryover: 2000,
+    });
+
+    expect(result.ordinaryIncomeDeduction).toBe(3000);
+    expect(result.shortTermLossOffset).toBe(2000);
+    expect(result.shortTermLossUnused).toBe(0);
+    expect(result.longTermLossOffset).toBe(1000);
+    expect(result.longTermLossUnused).toBe(4000);
+  });
+
+  it("uses the lower limit for married filing separately", () => {
+    const result = net(
+      { priorYearShortTermLossCarryover: 10000 },
+      "marriedFilingSeparately",
+    );
+
+    expect(result.ordinaryIncomeDeduction).toBe(1500);
+    expect(result.shortTermLossUnused).toBe(8500);
+  });
+
+  it("carries over the full loss when there is no other income", () => {
+    const result = net({ shortTermCapitalGains: -5000 }, "single", 0);
+
+    expect(result.ordinaryIncomeDeduction).toBe(0);
+    expect(result.shortTermLossUnused).toBe(5000);
   });
 });

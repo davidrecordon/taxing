@@ -106,7 +106,8 @@ describe("calculateFederalTax", () => {
   describe("long-term capital gains", () => {
     it("applies preferential 0% rate for LTCG within bracket threshold", () => {
       // Single filer with $30,000 LTCG and no ordinary income
-      // LTCG bracket: $49,450 at 0%, so $30,000 is all at 0%
+      // Standard deduction ($16,100) reduces LTCG when there is no ordinary income
+      // LTCG bracket: $49,450 at 0%, so the remaining $13,900 is all at 0%
       const inputs = createDefaultInputs({
         longTermCapitalGains: 30000,
         filingStatus: "single",
@@ -121,13 +122,14 @@ describe("calculateFederalTax", () => {
         federalLimits,
       );
 
-      expect(result.taxableLTCG).toBe(30000);
+      expect(result.taxableLTCG).toBe(13900);
       expect(result.ltcgTax).toBe(0);
     });
 
     it("applies 15% rate for LTCG above 0% threshold", () => {
       // Single filer with $100,000 LTCG and no ordinary income
-      // LTCG: $49,450 at 0% = $0, $50,550 at 15% = $7,582.50
+      // Taxable LTCG = $100,000 - $16,100 std = $83,900
+      // LTCG: $49,450 at 0% = $0, $34,450 at 15% = $5,167.50
       const inputs = createDefaultInputs({
         longTermCapitalGains: 100000,
         filingStatus: "single",
@@ -142,8 +144,8 @@ describe("calculateFederalTax", () => {
         federalLimits,
       );
 
-      expect(result.taxableLTCG).toBe(100000);
-      expect(result.ltcgTax).toBeCloseTo(7582.5, 2);
+      expect(result.taxableLTCG).toBe(83900);
+      expect(result.ltcgTax).toBeCloseTo(5167.5, 2);
     });
   });
 
@@ -237,9 +239,9 @@ describe("calculateFederalTax", () => {
   });
 
   describe("negative LTCG (current year losses)", () => {
-    it("treats negative LTCG as $0 for tax calculation", () => {
+    it("deducts up to $3,000 of a net long-term loss and carries over the rest", () => {
       // $100,000 federal income with -$50,000 LTCG loss
-      // The loss should NOT reduce taxable income this year (carried forward)
+      // $3,000 is deductible against other income, $47,000 carries over
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         longTermCapitalGains: -50000,
@@ -263,24 +265,24 @@ describe("calculateFederalTax", () => {
       expect(result.taxableLTCG).toBe(0);
       // Original negative value should still be in result for display
       expect(result.longTermCapitalGains).toBe(-50000);
+      expect(result.longTermLossCarryoverOffset).toBe(3000);
+      expect(result.longTermLossCarryoverUnused).toBe(47000);
+      // $100,000 - $3,000 - $16,100 std
+      expect(result.taxableOrdinaryIncome).toBe(80900);
     });
 
-    it("does not reduce AGI with negative LTCG", () => {
-      // Verify that negative LTCG doesn't artificially reduce AGI
-      const inputsWithLoss = createDefaultInputs({
+    it("offsets short-term gains with a long-term loss", () => {
+      // $100,000 wages, $30,000 STCG, -$4,000 LTCG
+      // Net short-term gain = $30,000 - $4,000 = $26,000
+      const inputs = createDefaultInputs({
         federalIncome: 100000,
-        longTermCapitalGains: -20000,
+        shortTermCapitalGains: 30000,
+        longTermCapitalGains: -4000,
         filingStatus: "single",
       });
 
-      const inputsWithoutLoss = createDefaultInputs({
-        federalIncome: 100000,
-        longTermCapitalGains: 0,
-        filingStatus: "single",
-      });
-
-      const resultWithLoss = calculateFederalTax(
-        inputsWithLoss,
+      const result = calculateFederalTax(
+        inputs,
         federalBrackets,
         ltcgBrackets,
         federalDeductions,
@@ -289,21 +291,11 @@ describe("calculateFederalTax", () => {
         ficaData,
       );
 
-      const resultWithoutLoss = calculateFederalTax(
-        inputsWithoutLoss,
-        federalBrackets,
-        ltcgBrackets,
-        federalDeductions,
-        sharedLimits,
-        federalLimits,
-        ficaData,
-      );
-
-      // Tax should be identical - loss doesn't reduce current year tax
-      expect(resultWithLoss.totalTax).toBe(resultWithoutLoss.totalTax);
-      expect(resultWithLoss.adjustedGrossIncome).toBe(
-        resultWithoutLoss.adjustedGrossIncome,
-      );
+      expect(result.longTermLossCarryoverOffset).toBe(4000);
+      expect(result.longTermLossCarryoverUnused).toBe(0);
+      // $100,000 + $26,000 - $16,100 std
+      expect(result.taxableOrdinaryIncome).toBe(109900);
+      expect(result.taxableLTCG).toBe(0);
     });
   });
 
@@ -510,9 +502,9 @@ describe("calculateFederalTax", () => {
   });
 
   describe("long-term loss carryover edge cases", () => {
-    it("offsets only LTCG, not ordinary income", () => {
+    it("offsets LTCG, then up to $3,000 of ordinary income", () => {
       // $100,000 wage income, $20,000 LTCG, $50,000 LT loss carryover
-      // LT loss only offsets the $20,000 LTCG, NOT ordinary income
+      // LT loss offsets the $20,000 LTCG, then $3,000 of ordinary income
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         longTermCapitalGains: 20000,
@@ -529,10 +521,10 @@ describe("calculateFederalTax", () => {
         federalLimits,
       );
 
-      expect(result.longTermLossCarryoverOffset).toBe(20000);
+      expect(result.longTermLossCarryoverOffset).toBe(23000);
+      expect(result.longTermLossCarryoverUnused).toBe(27000);
       expect(result.taxableLTCG).toBe(0);
-      // Ordinary income should be unaffected
-      expect(result.taxableOrdinaryIncome).toBe(83900); // 100k - 16.1k std
+      expect(result.taxableOrdinaryIncome).toBe(80900); // 100k - 3k - 16.1k std
     });
 
     it("partially offsets LTCG when carryover is less than gains", () => {
@@ -552,7 +544,8 @@ describe("calculateFederalTax", () => {
       );
 
       expect(result.longTermLossCarryoverOffset).toBe(30000);
-      expect(result.taxableLTCG).toBe(70000);
+      // $70,000 net gain - $16,100 std (no ordinary income to absorb it)
+      expect(result.taxableLTCG).toBe(53900);
     });
   });
 
@@ -577,15 +570,14 @@ describe("calculateFederalTax", () => {
         federalLimits,
       );
 
-      // ST loss: $15k offsets ST gains, $3k offsets ordinary income = $18k used
-      expect(result.shortTermLossCarryoverOffset).toBe(18000);
-      // LT loss: only offsets LTCG in taxed brackets (not 0% bracket)
-      // Taxable ordinary = $80k - $18k - $16.1k = $45.9k
-      // Room in 0% LTCG bracket = $49,450 - $45,900 = $3,550
-      // LTCG in taxed brackets = $25k - $3,550 = $21,450
-      // Carryover used = min($10k, $21,450) = $10k
+      // ST loss: $15k offsets ST gains, remaining $5k offsets net LT gains
+      expect(result.shortTermLossCarryoverOffset).toBe(20000);
+      expect(result.shortTermLossCarryoverUnused).toBe(0);
+      // LT loss: $10k offsets LT gains
       expect(result.longTermLossCarryoverOffset).toBe(10000);
-      expect(result.taxableLTCG).toBe(15000); // 25k - 10k
+      expect(result.taxableLTCG).toBe(10000); // 25k - 10k - 5k
+      // No net loss remains, so ordinary income is unaffected
+      expect(result.taxableOrdinaryIncome).toBe(63900); // 80k - 16.1k std
     });
   });
 
@@ -650,7 +642,7 @@ describe("calculateFederalTax", () => {
     });
 
     it("all LTCG at 0% when no ordinary income", () => {
-      // $30k LTCG only, well under $49,450 threshold
+      // $30k LTCG only ($13,900 after std deduction), well under $49,450 threshold
       const inputs = createDefaultInputs({
         longTermCapitalGains: 30000,
         filingStatus: "single",
@@ -666,17 +658,17 @@ describe("calculateFederalTax", () => {
       );
 
       expect(result.taxableOrdinaryIncome).toBe(0);
-      expect(result.taxableLTCG).toBe(30000);
+      expect(result.taxableLTCG).toBe(13900);
       expect(result.ltcgBracketBreakdown).toHaveLength(1);
       expect(result.ltcgBracketBreakdown[0].rate).toBe(0);
       expect(result.ltcgTax).toBe(0);
     });
   });
 
-  describe("smart long-term loss carryover", () => {
-    it("preserves carryover when all LTCG in 0% bracket", () => {
+  describe("long-term loss carryover with LTCG in 0% bracket", () => {
+    it("uses carryover even when all LTCG in 0% bracket", () => {
       // Low ordinary income, LTCG entirely in 0% bracket
-      // Carryover should be preserved, not wasted
+      // Schedule D requires carryover to offset gains regardless of rate
       const inputs = createDefaultInputs({
         federalIncome: 20000, // taxable = 20k - 16.1k = $3,900
         longTermCapitalGains: 30000, // still under $49,450 threshold
@@ -694,16 +686,14 @@ describe("calculateFederalTax", () => {
       );
 
       expect(result.taxableOrdinaryIncome).toBe(3900);
-      // Room in 0% bracket = $49,450 - $3,900 = $45,550
-      // All $30k LTCG fits in 0% bracket, so no carryover used
-      expect(result.longTermLossCarryoverOffset).toBe(0);
-      expect(result.longTermLossCarryoverUnused).toBe(10000);
-      expect(result.taxableLTCG).toBe(30000);
+      expect(result.longTermLossCarryoverOffset).toBe(10000);
+      expect(result.longTermLossCarryoverUnused).toBe(0);
+      expect(result.taxableLTCG).toBe(20000);
       expect(result.ltcgTax).toBe(0);
     });
 
-    it("uses carryover only for LTCG that would be taxed", () => {
-      // LTCG spans 0% and 15% brackets, only use carryover for 15% portion
+    it("uses full carryover when LTCG spans 0% and 15% brackets", () => {
+      // LTCG spans 0% and 15% brackets, carryover offsets gains in both
       const inputs = createDefaultInputs({
         federalIncome: 55750, // taxable = $39,650
         longTermCapitalGains: 30000,
@@ -720,16 +710,12 @@ describe("calculateFederalTax", () => {
         federalLimits,
       );
 
-      // Room in 0% bracket = $49,450 - $39,650 = $9,800
-      // LTCG in taxed brackets = $30,000 - $9,800 = $20,200
-      // Carryover used = min($25,000, $20,200) = $20,200
-      // Unused carryover = $25,000 - $20,200 = $4,800
-      expect(result.longTermLossCarryoverOffset).toBe(20200);
-      expect(result.longTermLossCarryoverUnused).toBe(4800);
+      expect(result.longTermLossCarryoverOffset).toBe(25000);
+      expect(result.longTermLossCarryoverUnused).toBe(0);
 
-      // Taxable LTCG = $30k - $20,200 = $9,800 (exactly the 0% bracket portion)
-      expect(result.taxableLTCG).toBe(9800);
-      // All remaining LTCG is in 0% bracket, so no tax
+      // Taxable LTCG = $30k - $25k = $5,000
+      // Room in 0% bracket = $49,450 - $39,650 = $9,800, so no tax
+      expect(result.taxableLTCG).toBe(5000);
       expect(result.ltcgTax).toBe(0);
     });
 
@@ -971,7 +957,8 @@ describe("calculateFederalTax", () => {
         (b) => b.rate === 0.2,
       );
       expect(top20Bracket).toBeDefined();
-      expect(top20Bracket!.incomeInBracket).toBe(600000 - 545500);
+      // Taxable LTCG = $600,000 - $16,100 std = $583,900
+      expect(top20Bracket!.incomeInBracket).toBe(583900 - 545500);
     });
   });
 
@@ -1083,6 +1070,145 @@ describe("calculateFederalTax", () => {
       expect(result.totalTax).toBe(0);
       expect(result.remainingOwed).toBe(0);
       expect(result.refundDue).toBe(0);
+    });
+  });
+
+  describe("interest and dividends", () => {
+    const calculate = (overrides: Parameters<typeof createDefaultInputs>[0]) =>
+      calculateFederalTax(
+        createDefaultInputs({ filingStatus: "single", ...overrides }),
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData,
+      );
+
+    it("taxes qualified dividends at LTCG rates and the rest as ordinary income", () => {
+      // $100,000 wages + $20,000 dividends, of which $15,000 qualified
+      const result = calculate({
+        federalIncome: 100000,
+        ordinaryDividends: 20000,
+        qualifiedDividends: 15000,
+      });
+
+      expect(result.grossIncome).toBe(120000);
+      // $100,000 + $5,000 non-qualified - $16,100 std
+      expect(result.taxableOrdinaryIncome).toBe(88900);
+      expect(result.taxableLTCG).toBe(15000);
+      // Ordinary income fills the 0% bracket, so all $15,000 at 15%
+      expect(result.ltcgTax).toBeCloseTo(2250, 2);
+    });
+
+    it("does not charge FICA on dividends", () => {
+      const withDividends = calculate({
+        federalIncome: 100000,
+        ordinaryDividends: 50000,
+      });
+      const withoutDividends = calculate({ federalIncome: 100000 });
+
+      expect(withDividends.ficaBreakdown!.totalFica).toBe(
+        withoutDividends.ficaBreakdown!.totalFica,
+      );
+    });
+
+    it("includes dividends in net investment income", () => {
+      // $250k wages + $50k dividends = $300k MAGI, $100k over threshold
+      // NIIT = 3.8% x min($50k, $100k) = $1,900
+      const result = calculate({
+        federalIncome: 250000,
+        ordinaryDividends: 50000,
+        qualifiedDividends: 50000,
+      });
+
+      expect(result.niitBreakdown!.netInvestmentIncome).toBe(50000);
+      expect(result.niitBreakdown!.tax).toBeCloseTo(1900, 2);
+    });
+
+    it("does not offset dividends with loss carryovers beyond $3,000", () => {
+      const result = calculate({
+        federalIncome: 100000,
+        ordinaryDividends: 50000,
+        qualifiedDividends: 50000,
+        priorYearLongTermLossCarryover: 100000,
+      });
+
+      expect(result.longTermLossCarryoverOffset).toBe(3000);
+      expect(result.longTermLossCarryoverUnused).toBe(97000);
+      expect(result.taxableLTCG).toBe(50000);
+      // $100,000 - $3,000 - $16,100 std
+      expect(result.taxableOrdinaryIncome).toBe(80900);
+    });
+
+    it("taxes interest as ordinary investment income without FICA", () => {
+      // $250k wages + $50k interest = $300k MAGI, $100k over threshold
+      const result = calculate({
+        federalIncome: 250000,
+        interestIncome: 50000,
+      });
+      const withoutInterest = calculate({ federalIncome: 250000 });
+
+      expect(result.grossIncome).toBe(300000);
+      // $250,000 + $50,000 - $16,100 std
+      expect(result.taxableOrdinaryIncome).toBe(283900);
+      expect(result.taxableLTCG).toBe(0);
+      expect(result.ficaBreakdown!.totalFica).toBe(
+        withoutInterest.ficaBreakdown!.totalFica,
+      );
+      expect(result.niitBreakdown!.netInvestmentIncome).toBe(50000);
+      expect(result.niitBreakdown!.tax).toBeCloseTo(1900, 2);
+    });
+
+    it("limits qualified dividends to ordinary dividends", () => {
+      const result = calculate({
+        federalIncome: 100000,
+        ordinaryDividends: 10000,
+        qualifiedDividends: 25000,
+      });
+
+      expect(result.qualifiedDividends).toBe(10000);
+      expect(result.taxableLTCG).toBe(10000);
+      expect(result.taxableOrdinaryIncome).toBe(83900);
+    });
+
+    it("applies excess deductions to qualified dividends", () => {
+      // No ordinary income, so the $16,100 std deduction reduces dividends
+      const result = calculate({
+        ordinaryDividends: 40000,
+        qualifiedDividends: 40000,
+      });
+
+      expect(result.taxableOrdinaryIncome).toBe(0);
+      expect(result.taxableLTCG).toBe(23900);
+      expect(result.ltcgTax).toBe(0);
+    });
+
+    it("handles raw sales, carryovers, and dividends together", () => {
+      // ST: $30,000 gain - $20,000 carryover = $10,000 net gain
+      // LT: -$4,000 loss - $50,000 carryover = -$54,000 net loss
+      // Net loss of $44,000: $3,000 deductible, $41,000 carries over
+      const result = calculate({
+        federalIncome: 200000,
+        shortTermCapitalGains: 30000,
+        longTermCapitalGains: -4000,
+        ordinaryDividends: 150000,
+        qualifiedDividends: 120000,
+        priorYearShortTermLossCarryover: 20000,
+        priorYearLongTermLossCarryover: 50000,
+      });
+
+      expect(result.shortTermLossCarryoverOffset).toBe(20000);
+      expect(result.shortTermLossCarryoverUnused).toBe(0);
+      expect(result.longTermLossCarryoverOffset).toBe(13000); // 10,000 + 3,000
+      expect(result.longTermLossCarryoverUnused).toBe(41000);
+      // Qualified dividends are untouched by the losses
+      expect(result.taxableLTCG).toBe(120000);
+      // $200,000 + $30,000 non-qualified - $3,000 - $16,100 std
+      expect(result.taxableOrdinaryIncome).toBe(210900);
+      // Net investment income = $150,000 dividends - $3,000 loss deduction
+      expect(result.niitBreakdown!.netInvestmentIncome).toBe(147000);
+      expect(result.niitBreakdown!.tax).toBeCloseTo(5586, 2);
     });
   });
 
@@ -1739,6 +1865,89 @@ describe("calculateFederalTax", () => {
       expect(result.niitBreakdown!.tax).toBe(3800);
 
       expect(result.totalTax).toBeCloseTo(103623.25, 2);
+    });
+
+    it("calculates investment-heavy return with losses and carryovers - exact calculation", () => {
+      // Inputs:
+      // - $180,000 W-2 wages
+      // - $10,000 interest
+      // - $150,000 ordinary dividends, of which $120,000 qualified
+      // - $30,000 short-term gain, -$4,000 long-term loss
+      // - $20,000 short-term and $50,000 long-term loss carryovers
+      // - Single filer
+      //
+      // Schedule D netting:
+      // Short-term: $30,000 - $20,000 = $10,000 net gain
+      // Long-term: -$4,000 - $50,000 = -$54,000 net loss
+      // Combined: -$44,000 net loss, $3,000 deductible, $41,000 carries over
+      // Long-term loss used: $10,000 (ST gain) + $3,000 (deduction) = $13,000
+      //
+      // Gross income: $180,000 + $10,000 + $150,000 + $30,000 = $370,000
+      // Taxable ordinary: $180,000 + $10,000 + $30,000 - $3,000 - $16,100
+      //   = $200,900
+      //
+      // Ordinary income tax (2026 single brackets):
+      // $12,400 @ 10% = $1,240.00
+      // $38,000 @ 12% = $4,560.00
+      // $55,300 @ 22% = $12,166.00
+      // $95,200 @ 24% = $22,848.00
+      // Total ordinary tax = $40,814.00
+      //
+      // Qualified dividends: $120,000 stacked from $200,900 to $320,900,
+      // all at 15% (above $49,450, below $545,500) = $18,000
+      //
+      // FICA (wages only):
+      // SS: $180,000 x 6.2% = $11,160
+      // Medicare: $180,000 x 1.45% = $2,610
+      // Total FICA = $13,770
+      //
+      // NIIT:
+      // MAGI = $370,000 - $33,000 loss offsets = $337,000, over by $137,000
+      // Net investment income = $10,000 + $150,000 - $3,000 = $157,000
+      // NIIT = min($157,000, $137,000) x 3.8% = $5,206
+      //
+      // Total tax = $40,814 + $18,000 + $13,770 + $5,206 = $77,790
+      const inputs = createDefaultInputs({
+        federalIncome: 180000,
+        interestIncome: 10000,
+        ordinaryDividends: 150000,
+        qualifiedDividends: 120000,
+        shortTermCapitalGains: 30000,
+        longTermCapitalGains: -4000,
+        priorYearShortTermLossCarryover: 20000,
+        priorYearLongTermLossCarryover: 50000,
+        filingStatus: "single",
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData,
+      );
+
+      expect(result.grossIncome).toBe(370000);
+      expect(result.shortTermLossCarryoverOffset).toBe(20000);
+      expect(result.shortTermLossCarryoverUnused).toBe(0);
+      expect(result.longTermLossCarryoverOffset).toBe(13000);
+      expect(result.longTermLossCarryoverUnused).toBe(41000);
+
+      expect(result.taxableOrdinaryIncome).toBe(200900);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(40814, 2);
+
+      expect(result.taxableLTCG).toBe(120000);
+      expect(result.ltcgTax).toBeCloseTo(18000, 2);
+
+      expect(result.ficaBreakdown!.totalFica).toBeCloseTo(13770, 2);
+
+      expect(result.niitBreakdown!.netInvestmentIncome).toBe(157000);
+      expect(result.niitBreakdown!.magiOverThreshold).toBe(137000);
+      expect(result.niitBreakdown!.tax).toBeCloseTo(5206, 2);
+
+      expect(result.totalTax).toBeCloseTo(77790, 2);
     });
 
     it("calculates SE income return with QBI - exact calculation", () => {

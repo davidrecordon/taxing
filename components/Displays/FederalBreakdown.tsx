@@ -4,6 +4,7 @@ import { formatCurrency, formatPercent } from "@/lib/formatters";
 import { calculateEffectiveRates } from "@/lib/taxUtils";
 import { TaxYear } from "@/lib/config";
 import BracketTable from "../shared/BracketTable";
+import InvestmentIncomeRows from "../shared/InvestmentIncomeRows";
 import TaxSummarySection from "../shared/TaxSummarySection";
 import allFederalLimits from "@/data/federal-limits.json";
 import allFicaData from "@/data/fica.json";
@@ -22,6 +23,8 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
     () => allFicaData[taxYear] as FicaData,
     [taxYear],
   );
+
+  const hasQualifiedDividends = (result.qualifiedDividends ?? 0) > 0;
 
   return (
     <div className="theme-card p-4">
@@ -47,6 +50,7 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
             </span>
           </div>
         )}
+        <InvestmentIncomeRows result={result} />
         {result.shortTermCapitalGains > 0 && (
           <div className="flex justify-between text-text-primary">
             <span>Short-Term Capital Gains</span>
@@ -72,16 +76,15 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
         {result.shortTermLossCarryoverOffset > 0 && (
           <>
             <div className="flex justify-between text-positive">
-              <span>Less: Short-Term Carryover Offset</span>
+              <span>Less: Short-Term Loss Offset</span>
               <span className="font-mono">
                 -{formatCurrency(result.shortTermLossCarryoverOffset)}
               </span>
             </div>
             {(result.shortTermLossCarryoverUnused ?? 0) > 0 && (
               <p className="text-xs text-text-muted ml-4">
-                (Preserving{" "}
-                {formatCurrency(result.shortTermLossCarryoverUnused!)} in ST
-                carryover)
+                ({formatCurrency(result.shortTermLossCarryoverUnused!)} ST loss
+                carries over to next year)
               </p>
             )}
           </>
@@ -89,16 +92,15 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
         {result.longTermLossCarryoverOffset > 0 && (
           <>
             <div className="flex justify-between text-positive">
-              <span>Less: Long-Term Carryover Offset</span>
+              <span>Less: Long-Term Loss Offset</span>
               <span className="font-mono">
                 -{formatCurrency(result.longTermLossCarryoverOffset)}
               </span>
             </div>
             {(result.longTermLossCarryoverUnused ?? 0) > 0 && (
               <p className="text-xs text-text-muted ml-4">
-                (Preserving{" "}
-                {formatCurrency(result.longTermLossCarryoverUnused!)} in LT
-                carryover)
+                ({formatCurrency(result.longTermLossCarryoverUnused!)} LT loss
+                carries over to next year)
               </p>
             )}
           </>
@@ -217,9 +219,17 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
       {/* Bracket Breakdown - LTCG */}
       <BracketTable
         breakdown={result.ltcgBracketBreakdown}
-        title="Long-Term Capital Gains Tax by Bracket"
-        incomeLabel="Gains"
-        totalLabel="Long-Term Capital Gains Tax:"
+        title={
+          hasQualifiedDividends
+            ? "Long-Term Capital Gains & Qualified Dividends Tax by Bracket"
+            : "Long-Term Capital Gains Tax by Bracket"
+        }
+        incomeLabel={hasQualifiedDividends ? "Income" : "Gains"}
+        totalLabel={
+          hasQualifiedDividends
+            ? "Long-Term Gains & Qualified Dividends Tax:"
+            : "Long-Term Capital Gains Tax:"
+        }
         totalAmount={result.ltcgTax}
       />
 

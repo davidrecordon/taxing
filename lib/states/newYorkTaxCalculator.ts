@@ -15,6 +15,7 @@ import {
   calculateDeductibleSETax,
   calculatePaymentSummary,
   calculateSafeHarbor,
+  calculateStateGrossIncome,
 } from "./stateCalcUtils";
 
 /**
@@ -43,39 +44,18 @@ export function calculateNewYorkTax(
   // Use federal income if state income is not specified
   const stateIncome = inputs.stateIncome || inputs.federalIncome;
 
-  // Clamp negative capital gains to 0 (current year losses become carryover)
-  const effectiveSTCG = Math.max(0, inputs.shortTermCapitalGains);
-  const effectiveLTCG = Math.max(0, inputs.longTermCapitalGains);
-  const currentYearSTLoss = Math.max(0, -inputs.shortTermCapitalGains);
-
-  // Step 1: Calculate Gross Income
-  // New York taxes ALL capital gains and self-employment income as ordinary income
   const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
-  const grossIncome =
-    stateIncome + effectiveSTCG + effectiveLTCG + selfEmploymentIncome;
 
-  // Step 1b: Apply short-term loss carryover (includes current year losses, NY follows federal rules)
-  const stCarryover =
-    inputs.priorYearShortTermLossCarryover + currentYearSTLoss;
-  const stGainsOffset = Math.min(stCarryover, effectiveSTCG);
-  const remainingCarryover = stCarryover - stGainsOffset;
-
-  const ordinaryIncomeLimit =
-    filingStatus === "marriedFilingSeparately"
-      ? sharedLimits.capitalLossLimit.marriedFilingSeparately
-      : sharedLimits.capitalLossLimit.default;
-  const ordinaryIncomeOffset =
-    remainingCarryover > 0 && stateIncome > 0
-      ? Math.min(remainingCarryover, ordinaryIncomeLimit, stateIncome)
-      : 0;
-
-  const shortTermLossCarryoverOffset = stGainsOffset + ordinaryIncomeOffset;
-  const shortTermLossCarryoverUnused =
-    stCarryover - shortTermLossCarryoverOffset;
-
-  // Step 1c: Apply long-term loss carryover
-  const ltCarryover = inputs.priorYearLongTermLossCarryover;
-  const longTermLossCarryoverOffset = Math.min(ltCarryover, effectiveLTCG);
+  // Interest, dividends, self-employment income, and all capital gains are
+  // taxed as ordinary income (capital losses follow federal Schedule D rules)
+  const {
+    grossIncome,
+    interestIncome,
+    longTermLossCarryoverOffset,
+    ordinaryDividends,
+    shortTermLossCarryoverOffset,
+    shortTermLossCarryoverUnused,
+  } = calculateStateGrossIncome(inputs, stateIncome, sharedLimits);
 
   // Step 2: Calculate deductions
   const deductionBreakdown = calculateNewYorkDeductions(
@@ -170,6 +150,8 @@ export function calculateNewYorkTax(
     wageIncome: stateIncome,
     shortTermCapitalGains: inputs.shortTermCapitalGains,
     longTermCapitalGains: inputs.longTermCapitalGains,
+    interestIncome,
+    ordinaryDividends,
     grossIncome,
     shortTermLossCarryoverOffset,
     shortTermLossCarryoverUnused,

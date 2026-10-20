@@ -1,4 +1,54 @@
-import { FicaData, SafeHarbor } from "../types";
+import { FicaData, SafeHarbor, SharedLimitsData, TaxInputs } from "../types";
+import { netCapitalGains, splitDividends, taxableInterest } from "../taxUtils";
+
+/**
+ * Gross income and capital loss offsets for states that tax all income,
+ * including capital gains, as ordinary income.
+ */
+export interface StateGrossIncome {
+  grossIncome: number;
+  interestIncome: number;
+  longTermLossCarryoverOffset: number;
+  ordinaryDividends: number;
+  shortTermLossCarryoverOffset: number;
+  shortTermLossCarryoverUnused: number;
+}
+
+/**
+ * Calculate gross income for states that tax interest, dividends,
+ * self-employment income, and all capital gains as ordinary income.
+ * Capital losses are netted following federal Schedule D rules.
+ */
+export function calculateStateGrossIncome(
+  inputs: TaxInputs,
+  stateIncome: number,
+  sharedLimits: SharedLimitsData,
+): StateGrossIncome {
+  const interestIncome = taxableInterest(inputs);
+  const ordinaryDividends = splitDividends(inputs).ordinary;
+  const otherIncome =
+    stateIncome +
+    (inputs.selfEmploymentIncome ?? 0) +
+    interestIncome +
+    ordinaryDividends;
+
+  const capitalGains = netCapitalGains(
+    inputs,
+    inputs.filingStatus,
+    sharedLimits,
+    otherIncome,
+  );
+
+  return {
+    grossIncome:
+      otherIncome + capitalGains.shortTermGains + capitalGains.longTermGains,
+    interestIncome,
+    longTermLossCarryoverOffset: capitalGains.longTermLossOffset,
+    ordinaryDividends,
+    shortTermLossCarryoverOffset: capitalGains.shortTermLossOffset,
+    shortTermLossCarryoverUnused: capitalGains.shortTermLossUnused,
+  };
+}
 
 /**
  * Calculate deductible portion of self-employment tax for state calculations.

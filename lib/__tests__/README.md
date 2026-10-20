@@ -72,6 +72,7 @@ Each calculator test file follows a consistent structure:
 - **401k contributions** - Pre-tax deduction from AGI
 - **pre-tax medical deductions** - Reduces taxable income
 - **negative LTCG/STCG** - Current year loss handling
+- **interest and dividends** - Qualified vs ordinary rates, NIIT, no FICA, no carryover offset
 - **safe harbor calculations** - 90% current / 100% prior year
 - **loss carryover edge cases** - ST, LT, and combined carryovers
 - **LTCG bracket stacking** - Gains stacked on ordinary income

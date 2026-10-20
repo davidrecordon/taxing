@@ -1,4 +1,12 @@
-import { TaxBracket, BracketBreakdown, TaxCalculationResult } from "./types";
+import {
+  BracketBreakdown,
+  CapitalGainsNetting,
+  FilingStatus,
+  SharedLimitsData,
+  TaxBracket,
+  TaxCalculationResult,
+  TaxInputs,
+} from "./types";
 
 /**
  * Calculate effective tax rate as a decimal (e.g., 0.15 for 15%)
@@ -127,4 +135,117 @@ export function calculateTaxByBrackets(
   }
 
   return { total: totalTax, breakdown };
+}
+
+/**
+ * Taxable interest (1099-INT box 1), ignoring negative entries.
+ */
+export function taxableInterest(
+  inputs: Pick<TaxInputs, "interestIncome">,
+): number {
+  return Math.max(0, inputs.interestIncome ?? 0);
+}
+
+/**
+ * Split dividends into the portion taxed at ordinary rates and the portion
+ * taxed at long-term capital gains rates. Qualified dividends are a subset of
+ * ordinary dividends (1099-DIV box 1b is included in box 1a), so any excess
+ * over the ordinary total is ignored.
+ */
+export function splitDividends(
+  inputs: Pick<TaxInputs, "ordinaryDividends" | "qualifiedDividends">,
+): { ordinary: number; qualified: number; nonQualified: number } {
+  const ordinary = Math.max(0, inputs.ordinaryDividends ?? 0);
+  const qualified = Math.min(
+    ordinary,
+    Math.max(0, inputs.qualifiedDividends ?? 0),
+  );
+  return { ordinary, qualified, nonQualified: ordinary - qualified };
+}
+
+/**
+ * Net capital gains and losses the way Schedule D does.
+ *
+ * 1. Current year losses and prior year carryovers offset gains of the same
+ *    term first (Schedule D lines 7 and 15).
+ * 2. A net loss in one term then offsets a net gain in the other (line 16).
+ * 3. Any remaining net loss is deductible against other income up to the
+ *    annual limit ($3,000, or $1,500 married filing separately), short-term
+ *    losses first (line 21 and the Capital Loss Carryover Worksheet).
+ * 4. Whatever is left carries over to next year, keeping its term.
+ *
+ * Losses never offset dividends beyond the annual limit.
+ *
+ * Approximation: the annual deduction is capped by `otherIncome` (income
+ * before deductions). The Capital Loss Carryover Worksheet instead counts the
+ * deduction as used only up to taxable income before the deduction. When
+ * other income is within the annual limit of total deductions (for a single
+ * filer, below roughly the standard deduction plus $3,000), the carryover
+ * reported here can be up to the annual limit too low. Tax for the current
+ * year is unaffected.
+ */
+export function netCapitalGains(
+  inputs: Pick<
+    TaxInputs,
+    | "longTermCapitalGains"
+    | "priorYearLongTermLossCarryover"
+    | "priorYearShortTermLossCarryover"
+    | "shortTermCapitalGains"
+  >,
+  filingStatus: FilingStatus,
+  sharedLimits: SharedLimitsData,
+  otherIncome: number,
+): CapitalGainsNetting {
+  const shortTermGains = Math.max(0, inputs.shortTermCapitalGains);
+  const longTermGains = Math.max(0, inputs.longTermCapitalGains);
+  const shortTermLosses =
+    Math.max(0, -inputs.shortTermCapitalGains) +
+    Math.max(0, inputs.priorYearShortTermLossCarryover);
+  const longTermLosses =
+    Math.max(0, -inputs.longTermCapitalGains) +
+    Math.max(0, inputs.priorYearLongTermLossCarryover);
+
+  // Same-term netting
+  const shortOnShort = Math.min(shortTermLosses, shortTermGains);
+  const longOnLong = Math.min(longTermLosses, longTermGains);
+
+  // Cross-term netting (at most one of these is non-zero)
+  const shortOnLong = Math.min(
+    shortTermLosses - shortOnShort,
+    longTermGains - longOnLong,
+  );
+  const longOnShort = Math.min(
+    longTermLosses - longOnLong,
+    shortTermGains - shortOnShort,
+  );
+
+  // Deduction against other income, short-term losses first
+  const annualLimit =
+    filingStatus === "marriedFilingSeparately"
+      ? sharedLimits.capitalLossLimit.marriedFilingSeparately
+      : sharedLimits.capitalLossLimit.default;
+  const deductionLimit = Math.min(annualLimit, Math.max(0, otherIncome));
+  const shortDeduction = Math.min(
+    shortTermLosses - shortOnShort - shortOnLong,
+    deductionLimit,
+  );
+  const longDeduction = Math.min(
+    longTermLosses - longOnLong - longOnShort,
+    deductionLimit - shortDeduction,
+  );
+
+  const shortTermLossOffset = shortOnShort + shortOnLong + shortDeduction;
+  const longTermLossOffset = longOnLong + longOnShort + longDeduction;
+
+  return {
+    longTermGains,
+    longTermLossOffset,
+    longTermLossUnused: longTermLosses - longTermLossOffset,
+    netLongTermGain: longTermGains - longOnLong - shortOnLong,
+    netShortTermGain: shortTermGains - shortOnShort - longOnShort,
+    ordinaryIncomeDeduction: shortDeduction + longDeduction,
+    shortTermGains,
+    shortTermLossOffset,
+    shortTermLossUnused: shortTermLosses - shortTermLossOffset,
+  };
 }

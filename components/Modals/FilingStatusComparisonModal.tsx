@@ -8,6 +8,7 @@ export interface SplitConfig {
   wages: number;
   stcg: number;
   ltcg: number;
+  dividends: number; // Also applies to interest
   contributions401k: number;
   preTaxMedical: number;
   deductions: number;
@@ -127,6 +128,7 @@ export default function FilingStatusComparisonModal({
     wages: 50,
     stcg: 50,
     ltcg: 50,
+    dividends: 50,
     contributions401k: 50,
     preTaxMedical: 50,
     deductions: 50,
@@ -244,6 +246,14 @@ export default function FilingStatusComparisonModal({
                 totalAmount={currentInputs.longTermCapitalGains}
                 spouse1Percent={splits.ltcg}
                 onChange={(v) => updateSplit("ltcg", v)}
+              />
+              <SplitSlider
+                label="Interest & Dividends"
+                totalAmount={
+                  currentInputs.interestIncome + currentInputs.ordinaryDividends
+                }
+                spouse1Percent={splits.dividends}
+                onChange={(v) => updateSplit("dividends", v)}
               />
               <SplitSlider
                 label="401(k)"

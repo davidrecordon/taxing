@@ -1,15 +1,28 @@
 "use client";
 
-import { TaxInputs, STATE_LABELS } from "@/lib/types";
+import { formatCurrency } from "@/lib/formatters";
+import { SharedLimitsData, STATE_LABELS, TaxInputs } from "@/lib/types";
 import CurrencyInput from "../UI/CurrencyInput";
 
 interface Props {
   inputs: TaxInputs;
   onUpdate: <K extends keyof TaxInputs>(field: K, value: TaxInputs[K]) => void;
+  sharedLimits: SharedLimitsData;
 }
 
-export default function IncomeInputs({ inputs, onUpdate }: Props) {
+export default function IncomeInputs({
+  inputs,
+  onUpdate,
+  sharedLimits,
+}: Props) {
   const stateLabel = STATE_LABELS[inputs.selectedState] || "State";
+
+  // Annual capital loss deduction depends on filing status
+  const capitalLossLimit = formatCurrency(
+    inputs.filingStatus === "marriedFilingSeparately"
+      ? sharedLimits.capitalLossLimit.marriedFilingSeparately
+      : sharedLimits.capitalLossLimit.default,
+  );
 
   return (
     <div className="theme-card p-4 space-y-4">
@@ -22,7 +35,7 @@ export default function IncomeInputs({ inputs, onUpdate }: Props) {
           label="Wages & Other Income"
           value={inputs.federalIncome}
           onChange={(v) => onUpdate("federalIncome", v)}
-          hint="W-2 wages, 1099 interest, dividends, etc."
+          hint="W-2 wages and other income subject to payroll tax"
         />
         <CurrencyInput
           label={`${stateLabel} Income`}
@@ -44,6 +57,35 @@ export default function IncomeInputs({ inputs, onUpdate }: Props) {
       />
 
       <h3 className="text-md font-medium text-text-primary pt-2">
+        Interest & Dividends
+      </h3>
+      <CurrencyInput
+        label="Interest"
+        value={inputs.interestIncome}
+        onChange={(v) => onUpdate("interestIncome", v)}
+        hint="1099-INT box 1. Taxable interest."
+      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <CurrencyInput
+          label="Ordinary Dividends"
+          value={inputs.ordinaryDividends}
+          onChange={(v) => onUpdate("ordinaryDividends", v)}
+          hint="1099-DIV box 1a. Total, including qualified."
+        />
+        <CurrencyInput
+          label="Qualified Dividends"
+          value={inputs.qualifiedDividends}
+          onChange={(v) => onUpdate("qualifiedDividends", v)}
+          hint="1099-DIV box 1b. Taxed at long-term rates."
+          warning={
+            inputs.qualifiedDividends > inputs.ordinaryDividends
+              ? "Cannot exceed ordinary dividends. The excess is ignored."
+              : undefined
+          }
+        />
+      </div>
+
+      <h3 className="text-md font-medium text-text-primary pt-2">
         Capital Gains
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -54,7 +96,7 @@ export default function IncomeInputs({ inputs, onUpdate }: Props) {
           allowNegative={true}
           warning={
             inputs.shortTermCapitalGains < 0
-              ? "Short-term losses offset up to $3,000 of ordinary income."
+              ? `Losses offset long-term gains, then up to ${capitalLossLimit} of other income.`
               : undefined
           }
         />
@@ -65,7 +107,7 @@ export default function IncomeInputs({ inputs, onUpdate }: Props) {
           allowNegative={true}
           warning={
             inputs.longTermCapitalGains < 0
-              ? "Long-term capital losses will be carried over to next year."
+              ? `Losses offset short-term gains, then up to ${capitalLossLimit} of other income.`
               : undefined
           }
         />

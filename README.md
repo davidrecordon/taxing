@@ -15,7 +15,7 @@ A web-based tax estimation tool for calculating Federal and state income taxes. 
   - **New York**: State income tax with optional NYC local tax for city residents
   - **Washington**: Capital gains tax only (no wage income tax)
 - **Filing Statuses**: Single, Married Filing Jointly, Married Filing Separately
-- **Income Types**: W-2 wages, short-term and long-term capital gains
+- **Income Types**: W-2 wages, interest, ordinary and qualified dividends, short-term and long-term capital gains
 - **Deductions**: Automatic standard vs. itemized comparison
   - SALT (State and Local Taxes) with AGI-dependent caps
   - Mortgage interest with balance-based limits
@@ -23,7 +23,7 @@ A web-based tax estimation tool for calculating Federal and state income taxes. 
   - 401(k) pre-tax contributions
 - **FICA Taxes**: Social Security and Medicare calculations, including additional Medicare tax
 - **Safe Harbor**: Estimated payment calculations to avoid underpayment penalties
-- **Loss Carryover**: Support for prior year capital loss carryovers
+- **Capital Losses**: Schedule D netting of current year losses and prior year carryovers, including the $3,000 deduction against other income
 
 ## Getting Started
 

@@ -4,6 +4,7 @@ import { formatCurrency, formatPercent } from "@/lib/formatters";
 import { calculateEffectiveRates } from "@/lib/taxUtils";
 import { TaxYear } from "@/lib/config";
 import BracketTable from "../shared/BracketTable";
+import InvestmentIncomeRows from "../shared/InvestmentIncomeRows";
 import TaxSummarySection from "../shared/TaxSummarySection";
 import allDCLimits from "@/data/dc-limits.json";
 
@@ -44,6 +45,7 @@ export default memo(function DCBreakdown({ result, taxYear }: Props) {
             </span>
           </div>
         )}
+        <InvestmentIncomeRows result={result} />
         {result.shortTermCapitalGains > 0 && (
           <div className="flex justify-between text-text-primary">
             <span>Short-Term Capital Gains</span>
@@ -68,7 +70,7 @@ export default memo(function DCBreakdown({ result, taxYear }: Props) {
         </div>
         {result.shortTermLossCarryoverOffset > 0 && (
           <div className="flex justify-between text-positive">
-            <span>Less: Short-Term Carryover Offset</span>
+            <span>Less: Short-Term Loss Offset</span>
             <span className="font-mono">
               -{formatCurrency(result.shortTermLossCarryoverOffset)}
             </span>
@@ -76,7 +78,7 @@ export default memo(function DCBreakdown({ result, taxYear }: Props) {
         )}
         {result.longTermLossCarryoverOffset > 0 && (
           <div className="flex justify-between text-positive">
-            <span>Less: Long-Term Carryover Offset</span>
+            <span>Less: Long-Term Loss Offset</span>
             <span className="font-mono">
               -{formatCurrency(result.longTermLossCarryoverOffset)}
             </span>

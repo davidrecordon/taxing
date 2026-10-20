@@ -148,32 +148,34 @@ describe("FederalBreakdown", () => {
   });
 
   describe("loss carryovers", () => {
-    it("shows short-term carryover offset when present", () => {
+    it("shows short-term loss offset when present", () => {
       const result = createMockResult({ shortTermLossCarryoverOffset: 5000 });
       render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(
-        screen.getByText("Less: Short-Term Carryover Offset"),
+        screen.getByText("Less: Short-Term Loss Offset"),
       ).toBeInTheDocument();
     });
 
-    it("shows long-term carryover offset when present", () => {
+    it("shows long-term loss offset when present", () => {
       const result = createMockResult({ longTermLossCarryoverOffset: 10000 });
       render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(
-        screen.getByText("Less: Long-Term Carryover Offset"),
+        screen.getByText("Less: Long-Term Loss Offset"),
       ).toBeInTheDocument();
     });
 
-    it("shows preserved ST carryover when applicable", () => {
+    it("shows unused ST loss carried over when applicable", () => {
       const result = createMockResult({
         shortTermLossCarryoverOffset: 5000,
         shortTermLossCarryoverUnused: 2000,
       });
       render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
-      expect(screen.getByText(/Preserving.*ST carryover/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/ST loss\s+carries over to next year/),
+      ).toBeInTheDocument();
     });
   });
 

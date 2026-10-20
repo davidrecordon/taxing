@@ -35,7 +35,6 @@ export default function PriorYearInputs({ inputs, onUpdate }: Props) {
           label="Short-Term Loss Carryover"
           value={inputs.priorYearShortTermLossCarryover}
           onChange={(v) => onUpdate("priorYearShortTermLossCarryover", v)}
-          hint="Will not be used to offset long-term gains."
         />
         <CurrencyInput
           label="Long-Term Loss Carryover"

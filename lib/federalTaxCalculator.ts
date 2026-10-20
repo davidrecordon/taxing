@@ -14,8 +14,11 @@ import {
 } from "./types";
 import { calculateFederalDeductions } from "./deductionCalculator";
 import {
-  calculateTaxByBrackets,
   calculateLTCGTaxWithStacking,
+  calculateTaxByBrackets,
+  netCapitalGains,
+  splitDividends,
+  taxableInterest,
 } from "./taxUtils";
 import {
   calculatePaymentSummary,
@@ -127,17 +130,36 @@ export function calculateFederalTax(
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
 
-  // Clamp negative capital gains to 0 (current year losses become carryover)
-  const effectiveSTCG = Math.max(0, inputs.shortTermCapitalGains);
-  const effectiveLTCG = Math.max(0, inputs.longTermCapitalGains);
-  const currentYearSTLoss = Math.max(0, -inputs.shortTermCapitalGains);
-
   // Step 1: Calculate Gross Income
-  // Short-term capital gains and self-employment income are taxed as ordinary income
+  // Short-term capital gains, interest, non-qualified dividends, and
+  // self-employment income are taxed as ordinary income. Capital losses are
+  // netted below.
   const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
-  const grossOrdinaryIncome =
-    inputs.federalIncome + effectiveSTCG + selfEmploymentIncome;
-  const grossIncome = grossOrdinaryIncome + effectiveLTCG;
+  const interestIncome = taxableInterest(inputs);
+  const dividends = splitDividends(inputs);
+  const otherIncome =
+    inputs.federalIncome +
+    selfEmploymentIncome +
+    interestIncome +
+    dividends.ordinary;
+
+  // Step 1b: Net capital gains and losses (Schedule D)
+  const capitalGains = netCapitalGains(
+    inputs,
+    filingStatus,
+    sharedLimits,
+    otherIncome,
+  );
+  const shortTermLossCarryoverOffset = capitalGains.shortTermLossOffset;
+  const shortTermLossCarryoverUnused = capitalGains.shortTermLossUnused;
+  const longTermLossCarryoverOffset = capitalGains.longTermLossOffset;
+  const longTermLossCarryoverUnused = capitalGains.longTermLossUnused;
+
+  const grossIncome =
+    otherIncome + capitalGains.shortTermGains + capitalGains.longTermGains;
+
+  // Income taxed at long-term capital gains rates (before deductions)
+  const preferentialIncome = dividends.qualified + capitalGains.netLongTermGain;
 
   // Step 1.5: Calculate Self-Employment Tax (if applicable)
   // SE tax must be calculated early because half is deductible above-the-line
@@ -151,43 +173,25 @@ export function calculateFederalTax(
       : undefined;
   const deductibleSETax = selfEmploymentTaxBreakdown?.deductibleHalf ?? 0;
 
-  // Step 1b: Apply short-term loss carryover (includes current year losses)
-  // First offset short-term gains, then ordinary income up to limit
-  const stCarryover =
-    inputs.priorYearShortTermLossCarryover + currentYearSTLoss;
-  const stGainsOffset = Math.min(stCarryover, effectiveSTCG);
-  const remainingCarryover = stCarryover - stGainsOffset;
-
-  const ordinaryIncomeLimit =
-    filingStatus === "marriedFilingSeparately"
-      ? sharedLimits.capitalLossLimit.marriedFilingSeparately
-      : sharedLimits.capitalLossLimit.default;
-  const ordinaryIncomeOffset =
-    remainingCarryover > 0 && inputs.federalIncome > 0
-      ? Math.min(remainingCarryover, ordinaryIncomeLimit, inputs.federalIncome)
-      : 0;
-
-  const shortTermLossCarryoverOffset = stGainsOffset + ordinaryIncomeOffset;
-  const shortTermLossCarryoverUnused =
-    stCarryover - shortTermLossCarryoverOffset;
-
-  // Step 1c: Long-term loss carryover is applied AFTER we know taxable ordinary income
-  // (for smart 0% bracket optimization - see Step 4b below)
-  const ltCarryover = inputs.priorYearLongTermLossCarryover;
-
   // Step 2: Calculate ordinary AGI (for tax bracket calculation)
-  // 401k, pre-tax medical, and deductible SE tax reduce ordinary income, not capital gains
+  // 401k, pre-tax medical, and deductible SE tax reduce ordinary income first
   const preTaxDeductions =
     inputs.contributions401k + inputs.preTaxMedical + deductibleSETax;
-  const agiOrdinary = Math.max(
-    0,
-    grossOrdinaryIncome - shortTermLossCarryoverOffset - preTaxDeductions,
-  );
+  const agiOrdinary =
+    inputs.federalIncome +
+    selfEmploymentIncome +
+    interestIncome +
+    dividends.nonQualified +
+    capitalGains.netShortTermGain -
+    capitalGains.ordinaryIncomeDeduction -
+    preTaxDeductions;
 
-  // Pre-deduction AGI for SALT cap threshold
-  // Use conservative estimate (before LT carryover optimization)
+  // Pre-deduction AGI for SALT cap and NIIT thresholds
   const preDeductionAgi =
-    grossIncome - shortTermLossCarryoverOffset - preTaxDeductions;
+    grossIncome -
+    shortTermLossCarryoverOffset -
+    longTermLossCarryoverOffset -
+    preTaxDeductions;
 
   // Step 3: Calculate deductions
   const deductionBreakdown = calculateFederalDeductions(
@@ -206,11 +210,12 @@ export function calculateFederalTax(
   );
 
   // Step 4: Calculate taxable ordinary income (before QBI)
-  // Deductions apply to ordinary income first
-  const taxableOrdinaryIncomeBeforeQbi = Math.max(
-    0,
-    agiOrdinary - deductionBreakdown.deductionAmount,
-  );
+  // Deductions apply to ordinary income first; any excess reduces income
+  // taxed at long-term capital gains rates
+  const ordinaryAfterDeductions =
+    agiOrdinary - deductionBreakdown.deductionAmount;
+  const taxableOrdinaryIncomeBeforeQbi = Math.max(0, ordinaryAfterDeductions);
+  const excessDeductions = Math.max(0, -ordinaryAfterDeductions);
 
   // Step 4a: Calculate QBI deduction (if applicable)
   // QBI is 20% of qualified business income, limited to 20% of taxable income
@@ -232,26 +237,9 @@ export function calculateFederalTax(
     taxableOrdinaryIncomeBeforeQbi - qbiAmount,
   );
 
-  // Step 4b: Apply long-term loss carryover SMARTLY
-  // Only use carryover to offset LTCG that would be taxed (not 0% bracket)
-  // This preserves carryover for future years when it provides actual tax savings
-  const zeroPercentThreshold = ltcgBrackets.brackets[filingStatus][0].max ?? 0;
-  const roomInZeroBracket = Math.max(
-    0,
-    zeroPercentThreshold - taxableOrdinaryIncome,
-  );
-  const ltcgInZeroBracket = Math.min(effectiveLTCG, roomInZeroBracket);
-  const ltcgInTaxedBrackets = effectiveLTCG - ltcgInZeroBracket;
-
-  // Only apply carryover to offset gains that would actually be taxed
-  const longTermLossCarryoverOffset = Math.min(
-    ltCarryover,
-    ltcgInTaxedBrackets,
-  );
-  const longTermLossCarryoverUnused = ltCarryover - longTermLossCarryoverOffset;
-
-  // Step 4c: Calculate taxable LTCG (after smart carryover)
-  const taxableLTCG = effectiveLTCG - longTermLossCarryoverOffset;
+  // Step 4b: Calculate income taxed at long-term capital gains rates
+  // (net long-term gains plus qualified dividends)
+  const taxableLTCG = Math.max(0, preferentialIncome - excessDeductions);
 
   // Step 4d: Calculate AGI (includes all deductions for display)
   const adjustedGrossIncome =
@@ -277,21 +265,22 @@ export function calculateFederalTax(
     ltcgBrackets.brackets[filingStatus],
   );
 
-  // Step 7: Calculate FICA taxes (on W-2 wage income only, not capital gains)
+  // Step 7: Calculate FICA taxes (on W-2 wage income only, not investment income)
   const ficaBreakdown = ficaData
     ? calculateFicaTaxes(inputs.federalIncome, filingStatus, ficaData)
     : undefined;
 
   // Step 7.5: Calculate NIIT (3.8% Net Investment Income Tax for high earners)
   // NIIT applies to the lesser of:
-  // 1. Net investment income (capital gains after losses)
+  // 1. Net investment income (interest, dividends, and capital gains after losses)
   // 2. MAGI exceeding threshold
   const netInvestmentIncome = Math.max(
     0,
-    effectiveSTCG +
-      effectiveLTCG -
-      shortTermLossCarryoverOffset -
-      longTermLossCarryoverOffset,
+    interestIncome +
+      dividends.ordinary +
+      capitalGains.netShortTermGain +
+      capitalGains.netLongTermGain -
+      capitalGains.ordinaryIncomeDeduction,
   );
   const niitThreshold = federalLimits.niit.thresholds[filingStatus];
   const magiOverThreshold = Math.max(0, preDeductionAgi - niitThreshold);
@@ -339,6 +328,9 @@ export function calculateFederalTax(
     wageIncome: inputs.federalIncome,
     shortTermCapitalGains: inputs.shortTermCapitalGains,
     longTermCapitalGains: inputs.longTermCapitalGains,
+    interestIncome,
+    ordinaryDividends: dividends.ordinary,
+    qualifiedDividends: dividends.qualified,
     grossIncome,
     shortTermLossCarryoverOffset,
     shortTermLossCarryoverUnused,

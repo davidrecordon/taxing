@@ -1,4 +1,5 @@
 import { TaxInputs, TaxCalculationResult, DeductionBreakdown } from "../types";
+import { splitDividends, taxableInterest } from "../taxUtils";
 import { calculatePaymentSummary } from "./stateCalcUtils";
 
 /**
@@ -19,8 +20,16 @@ export function calculateFloridaTax(inputs: TaxInputs): TaxCalculationResult {
   const effectiveLTCG = Math.max(0, inputs.longTermCapitalGains);
   const selfEmploymentIncome = inputs.selfEmploymentIncome ?? 0;
 
+  const interestIncome = taxableInterest(inputs);
+  const dividends = splitDividends(inputs);
+
   const grossIncome =
-    stateIncome + effectiveSTCG + effectiveLTCG + selfEmploymentIncome;
+    stateIncome +
+    effectiveSTCG +
+    effectiveLTCG +
+    selfEmploymentIncome +
+    interestIncome +
+    dividends.ordinary;
 
   // Florida has no income tax, so total tax is always 0
   const totalTax = 0;
@@ -48,6 +57,8 @@ export function calculateFloridaTax(inputs: TaxInputs): TaxCalculationResult {
     wageIncome: stateIncome,
     shortTermCapitalGains: inputs.shortTermCapitalGains,
     longTermCapitalGains: inputs.longTermCapitalGains,
+    interestIncome,
+    ordinaryDividends: dividends.ordinary,
     grossIncome,
     shortTermLossCarryoverOffset: 0,
     longTermLossCarryoverOffset: 0,

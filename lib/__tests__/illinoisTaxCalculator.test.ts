@@ -129,7 +129,7 @@ describe("calculateIllinoisTax", () => {
 
     it("applies long-term loss carryover correctly", () => {
       // $50,000 wages + $20,000 LTCG, $30,000 LT carryover
-      // LT carryover offsets the $20,000 LTCG
+      // LT carryover offsets the $20,000 LTCG, then $3,000 of other income
       const inputs = createDefaultInputs({
         federalIncome: 50000,
         longTermCapitalGains: 20000,
@@ -146,9 +146,9 @@ describe("calculateIllinoisTax", () => {
         illinoisLimits,
       );
 
-      expect(result.longTermLossCarryoverOffset).toBe(20000);
-      // $50,000 + $20,000 LTCG - $20,000 offset - $2,925 exemption = $47,075
-      expect(result.taxableOrdinaryIncome).toBe(47075);
+      expect(result.longTermLossCarryoverOffset).toBe(23000);
+      // $50,000 + $20,000 LTCG - $23,000 offset - $2,925 exemption = $44,075
+      expect(result.taxableOrdinaryIncome).toBe(44075);
     });
   });
 
