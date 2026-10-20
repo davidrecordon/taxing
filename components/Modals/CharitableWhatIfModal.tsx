@@ -6,6 +6,7 @@ import { formatCurrency, formatPercent } from "@/lib/formatters";
 interface ScenarioResult {
   totalTax: number;
   remainingOwed: number;
+  refundDue: number;
   effectiveRate: number;
 }
 
@@ -163,7 +164,7 @@ export default function CharitableWhatIfModal({
                     Amount
                   </th>
                   <th className="text-right py-2 px-2 font-medium text-text-primary">
-                    Tax Due
+                    Owed / Refund
                   </th>
                   <th className="hidden sm:table-cell text-right py-2 px-2 font-medium text-text-primary">
                     Eff. Rate
@@ -189,9 +190,13 @@ export default function CharitableWhatIfModal({
                       {formatCurrency(scenario.value)}
                     </td>
                     <td className="py-3 px-2 text-right text-text-primary">
-                      {scenario.results.remainingOwed >= 0
-                        ? formatCurrency(scenario.results.remainingOwed)
-                        : `(${formatCurrency(Math.abs(scenario.results.remainingOwed))})`}
+                      {scenario.results.refundDue > 0 ? (
+                        <span className="text-positive">
+                          {formatCurrency(scenario.results.refundDue)} refund
+                        </span>
+                      ) : (
+                        `${formatCurrency(scenario.results.remainingOwed)} owed`
+                      )}
                     </td>
                     <td className="hidden sm:table-cell py-3 px-2 text-right text-text-primary">
                       {formatPercent(scenario.results.effectiveRate, 1)}

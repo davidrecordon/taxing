@@ -344,6 +344,7 @@ export default function TaxCalculator() {
       return {
         totalTax: scenarioResult.totalTax,
         remainingOwed: scenarioResult.remainingOwed,
+        refundDue: scenarioResult.refundDue,
         effectiveRate:
           scenarioResult.grossIncome > 0
             ? scenarioResult.totalTax / scenarioResult.grossIncome
@@ -358,6 +359,7 @@ export default function TaxCalculator() {
     () => ({
       totalTax: results.federal.totalTax,
       remainingOwed: results.federal.remainingOwed,
+      refundDue: results.federal.refundDue,
       effectiveRate:
         results.federal.grossIncome > 0
           ? results.federal.totalTax / results.federal.grossIncome

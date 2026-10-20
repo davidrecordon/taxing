@@ -10,6 +10,7 @@ import CharitableWhatIfModal from "../Modals/CharitableWhatIfModal";
 interface ScenarioResult {
   totalTax: number;
   remainingOwed: number;
+  refundDue: number;
   effectiveRate: number;
 }
 
