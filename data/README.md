@@ -118,7 +118,12 @@ California-specific limits and thresholds.
 
 ```typescript
 {
-  mortgageBalanceLimit: number,
+  itemizedDeductionLimit: {
+    maxReductionRate: number,
+    rate: number,
+    threshold: { marriedFilingJointly: number, marriedFilingSeparately: number, single: number }
+  },
+  mortgageBalanceLimit: { default: number, marriedFilingSeparately: number },
   mentalHealthTax: {
     threshold: number,
     thresholdMFS: number,

@@ -105,26 +105,62 @@ export function calculateFederalDeductions(
   };
 }
 
-// California does NOT allow SALT deduction
+/**
+ * Reduce itemized deductions by a percentage of AGI over a threshold, up to a
+ * maximum share of the deductions. Returns the amount of the reduction.
+ */
+function calculateHighIncomeReduction(
+  itemizedDeductions: number,
+  agi: number,
+  threshold: number,
+  rate: number,
+  maxReductionRate: number,
+): number {
+  return Math.min(
+    Math.max(0, agi - threshold) * rate,
+    itemizedDeductions * maxReductionRate,
+  );
+}
+
+// California allows property tax in full (no SALT cap) but not state income
+// tax, and reduces itemized deductions for high incomes. It does not follow
+// the 2025 federal law changes (charitable floor, 35% cap).
 export function calculateCaliforniaDeductions(
   inputs: DeductionInputs,
   filingStatus: FilingStatus,
   californiaDeductions: DeductionsData,
   californiaLimits: CaliforniaLimitsData,
+  agi: number,
 ): DeductionBreakdown {
   const standardDeduction =
     californiaDeductions.standardDeduction[filingStatus];
 
-  // Calculate deductible mortgage interest (CA limit is $1M for all filing statuses)
+  // Calculate deductible mortgage interest (CA limit is $1M, $500k MFS)
+  const mortgageBalanceLimit =
+    filingStatus === "marriedFilingSeparately"
+      ? californiaLimits.mortgageBalanceLimit.marriedFilingSeparately
+      : californiaLimits.mortgageBalanceLimit.default;
   const deductibleMortgageInterest = calculateDeductibleMortgageInterest(
     inputs.mortgageInterestPaid,
     inputs.mortgageBalance,
-    californiaLimits.mortgageBalanceLimit,
+    mortgageBalanceLimit,
   );
 
-  // California itemized deductions (no SALT)
-  const itemizedDeduction =
-    deductibleMortgageInterest + inputs.charitableContributions;
+  const beforeLimit =
+    inputs.propertyTaxesPaid +
+    deductibleMortgageInterest +
+    inputs.charitableContributions;
+
+  // High-income limitation (Schedule CA Itemized Deductions Worksheet)
+  const limit = californiaLimits.itemizedDeductionLimit;
+  const highIncomeReduction = calculateHighIncomeReduction(
+    beforeLimit,
+    agi,
+    limit.threshold[filingStatus],
+    limit.rate,
+    limit.maxReductionRate,
+  );
+  const itemizedDeduction = beforeLimit - highIncomeReduction;
 
   const useItemized = itemizedDeduction > standardDeduction;
 
@@ -133,10 +169,12 @@ export function calculateCaliforniaDeductions(
     itemizedDeduction,
     deductionUsed: useItemized ? "itemized" : "standard",
     deductionAmount: useItemized ? itemizedDeduction : standardDeduction,
-    saltDeduction: 0, // CA doesn't allow SALT
+    saltDeduction: 0, // State income tax is not deductible
     saltCapped: false,
     mortgageInterest: useItemized ? deductibleMortgageInterest : 0,
     charitableContributions: useItemized ? inputs.charitableContributions : 0,
+    propertyTax: useItemized ? inputs.propertyTaxesPaid : 0,
+    highIncomeReduction: useItemized ? highIncomeReduction : 0,
   };
 }
 

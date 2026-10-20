@@ -1,11 +1,23 @@
 {
   "2025": {
+    "itemizedDeductionLimit": {
+      "maxReductionRate": 0.8,
+      "rate": 0.06,
+      "threshold": {
+        "marriedFilingJointly": 504411,
+        "marriedFilingSeparately": 252203,
+        "single": 252203
+      }
+    },
     "mentalHealthTax": {
       "rate": 0.01,
       "threshold": 1000000,
       "thresholdMFS": 500000
     },
-    "mortgageBalanceLimit": 1000000,
+    "mortgageBalanceLimit": {
+      "default": 1000000,
+      "marriedFilingSeparately": 500000
+    },
     "safeHarbor": {
       "currentYearPercent": 0.9,
       "highIncomeThreshold": 1000000,
@@ -14,12 +26,24 @@
     }
   },
   "2026": {
+    "itemizedDeductionLimit": {
+      "maxReductionRate": 0.8,
+      "rate": 0.06,
+      "threshold": {
+        "marriedFilingJointly": 504411,
+        "marriedFilingSeparately": 252203,
+        "single": 252203
+      }
+    },
     "mentalHealthTax": {
       "rate": 0.01,
       "threshold": 1000000,
       "thresholdMFS": 500000
     },
-    "mortgageBalanceLimit": 1000000,
+    "mortgageBalanceLimit": {
+      "default": 1000000,
+      "marriedFilingSeparately": 500000
+    },
     "safeHarbor": {
       "currentYearPercent": 0.9,
       "highIncomeThreshold": 1000000,

@@ -5,6 +5,7 @@ import { calculateEffectiveRates } from "@/lib/taxUtils";
 import { TaxYear } from "@/lib/config";
 import BracketTable from "../shared/BracketTable";
 import InvestmentIncomeRows from "../shared/InvestmentIncomeRows";
+import ItemizedDeductionDetails from "../shared/ItemizedDeductionDetails";
 import TaxSummarySection from "../shared/TaxSummarySection";
 import allCaliforniaLimits from "@/data/california-limits.json";
 
@@ -133,6 +134,11 @@ export default memo(function CaliforniaBreakdown({ result, taxYear }: Props) {
           </span>
         </div>
       </div>
+
+      {/* Deduction Details (if itemized) */}
+      <ItemizedDeductionDetails
+        deductionBreakdown={result.deductionBreakdown}
+      />
 
       {/* Bracket Breakdown */}
       <BracketTable

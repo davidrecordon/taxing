@@ -5,6 +5,7 @@ import { calculateEffectiveRates } from "@/lib/taxUtils";
 import { TaxYear } from "@/lib/config";
 import BracketTable from "../shared/BracketTable";
 import InvestmentIncomeRows from "../shared/InvestmentIncomeRows";
+import ItemizedDeductionDetails from "../shared/ItemizedDeductionDetails";
 import TaxSummarySection from "../shared/TaxSummarySection";
 import allFederalLimits from "@/data/federal-limits.json";
 import allFicaData from "@/data/fica.json";
@@ -168,41 +169,9 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
       </div>
 
       {/* Deduction Details (if itemized) */}
-      {result.deductionBreakdown.deductionUsed === "itemized" && (
-        <div className="text-sm text-text-secondary mb-4 pl-2 border-l-2 border-border">
-          <p className="font-medium text-text-primary mb-1">
-            Itemized Deduction Breakdown:
-          </p>
-          <div className="space-y-0.5">
-            <div className="flex justify-between">
-              <span>
-                SALT{result.deductionBreakdown.saltCapped && " (capped)"}
-              </span>
-              <span>
-                {formatCurrency(result.deductionBreakdown.saltDeduction)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Mortgage Interest</span>
-              <span>
-                {formatCurrency(result.deductionBreakdown.mortgageInterest)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Charitable Contributions</span>
-              <span>
-                {formatCurrency(
-                  result.deductionBreakdown.charitableContributions,
-                )}
-              </span>
-            </div>
-          </div>
-          <p className="text-xs mt-1 text-text-muted">
-            (Standard deduction would be{" "}
-            {formatCurrency(result.deductionBreakdown.standardDeduction)}).
-          </p>
-        </div>
-      )}
+      <ItemizedDeductionDetails
+        deductionBreakdown={result.deductionBreakdown}
+      />
       {result.deductionBreakdown.deductionUsed === "standard" &&
         result.deductionBreakdown.itemizedDeduction > 0 && (
           <p className="text-sm text-text-secondary mb-4">

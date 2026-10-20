@@ -31,6 +31,7 @@ components/
   shared/                # Shared display components
     BracketTable.tsx       # Reusable tax bracket breakdown table
     InvestmentIncomeRows.tsx # Interest and dividend rows for income sections
+    ItemizedDeductionDetails.tsx # Itemized deduction components and limits
     TaxSummarySection.tsx  # Reusable payment summary section
   UI/                    # Reusable UI primitives
     AnalyticsWrapper.tsx   # Analytics integration wrapper

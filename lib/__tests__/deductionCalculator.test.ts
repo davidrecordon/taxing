@@ -40,6 +40,8 @@ function createDefaultDeductionInputs(
 const HIGH_AGI = 700000;
 // AGI below the phasedown threshold, so the full SALT cap applies
 const LOW_AGI = 400000;
+// AGI below the California high-income itemized deduction limitation
+const CA_LOW_AGI = 100000;
 
 describe("calculateFederalDeductions", () => {
   describe("SALT cap and standard vs itemized", () => {
@@ -376,8 +378,8 @@ describe("calculateFederalDeductions SALT components", () => {
 });
 
 describe("calculateCaliforniaDeductions", () => {
-  it("does not include SALT in itemized deductions", () => {
-    // Even with high state taxes, CA doesn't allow SALT deduction
+  it("deducts property tax but not state income tax", () => {
+    // CA allows property tax in full (no cap) but not state income tax
     const inputs = createDefaultDeductionInputs({
       stateTaxWithheld: 50000,
       propertyTaxesPaid: 20000,
@@ -391,12 +393,14 @@ describe("calculateCaliforniaDeductions", () => {
       "single",
       californiaDeductions,
       californiaLimits,
+      CA_LOW_AGI,
     );
 
-    // Only mortgage interest + charitable = $15,000
+    // Property tax + mortgage interest + charitable = $35,000
     expect(result.saltDeduction).toBe(0);
-    expect(result.itemizedDeduction).toBe(15000);
-    // $15,000 > $5,900 standard, so itemized
+    expect(result.propertyTax).toBe(20000);
+    expect(result.itemizedDeduction).toBe(35000);
+    // $35,000 > $5,900 standard, so itemized
     expect(result.deductionUsed).toBe("itemized");
   });
 
@@ -413,6 +417,7 @@ describe("calculateCaliforniaDeductions", () => {
       "single",
       californiaDeductions,
       californiaLimits,
+      CA_LOW_AGI,
     );
 
     // Full interest is deductible since $900k < $1M CA limit
@@ -436,6 +441,7 @@ describe("calculateCaliforniaDeductions edge cases", () => {
       "single",
       californiaDeductions,
       californiaLimits,
+      CA_LOW_AGI,
     );
 
     expect(result.mortgageInterest).toBe(40000);
@@ -451,6 +457,7 @@ describe("calculateCaliforniaDeductions edge cases", () => {
       "single",
       californiaDeductions,
       californiaLimits,
+      CA_LOW_AGI,
     );
 
     expect(result.standardDeduction).toBe(5900);
@@ -468,17 +475,18 @@ describe("calculateCaliforniaDeductions edge cases", () => {
       "marriedFilingJointly",
       californiaDeductions,
       californiaLimits,
+      CA_LOW_AGI,
     );
 
     expect(result.standardDeduction).toBe(11800);
     expect(result.deductionUsed).toBe("standard");
   });
 
-  it("MFS uses same $1M mortgage limit as single/MFJ in CA", () => {
-    // CA uses $1M limit for all filing statuses (unlike federal)
+  it("MFS uses a $500k mortgage limit in CA", () => {
+    // CA uses $1M ($500k married filing separately)
     const inputs = createDefaultDeductionInputs({
-      mortgageInterestPaid: 40000,
-      mortgageBalance: 900000, // within $1M CA limit
+      mortgageInterestPaid: 45000,
+      mortgageBalance: 900000, // over the $500k MFS limit
       charitableContributions: 0,
     });
 
@@ -487,10 +495,11 @@ describe("calculateCaliforniaDeductions edge cases", () => {
       "marriedFilingSeparately",
       californiaDeductions,
       californiaLimits,
+      CA_LOW_AGI,
     );
 
-    // Full interest deductible
-    expect(result.mortgageInterest).toBe(40000);
+    // ($500k / $900k) * $45k = $25,000
+    expect(result.mortgageInterest).toBeCloseTo(25000, 2);
   });
 
   it("handles only charitable contributions in CA", () => {
@@ -503,6 +512,7 @@ describe("calculateCaliforniaDeductions edge cases", () => {
       "single",
       californiaDeductions,
       californiaLimits,
+      CA_LOW_AGI,
     );
 
     expect(result.itemizedDeduction).toBe(10000);
@@ -510,9 +520,9 @@ describe("calculateCaliforniaDeductions edge cases", () => {
     expect(result.charitableContributions).toBe(10000);
   });
 
-  it("ignores property taxes in CA itemized (no SALT)", () => {
+  it("deducts property tax without a cap", () => {
     const inputs = createDefaultDeductionInputs({
-      propertyTaxesPaid: 50000, // ignored
+      propertyTaxesPaid: 50000, // above the federal cap, still allowed in full
       charitableContributions: 3000,
     });
 
@@ -521,12 +531,96 @@ describe("calculateCaliforniaDeductions edge cases", () => {
       "single",
       californiaDeductions,
       californiaLimits,
+      CA_LOW_AGI,
     );
 
-    // Only charitable counts
-    expect(result.itemizedDeduction).toBe(3000);
+    expect(result.itemizedDeduction).toBe(53000);
+    expect(result.propertyTax).toBe(50000);
     expect(result.saltDeduction).toBe(0);
-    // $3k < $5,900 std, use standard
+    expect(result.deductionUsed).toBe("itemized");
+  });
+});
+
+describe("calculateCaliforniaDeductions high-income limitation", () => {
+  it("does not reduce deductions at or below the threshold", () => {
+    const inputs = createDefaultDeductionInputs({
+      propertyTaxesPaid: 12000,
+      mortgageInterestPaid: 20000,
+      mortgageBalance: 600000,
+      charitableContributions: 3000,
+    });
+
+    const result = calculateCaliforniaDeductions(
+      inputs,
+      "single",
+      californiaDeductions,
+      californiaLimits,
+      252203,
+    );
+
+    expect(result.highIncomeReduction).toBe(0);
+    expect(result.itemizedDeduction).toBe(35000);
+  });
+
+  it("reduces deductions by 6% of AGI over the threshold", () => {
+    // Single, AGI $600,000: 6% x ($600,000 - $252,203) = $20,867.82
+    // 80% x $50,000 = $40,000, so the 6% amount applies
+    const inputs = createDefaultDeductionInputs({
+      mortgageInterestPaid: 30000,
+      mortgageBalance: 900000,
+      charitableContributions: 20000,
+    });
+
+    const result = calculateCaliforniaDeductions(
+      inputs,
+      "single",
+      californiaDeductions,
+      californiaLimits,
+      600000,
+    );
+
+    expect(result.highIncomeReduction).toBeCloseTo(20867.82, 2);
+    expect(result.itemizedDeduction).toBeCloseTo(29132.18, 2);
+  });
+
+  it("limits the reduction to 80% of itemized deductions", () => {
+    // MFJ, AGI $3,000,000: 6% x ($3,000,000 - $504,411) = $149,735.34
+    // 80% x $100,000 = $80,000, so the 80% amount applies
+    const inputs = createDefaultDeductionInputs({
+      propertyTaxesPaid: 30000,
+      mortgageInterestPaid: 40000,
+      mortgageBalance: 900000,
+      charitableContributions: 30000,
+    });
+
+    const result = calculateCaliforniaDeductions(
+      inputs,
+      "marriedFilingJointly",
+      californiaDeductions,
+      californiaLimits,
+      3000000,
+    );
+
+    expect(result.highIncomeReduction).toBe(80000);
+    expect(result.itemizedDeduction).toBe(20000);
+    expect(result.deductionUsed).toBe("itemized");
+  });
+
+  it("compares the reduced amount with the standard deduction", () => {
+    // $12,000 of deductions reduced by 80% leaves $2,400, below the standard
+    const inputs = createDefaultDeductionInputs({
+      charitableContributions: 12000,
+    });
+
+    const result = calculateCaliforniaDeductions(
+      inputs,
+      "single",
+      californiaDeductions,
+      californiaLimits,
+      2000000,
+    );
+
+    expect(result.itemizedDeduction).toBeCloseTo(2400, 2);
     expect(result.deductionUsed).toBe("standard");
   });
 });
@@ -553,6 +647,7 @@ describe("mortgage interest edge cases across both jurisdictions", () => {
       "single",
       californiaDeductions,
       californiaLimits,
+      CA_LOW_AGI,
     );
 
     // Federal: ($750k / $800k) * $40k = $37,500

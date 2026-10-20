@@ -42,22 +42,7 @@ export function calculateCaliforniaTax(
     shortTermLossCarryoverUnused,
   } = calculateStateGrossIncome(inputs, stateIncome, sharedLimits);
 
-  // Step 3: Calculate deductions (CA doesn't allow SALT)
-  const deductionBreakdown = calculateCaliforniaDeductions(
-    {
-      propertyTaxesPaid: inputs.propertyTaxesPaid,
-      mortgageInterestPaid: inputs.mortgageInterestPaid,
-      mortgageBalance: inputs.mortgageBalance,
-      charitableContributions: inputs.charitableContributions,
-      stateTaxWithheld: inputs.stateTaxWithheld,
-      stateEstimatedPaid: inputs.stateEstimatedPaid,
-    },
-    filingStatus,
-    californiaDeductions,
-    californiaLimits,
-  );
-
-  // Step 3b: Calculate AGI (includes all deductions for display)
+  // Step 3: Calculate AGI
   // CA conforms to federal above-the-line deductions including deductible SE tax
   const deductibleSETax = ficaData
     ? calculateDeductibleSETax(
@@ -73,6 +58,22 @@ export function calculateCaliforniaTax(
     shortTermLossCarryoverOffset -
     longTermLossCarryoverOffset -
     preTaxDeductions;
+
+  // Step 3b: Calculate deductions (property tax allowed, state income tax not)
+  const deductionBreakdown = calculateCaliforniaDeductions(
+    {
+      propertyTaxesPaid: inputs.propertyTaxesPaid,
+      mortgageInterestPaid: inputs.mortgageInterestPaid,
+      mortgageBalance: inputs.mortgageBalance,
+      charitableContributions: inputs.charitableContributions,
+      stateTaxWithheld: inputs.stateTaxWithheld,
+      stateEstimatedPaid: inputs.stateEstimatedPaid,
+    },
+    filingStatus,
+    californiaDeductions,
+    californiaLimits,
+    adjustedGrossIncome,
+  );
 
   // Step 4: Calculate taxable income
   const taxableOrdinaryIncome = Math.max(

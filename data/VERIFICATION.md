@@ -174,6 +174,25 @@ This document verifies that all tax data in the JSON files matches official gove
 
 **Correction (2026-10-05):** Previously recorded as $5,540/$11,080, which are the 2024 amounts.
 
+### Itemized Deductions
+
+**Source:** [2025 Schedule CA (540) Instructions](https://www.ftb.ca.gov/forms/2025/2025-540-ca-instructions.html) (Part II lines 5a, 5e, 8 and the line 29 Itemized Deductions Worksheet), [FTB Summary of Federal Income Tax Changes](https://www.ftb.ca.gov/about-ftb/data-reports-plans/Summary-of-Federal-Income-Tax-Changes/index.html)
+
+| Item                                     | Our Data   | Official   | Match |
+| ---------------------------------------- | ---------- | ---------- | ----- |
+| Property tax deductible, no SALT cap     | Yes        | Yes        | Yes   |
+| State income tax deductible              | No         | No         | Yes   |
+| Mortgage balance limit                   | $1,000,000 | $1,000,000 | Yes   |
+| Mortgage balance limit (MFS)             | $500,000   | $500,000   | Yes   |
+| High-income limit: rate on excess AGI    | 6%         | 6%         | Yes   |
+| High-income limit: maximum reduction     | 80%        | 80%        | Yes   |
+| High-income limit threshold (Single/MFS) | $252,203   | $252,203   | Yes   |
+| High-income limit threshold (MFJ)        | $504,411   | $504,411   | Yes   |
+
+**Notes:** The limitation uses federal AGI. California does not conform to the 2025 federal law, so the federal 0.5% charitable floor, the 2/37 limit on itemized deductions and the non-itemizer charitable deduction do not apply. Not modelled: the 50%-of-AGI limit on cash gifts, home equity interest, and the rule that both spouses filing separately must make the same choice.
+
+**Correction (2026-10-19):** The calculator previously dropped property tax from California itemized deductions, applied no high-income limitation, and used the $1,000,000 mortgage limit for married filing separately.
+
 ### Mental Health Services Tax
 
 **Source:** CA Revenue & Taxation Code Section 17043
@@ -390,6 +409,15 @@ This document verifies that all tax data in the JSON files matches official gove
 | MFS           | $5,900   | $5,900   | Yes   |
 
 **Correction (2026-10-05):** The brackets previously recorded here were not official values (the low brackets were the 2024 thresholds and the upper brackets matched no FTB schedule), and the standard deductions were the 2024 amounts. Replaced with the indexed amounts FTB announced in October 2026. Mental health tax remains 1% over $1M.
+
+### Itemized Deductions (2026)
+
+| Item                                     | Our Data | Official | Match                      |
+| ---------------------------------------- | -------- | -------- | -------------------------- |
+| High-income limit threshold (Single/MFS) | $252,203 | TBD      | WAITING - using 2025 value |
+| High-income limit threshold (MFJ)        | $504,411 | TBD      | WAITING - using 2025 value |
+
+**Note:** The FTB indexes these thresholds each year and publishes them in the Schedule CA (540) instructions, expected in late December 2026. The other itemized deduction rules are statutory and unchanged from 2025.
 
 ---
 

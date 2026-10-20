@@ -93,6 +93,55 @@ describe("calculateCaliforniaTax", () => {
     });
   });
 
+  describe("itemized deductions", () => {
+    const calculate = (overrides: Parameters<typeof createDefaultInputs>[0]) =>
+      calculateCaliforniaTax(
+        createDefaultInputs({ filingStatus: "single", ...overrides }),
+        californiaBrackets,
+        californiaDeductions,
+        sharedLimits,
+        californiaLimits,
+      );
+
+    it("deducts property tax from California taxable income", () => {
+      const result = calculate({
+        federalIncome: 200000,
+        propertyTaxesPaid: 12000,
+        mortgageInterestPaid: 20000,
+        mortgageBalance: 600000,
+        charitableContributions: 3000,
+        stateTaxWithheld: 15000,
+      });
+
+      expect(result.deductionBreakdown.deductionUsed).toBe("itemized");
+      expect(result.deductionBreakdown.propertyTax).toBe(12000);
+      expect(result.deductionBreakdown.deductionAmount).toBe(35000);
+      expect(result.taxableOrdinaryIncome).toBe(165000);
+    });
+
+    it("applies the high-income limitation using AGI", () => {
+      // AGI $600,000 after $20,000 of 401(k): 6% x ($600,000 - $252,203)
+      const result = calculate({
+        federalIncome: 620000,
+        contributions401k: 20000,
+        propertyTaxesPaid: 15000,
+        mortgageInterestPaid: 30000,
+        mortgageBalance: 900000,
+        charitableContributions: 20000,
+      });
+
+      expect(result.adjustedGrossIncome).toBe(600000);
+      expect(result.deductionBreakdown.highIncomeReduction).toBeCloseTo(
+        20867.82,
+        2,
+      );
+      expect(result.deductionBreakdown.deductionAmount).toBeCloseTo(
+        44132.18,
+        2,
+      );
+    });
+  });
+
   describe("mental health tax", () => {
     it("applies 1% mental health tax on income above $1M", () => {
       // Single filer with $1,100,000 income

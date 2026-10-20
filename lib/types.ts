@@ -115,12 +115,26 @@ export interface FederalLimitsData {
 
 // California-specific limits
 export interface CaliforniaLimitsData {
+  // Itemized deductions are reduced by `rate` of federal AGI over the
+  // threshold, up to `maxReductionRate` of the deductions
+  itemizedDeductionLimit: {
+    maxReductionRate: number;
+    rate: number;
+    threshold: {
+      marriedFilingJointly: number;
+      marriedFilingSeparately: number;
+      single: number;
+    };
+  };
   mentalHealthTax: {
     rate: number;
     threshold: number;
     thresholdMFS: number;
   };
-  mortgageBalanceLimit: number;
+  mortgageBalanceLimit: {
+    default: number;
+    marriedFilingSeparately: number;
+  };
   safeHarbor: {
     currentYearPercent: number;
     highIncomeThreshold: number;
@@ -315,6 +329,8 @@ export interface DeductionBreakdown {
   saltCapped: boolean;
   mortgageInterest: number;
   charitableContributions: number;
+  propertyTax?: number; // State returns: property tax deducted outside any SALT cap
+  highIncomeReduction?: number; // Itemized deductions lost to a high-income limit
 }
 
 export interface FicaBreakdown {
