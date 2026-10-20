@@ -23,13 +23,13 @@ export default function WithholdingInputs({ inputs, onUpdate }: Props) {
           label="Federal Tax Withheld"
           value={inputs.federalTaxWithheld}
           onChange={(v) => onUpdate("federalTaxWithheld", v)}
-          hint="From W-2/1099"
+          hint="Expected for the full year, from paychecks"
         />
         <CurrencyInput
           label={`${stateLabel} Tax Withheld`}
           value={inputs.stateTaxWithheld}
           onChange={(v) => onUpdate("stateTaxWithheld", v)}
-          hint="From W-2/1099"
+          hint="Expected for the full year, from paychecks"
         />
       </div>
 

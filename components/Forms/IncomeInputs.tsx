@@ -63,20 +63,20 @@ export default function IncomeInputs({
         label="Interest"
         value={inputs.interestIncome}
         onChange={(v) => onUpdate("interestIncome", v)}
-        hint="1099-INT box 1. Taxable interest."
+        hint="Taxable interest from savings, CDs and bonds"
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CurrencyInput
           label="Ordinary Dividends"
           value={inputs.ordinaryDividends}
           onChange={(v) => onUpdate("ordinaryDividends", v)}
-          hint="1099-DIV box 1a. Total, including qualified."
+          hint="All dividends for the year, including qualified"
         />
         <CurrencyInput
           label="Qualified Dividends"
           value={inputs.qualifiedDividends}
           onChange={(v) => onUpdate("qualifiedDividends", v)}
-          hint="1099-DIV box 1b. Taxed at long-term rates."
+          hint="The portion taxed at long-term rates"
           warning={
             inputs.qualifiedDividends > inputs.ordinaryDividends
               ? "Cannot exceed ordinary dividends. The excess is ignored."
