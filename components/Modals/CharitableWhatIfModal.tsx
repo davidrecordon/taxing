@@ -1,12 +1,11 @@
 "use client";
 
-import { useRef } from "react";
 import {
   CharitableScenario,
   compareWithNoGiving,
 } from "@/lib/charitableScenario";
 import { formatCurrency } from "@/lib/formatters";
-import { useDialogKeyboard } from "../UI/useDialogKeyboard";
+import Dialog from "../UI/Dialog";
 
 interface Props {
   isOpen: boolean;
@@ -31,11 +30,6 @@ export default function CharitableWhatIfModal({
   calculateScenario,
   onApply,
 }: Props) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-
-  useDialogKeyboard(isOpen, onClose, dialogRef, closeButtonRef);
-
   if (!isOpen) return null;
 
   const scenarios = [
@@ -147,167 +141,106 @@ export default function CharitableWhatIfModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/50 transition-opacity"
-        onClick={onClose}
-      />
+    <Dialog title="Charitable Contributions: What If?" onClose={onClose}>
+      {/* Info text */}
+      <p className="text-sm text-text-secondary mb-4">
+        What giving saves in {taxesCovered} tax, and what each gift costs
+        you after that saving. Savings are compared with giving nothing.
+      </p>
 
-      {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div
-          ref={dialogRef}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="charitable-what-if-title"
-          className="relative bg-background rounded-[var(--radius-lg)] max-w-full sm:max-w-2xl w-full animate-scale-in"
-        >
-          {/* The card is translucent in the dark theme, so it sits on an
-              opaque layer to keep the page from showing through */}
-          <div className="theme-card p-4 sm:p-6">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h2
-                id="charitable-what-if-title"
-                className="text-xl font-semibold text-text-primary font-display"
-              >
-                Charitable Contributions: What If?
-              </h2>
-              <button
-                onClick={onClose}
-                aria-label="Close"
-                className="text-text-muted hover:text-text-primary transition-colors"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="text-left py-2 px-2 font-medium text-text-primary">
+                Scenario
+              </th>
+              <th className="text-right py-2 px-2 font-medium text-text-primary">
+                Gift
+              </th>
+              <th className="text-right py-2 px-2 font-medium text-text-primary">
+                Tax Saved
+              </th>
+              <th className="text-right py-2 px-2 font-medium text-text-primary">
+                Cost After Tax
+              </th>
+              <th className="py-2 px-2">
+                <span className="sr-only">Use this amount</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => {
+              const { federalSaved, stateSaved, totalSaved } = row.saving;
+              const costAfterTax = row.value - totalSaved;
+
+              return (
+                <tr
+                  key={row.label}
+                  className={`border-b border-border align-top ${
+                    row.isCurrent
+                      ? "bg-accent-subtle"
+                      : "hover:bg-secondary"
+                  } transition-colors`}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            {/* Info text */}
-            <p className="text-sm text-text-secondary mb-4">
-              What giving saves in {taxesCovered} tax, and what each gift costs
-              you after that saving. Savings are compared with giving nothing.
-            </p>
-
-            {/* Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-2 px-2 font-medium text-text-primary">
-                      Scenario
-                    </th>
-                    <th className="text-right py-2 px-2 font-medium text-text-primary">
-                      Gift
-                    </th>
-                    <th className="text-right py-2 px-2 font-medium text-text-primary">
-                      Tax Saved
-                    </th>
-                    <th className="text-right py-2 px-2 font-medium text-text-primary">
-                      Cost After Tax
-                    </th>
-                    <th className="py-2 px-2">
-                      <span className="sr-only">Use this amount</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => {
-                    const { federalSaved, stateSaved, totalSaved } = row.saving;
-                    const costAfterTax = row.value - totalSaved;
-
-                    return (
-                      <tr
-                        key={row.label}
-                        className={`border-b border-border align-top ${
-                          row.isCurrent
-                            ? "bg-accent-subtle"
-                            : "hover:bg-secondary"
-                        } transition-colors`}
+                  <td className="py-3 px-2 font-medium text-text-primary">
+                    {row.label}
+                  </td>
+                  <td className="py-3 px-2 text-right font-mono text-text-secondary">
+                    {formatCurrency(row.value)}
+                  </td>
+                  <td className="py-3 px-2 text-right">
+                    <div className="font-mono font-medium">
+                      {formatSaved(totalSaved)}
+                    </div>
+                    {hasStateTax && totalSaved !== 0 && (
+                      <div className="text-xs text-text-muted">
+                        Federal {formatSaved(federalSaved)}, State{" "}
+                        {formatSaved(stateSaved)}
+                      </div>
+                    )}
+                  </td>
+                  <td className="py-3 px-2 text-right">
+                    <div className="font-mono font-medium text-text-primary">
+                      {formatCurrency(costAfterTax)}
+                    </div>
+                    {row.value > 0 && (
+                      <div className="text-xs text-text-muted">
+                        {Math.round((costAfterTax / row.value) * 100)}¢
+                        per $1 given
+                      </div>
+                    )}
+                  </td>
+                  <td className="py-3 px-2 text-right">
+                    {!row.isCurrent && (
+                      <button
+                        onClick={() => handleApply(row.value)}
+                        aria-label={`Use ${formatCurrency(row.value)}`}
+                        className="theme-button-primary px-3 py-1 text-xs"
                       >
-                        <td className="py-3 px-2 font-medium text-text-primary">
-                          {row.label}
-                        </td>
-                        <td className="py-3 px-2 text-right font-mono text-text-secondary">
-                          {formatCurrency(row.value)}
-                        </td>
-                        <td className="py-3 px-2 text-right">
-                          <div className="font-mono font-medium">
-                            {formatSaved(totalSaved)}
-                          </div>
-                          {hasStateTax && totalSaved !== 0 && (
-                            <div className="text-xs text-text-muted">
-                              Federal {formatSaved(federalSaved)}, State{" "}
-                              {formatSaved(stateSaved)}
-                            </div>
-                          )}
-                        </td>
-                        <td className="py-3 px-2 text-right">
-                          <div className="font-mono font-medium text-text-primary">
-                            {formatCurrency(costAfterTax)}
-                          </div>
-                          {row.value > 0 && (
-                            <div className="text-xs text-text-muted">
-                              {Math.round((costAfterTax / row.value) * 100)}¢
-                              per $1 given
-                            </div>
-                          )}
-                        </td>
-                        <td className="py-3 px-2 text-right">
-                          {!row.isCurrent && (
-                            <button
-                              onClick={() => handleApply(row.value)}
-                              aria-label={`Use ${formatCurrency(row.value)}`}
-                              className="theme-button-primary px-3 py-1 text-xs"
-                            >
-                              Apply
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* What doubling adds, compared with the current gift */}
-            <p className="mt-3 text-sm text-text-secondary">
-              {doublingSummary}
-            </p>
-
-            {/* Notes on what limits the saving */}
-            <ul className="mt-3 space-y-1 text-xs text-text-muted list-disc pl-4">
-              {notes.map((note) => (
-                <li key={note}>{note}</li>
-              ))}
-            </ul>
-
-            {/* Footer */}
-            <div className="mt-4 flex justify-end">
-              <button
-                ref={closeButtonRef}
-                onClick={onClose}
-                className="px-4 py-2 text-text-secondary border border-border rounded-[var(--radius-md)] hover:bg-secondary transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+                        Apply
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
-    </div>
+
+      {/* What doubling adds, compared with the current gift */}
+      <p className="mt-3 text-sm text-text-secondary">
+        {doublingSummary}
+      </p>
+
+      {/* Notes on what limits the saving */}
+      <ul className="mt-3 space-y-1 text-xs text-text-muted list-disc pl-4">
+        {notes.map((note) => (
+          <li key={note}>{note}</li>
+        ))}
+      </ul>
+    </Dialog>
   );
 }

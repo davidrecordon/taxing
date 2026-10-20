@@ -36,9 +36,10 @@ components/
   UI/                    # Reusable UI primitives
     AnalyticsWrapper.tsx   # Analytics integration wrapper
     CurrencyInput.tsx      # Formatted currency input field
+    Dialog.tsx             # Modal dialog shell used by everything in Modals/
     ErrorBoundary.tsx      # React error boundary
     ThemeSelector.tsx      # Light/dark theme toggle
-    useDialogKeyboard.ts   # Focus, Tab and Escape handling shared by the dialogs
+    useDialogKeyboard.ts   # Focus, Tab and Escape handling for Dialog
 ```
 
 ## Data Flow

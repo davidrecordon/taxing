@@ -4,12 +4,11 @@ const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
- * Keyboard behaviour for a modal dialog: focus moves into it when it opens
- * and back to where it was when it closes, Tab stays inside it, and Escape
- * closes it.
+ * Keyboard behaviour for a modal dialog while it is mounted: focus moves into
+ * it when it opens and back to where it was when it closes, Tab stays inside
+ * it, and Escape closes it.
  */
 export function useDialogKeyboard(
-  isOpen: boolean,
   onClose: () => void,
   dialogRef: RefObject<HTMLElement | null>,
   initialFocusRef: RefObject<HTMLElement | null>,
@@ -21,8 +20,6 @@ export function useDialogKeyboard(
   }, [onClose]);
 
   useEffect(() => {
-    if (!isOpen) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onCloseRef.current();
@@ -61,5 +58,5 @@ export function useDialogKeyboard(
         previouslyFocused.focus();
       }
     };
-  }, [isOpen, dialogRef, initialFocusRef]);
+  }, [dialogRef, initialFocusRef]);
 }

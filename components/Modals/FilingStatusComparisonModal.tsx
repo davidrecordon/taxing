@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import { formatCurrency } from "@/lib/formatters";
 import { TaxInputs } from "@/lib/types";
-import { useDialogKeyboard } from "../UI/useDialogKeyboard";
+import Dialog from "../UI/Dialog";
 
 export interface SplitConfig {
   wages: number;
@@ -143,10 +143,6 @@ export default function FilingStatusComparisonModal({
     return calculateMFSScenario(splits);
   }, [splits, calculateMFSScenario]);
 
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  useDialogKeyboard(isOpen, onClose, dialogRef, closeButtonRef);
-
   if (!isOpen) return null;
 
   const totalWages =
@@ -172,190 +168,129 @@ export default function FilingStatusComparisonModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/50 transition-opacity"
-        onClick={onClose}
-      />
+    <Dialog title="Compare MFJ vs MFS" onClose={onClose} size="large">
+      {/* Info text */}
+      <p className="text-sm text-text-secondary mb-4">
+        Allocate income and deductions between spouses to roughly reflect
+        each spouse&apos;s share to compare Married Filing Jointly vs
+        Married Filing Separately.
+      </p>
 
-      {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div
-          ref={dialogRef}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="filing-status-comparison-title"
-          className="relative bg-background rounded-[var(--radius-lg)] max-w-full sm:max-w-4xl w-full animate-scale-in"
-        >
-          {/* The card is translucent in the dark theme, so it sits on an
-              opaque layer to keep the page from showing through */}
-          <div className="theme-card p-4 sm:p-6">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h2
-                id="filing-status-comparison-title"
-                className="text-xl font-semibold text-text-primary font-display"
-              >
-                Compare MFJ vs MFS
-              </h2>
-              <button
-                onClick={onClose}
-                aria-label="Close"
-                className="text-text-muted hover:text-text-primary transition-colors"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            {/* Info text */}
-            <p className="text-sm text-text-secondary mb-4">
-              Allocate income and deductions between spouses to roughly reflect
-              each spouse&apos;s share to compare Married Filing Jointly vs
-              Married Filing Separately.
-            </p>
-
-            {/* Split Configuration */}
-            <div className="border border-border rounded-[var(--radius-lg)] p-4 mb-4 bg-secondary">
-              <div className="hidden sm:flex items-center justify-between mb-2 text-xs font-medium text-text-muted uppercase tracking-wider">
-                <span>Category</span>
-                <span>Spouse 1 / Spouse 2</span>
-              </div>
-              <div className="space-y-1">
-                <SplitSlider
-                  label="Wages"
-                  totalAmount={totalWages}
-                  spouse1Percent={splits.wages}
-                  onChange={(v) => updateSplit("wages", v)}
-                />
-                <SplitSlider
-                  label="STCG"
-                  totalAmount={currentInputs.shortTermCapitalGains}
-                  spouse1Percent={splits.stcg}
-                  onChange={(v) => updateSplit("stcg", v)}
-                />
-                <SplitSlider
-                  label="LTCG"
-                  totalAmount={currentInputs.longTermCapitalGains}
-                  spouse1Percent={splits.ltcg}
-                  onChange={(v) => updateSplit("ltcg", v)}
-                />
-                <SplitSlider
-                  label="Interest & Dividends"
-                  totalAmount={
-                    currentInputs.interestIncome + currentInputs.ordinaryDividends
-                  }
-                  spouse1Percent={splits.dividends}
-                  onChange={(v) => updateSplit("dividends", v)}
-                />
-                <SplitSlider
-                  label="401(k)"
-                  totalAmount={currentInputs.contributions401k}
-                  spouse1Percent={splits.contributions401k}
-                  onChange={(v) => updateSplit("contributions401k", v)}
-                />
-                <SplitSlider
-                  label="Pre-Tax Medical"
-                  totalAmount={currentInputs.preTaxMedical}
-                  spouse1Percent={splits.preTaxMedical}
-                  onChange={(v) => updateSplit("preTaxMedical", v)}
-                />
-                <SplitSlider
-                  label="Deductions"
-                  totalAmount={totalDeductions}
-                  spouse1Percent={splits.deductions}
-                  onChange={(v) => updateSplit("deductions", v)}
-                />
-              </div>
-            </div>
-
-            {/* Results Comparison */}
-            <div className="overflow-x-auto mb-4">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-2 px-2 font-medium text-text-primary"></th>
-                    <th className="text-right py-2 px-2 font-medium text-text-primary">
-                      MFJ
-                    </th>
-                    <th className="text-right py-2 px-2 font-medium text-text-primary">
-                      MFS (Combined)
-                    </th>
-                    <th className="text-right py-2 px-2 font-medium text-text-primary">
-                      Difference
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-border">
-                    <td className="py-2 px-2 text-text-secondary">Federal Tax</td>
-                    <td className="py-2 px-2 text-right text-text-primary">
-                      {formatCurrency(mfjResults.federalTax)}
-                    </td>
-                    <td className="py-2 px-2 text-right text-text-primary">
-                      {formatCurrency(mfsResults.combined.federalTax)}
-                    </td>
-                    <td className="py-2 px-2 text-right">
-                      {getDifferenceDisplay(
-                        mfsResults.combined.federalTax - mfjResults.federalTax,
-                      )}
-                    </td>
-                  </tr>
-                  <tr className="border-b border-border">
-                    <td className="py-2 px-2 text-text-secondary">State Tax</td>
-                    <td className="py-2 px-2 text-right text-text-primary">
-                      {formatCurrency(mfjResults.stateTax)}
-                    </td>
-                    <td className="py-2 px-2 text-right text-text-primary">
-                      {formatCurrency(mfsResults.combined.stateTax)}
-                    </td>
-                    <td className="py-2 px-2 text-right">
-                      {getDifferenceDisplay(
-                        mfsResults.combined.stateTax - mfjResults.stateTax,
-                      )}
-                    </td>
-                  </tr>
-                  <tr className="border-b border-border font-medium">
-                    <td className="py-2 px-2 text-text-primary">Total</td>
-                    <td className="py-2 px-2 text-right text-text-primary">
-                      {formatCurrency(mfjResults.totalTax)}
-                    </td>
-                    <td className="py-2 px-2 text-right text-text-primary">
-                      {formatCurrency(mfsResults.combined.totalTax)}
-                    </td>
-                    <td className="py-2 px-2 text-right">
-                      {getDifferenceDisplay(taxDifference)}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            {/* Footer */}
-            <div className="flex justify-end">
-              <button
-                ref={closeButtonRef}
-                onClick={onClose}
-                className="px-4 py-2 text-text-secondary border border-border rounded-[var(--radius-md)] hover:bg-secondary transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
+      {/* Split Configuration */}
+      <div className="border border-border rounded-[var(--radius-lg)] p-4 mb-4 bg-secondary">
+        <div className="hidden sm:flex items-center justify-between mb-2 text-xs font-medium text-text-muted uppercase tracking-wider">
+          <span>Category</span>
+          <span>Spouse 1 / Spouse 2</span>
+        </div>
+        <div className="space-y-1">
+          <SplitSlider
+            label="Wages"
+            totalAmount={totalWages}
+            spouse1Percent={splits.wages}
+            onChange={(v) => updateSplit("wages", v)}
+          />
+          <SplitSlider
+            label="STCG"
+            totalAmount={currentInputs.shortTermCapitalGains}
+            spouse1Percent={splits.stcg}
+            onChange={(v) => updateSplit("stcg", v)}
+          />
+          <SplitSlider
+            label="LTCG"
+            totalAmount={currentInputs.longTermCapitalGains}
+            spouse1Percent={splits.ltcg}
+            onChange={(v) => updateSplit("ltcg", v)}
+          />
+          <SplitSlider
+            label="Interest & Dividends"
+            totalAmount={
+              currentInputs.interestIncome + currentInputs.ordinaryDividends
+            }
+            spouse1Percent={splits.dividends}
+            onChange={(v) => updateSplit("dividends", v)}
+          />
+          <SplitSlider
+            label="401(k)"
+            totalAmount={currentInputs.contributions401k}
+            spouse1Percent={splits.contributions401k}
+            onChange={(v) => updateSplit("contributions401k", v)}
+          />
+          <SplitSlider
+            label="Pre-Tax Medical"
+            totalAmount={currentInputs.preTaxMedical}
+            spouse1Percent={splits.preTaxMedical}
+            onChange={(v) => updateSplit("preTaxMedical", v)}
+          />
+          <SplitSlider
+            label="Deductions"
+            totalAmount={totalDeductions}
+            spouse1Percent={splits.deductions}
+            onChange={(v) => updateSplit("deductions", v)}
+          />
         </div>
       </div>
-    </div>
+
+      {/* Results Comparison */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="text-left py-2 px-2 font-medium text-text-primary"></th>
+              <th className="text-right py-2 px-2 font-medium text-text-primary">
+                MFJ
+              </th>
+              <th className="text-right py-2 px-2 font-medium text-text-primary">
+                MFS (Combined)
+              </th>
+              <th className="text-right py-2 px-2 font-medium text-text-primary">
+                Difference
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-border">
+              <td className="py-2 px-2 text-text-secondary">Federal Tax</td>
+              <td className="py-2 px-2 text-right text-text-primary">
+                {formatCurrency(mfjResults.federalTax)}
+              </td>
+              <td className="py-2 px-2 text-right text-text-primary">
+                {formatCurrency(mfsResults.combined.federalTax)}
+              </td>
+              <td className="py-2 px-2 text-right">
+                {getDifferenceDisplay(
+                  mfsResults.combined.federalTax - mfjResults.federalTax,
+                )}
+              </td>
+            </tr>
+            <tr className="border-b border-border">
+              <td className="py-2 px-2 text-text-secondary">State Tax</td>
+              <td className="py-2 px-2 text-right text-text-primary">
+                {formatCurrency(mfjResults.stateTax)}
+              </td>
+              <td className="py-2 px-2 text-right text-text-primary">
+                {formatCurrency(mfsResults.combined.stateTax)}
+              </td>
+              <td className="py-2 px-2 text-right">
+                {getDifferenceDisplay(
+                  mfsResults.combined.stateTax - mfjResults.stateTax,
+                )}
+              </td>
+            </tr>
+            <tr className="border-b border-border font-medium">
+              <td className="py-2 px-2 text-text-primary">Total</td>
+              <td className="py-2 px-2 text-right text-text-primary">
+                {formatCurrency(mfjResults.totalTax)}
+              </td>
+              <td className="py-2 px-2 text-right text-text-primary">
+                {formatCurrency(mfsResults.combined.totalTax)}
+              </td>
+              <td className="py-2 px-2 text-right">
+                {getDifferenceDisplay(taxDifference)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </Dialog>
   );
 }
