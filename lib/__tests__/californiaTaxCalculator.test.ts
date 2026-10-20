@@ -191,7 +191,7 @@ describe("calculateCaliforniaTax", () => {
       // Cannot use 100% prior year method
       const inputs = createDefaultInputs({
         federalIncome: 1500000,
-        priorYearStateTaxPaid: 50000,
+        priorYearStateTax: 50000,
         filingStatus: "single",
       });
 
@@ -213,7 +213,7 @@ describe("calculateCaliforniaTax", () => {
       // Single filer with $500,000 income (under $1M threshold)
       const inputs = createDefaultInputs({
         federalIncome: 500000,
-        priorYearStateTaxPaid: 100000, // High prior year to make 100% method more favorable
+        priorYearStateTax: 100000, // High prior year to make 100% method more favorable
         filingStatus: "single",
       });
 
@@ -237,7 +237,7 @@ describe("calculateCaliforniaTax", () => {
       // MFS threshold is $500k vs $1M for single/MFJ
       const inputs = createDefaultInputs({
         federalIncome: 600000,
-        priorYearStateTaxPaid: 20000,
+        priorYearStateTax: 20000,
         filingStatus: "marriedFilingSeparately",
       });
 
@@ -256,7 +256,7 @@ describe("calculateCaliforniaTax", () => {
       // $900k AGI is under $1M threshold for MFJ
       const inputs = createDefaultInputs({
         federalIncome: 900000,
-        priorYearStateTaxPaid: 30000,
+        priorYearStateTax: 30000,
         filingStatus: "marriedFilingJointly",
       });
 

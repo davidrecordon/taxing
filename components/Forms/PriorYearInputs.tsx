@@ -19,14 +19,16 @@ export default function PriorYearInputs({ inputs, onUpdate }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CurrencyInput
-          label="Federal Tax Paid"
-          value={inputs.priorYearFederalTaxPaid}
-          onChange={(v) => onUpdate("priorYearFederalTaxPaid", v)}
+          label="Last year's Federal tax"
+          value={inputs.priorYearFederalTax}
+          onChange={(v) => onUpdate("priorYearFederalTax", v)}
+          hint="Total tax for the year, not what you paid at filing or your refund"
         />
         <CurrencyInput
-          label={`${stateLabel} Tax Paid`}
-          value={inputs.priorYearStateTaxPaid}
-          onChange={(v) => onUpdate("priorYearStateTaxPaid", v)}
+          label={`Last year's ${stateLabel} tax`}
+          value={inputs.priorYearStateTax}
+          onChange={(v) => onUpdate("priorYearStateTax", v)}
+          hint="Total tax for the year, not what you paid at filing or your refund"
         />
       </div>
 

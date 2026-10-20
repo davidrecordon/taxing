@@ -118,7 +118,7 @@ describe("calculateNewYorkTax", () => {
     it("uses 110% prior year for high income (AGI > $150k)", () => {
       const inputs = createDefaultInputs({
         federalIncome: 200000,
-        priorYearStateTaxPaid: 10000,
+        priorYearStateTax: 10000,
         filingStatus: "single",
       });
 
@@ -140,7 +140,7 @@ describe("calculateNewYorkTax", () => {
     it("uses 100% prior year for income under $150k", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        priorYearStateTaxPaid: 5000,
+        priorYearStateTax: 5000,
         filingStatus: "single",
       });
 
@@ -162,7 +162,7 @@ describe("calculateNewYorkTax", () => {
     it("uses $75k threshold for MFS high income", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000, // Over $75k for MFS
-        priorYearStateTaxPaid: 5000,
+        priorYearStateTax: 5000,
         filingStatus: "marriedFilingSeparately",
       });
 
@@ -183,7 +183,7 @@ describe("calculateNewYorkTax", () => {
     it("MFJ uses $150k threshold", () => {
       const inputs = createDefaultInputs({
         federalIncome: 140000, // Under $150k for MFJ
-        priorYearStateTaxPaid: 5000,
+        priorYearStateTax: 5000,
         filingStatus: "marriedFilingJointly",
       });
 
@@ -554,7 +554,7 @@ describe("calculateNewYorkTax", () => {
     it("correctly identifies high income at exactly $150,001", () => {
       const inputs = createDefaultInputs({
         federalIncome: 150001,
-        priorYearStateTaxPaid: 1000,
+        priorYearStateTax: 1000,
         filingStatus: "single",
       });
 
@@ -575,7 +575,7 @@ describe("calculateNewYorkTax", () => {
       // With $8k std deduction, need $158k gross to get $150k AGI
       const inputs = createDefaultInputs({
         federalIncome: 158000,
-        priorYearStateTaxPaid: 1000,
+        priorYearStateTax: 1000,
         filingStatus: "single",
       });
 

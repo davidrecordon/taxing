@@ -91,7 +91,7 @@ export function calculateCaliforniaTax(
   const safeHarbor = calculateSafeHarbor(
     totalTax,
     totalPaid,
-    inputs.priorYearStateTaxPaid,
+    inputs.priorYearStateTax,
     {
       currentYearPercent: californiaLimits.safeHarbor.currentYearPercent,
       priorYearPercent: californiaLimits.safeHarbor.priorYearPercent,

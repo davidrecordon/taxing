@@ -99,7 +99,7 @@ export function calculateIllinoisTax(
   const safeHarbor = calculateSafeHarbor(
     totalTax,
     totalPaid,
-    inputs.priorYearStateTaxPaid,
+    inputs.priorYearStateTax,
     {
       currentYearPercent: illinoisLimits.safeHarbor.currentYearPercent,
       priorYearPercent: illinoisLimits.safeHarbor.priorYearPercent,

@@ -219,7 +219,7 @@ describe("calculateDCTax", () => {
     it("calculates safe harbor correctly (90%/110%)", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        priorYearStateTaxPaid: 5000,
+        priorYearStateTax: 5000,
         selectedState: "dc",
         filingStatus: "single",
       });
@@ -248,7 +248,7 @@ describe("calculateDCTax", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
         stateTaxWithheld: 6000,
-        priorYearStateTaxPaid: 5000,
+        priorYearStateTax: 5000,
         selectedState: "dc",
         filingStatus: "single",
       });

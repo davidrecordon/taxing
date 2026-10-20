@@ -484,7 +484,7 @@ describe("calculateFederalTax", () => {
       // Safe harbor minimum should be $11,000 (the lesser of the two)
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        priorYearFederalTaxPaid: 10000,
+        priorYearFederalTax: 10000,
         filingStatus: "single",
       });
 
@@ -510,7 +510,7 @@ describe("calculateFederalTax", () => {
     it("uses only 90% current year when no prior year tax provided", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        priorYearFederalTaxPaid: 0,
+        priorYearFederalTax: 0,
         filingStatus: "single",
       });
 

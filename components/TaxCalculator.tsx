@@ -67,8 +67,8 @@ const defaultInputs: TaxInputs = {
   charitableContributions: 0,
   contributions401k: 0,
   preTaxMedical: 0,
-  priorYearFederalTaxPaid: 0,
-  priorYearStateTaxPaid: 0,
+  priorYearFederalTax: 0,
+  priorYearStateTax: 0,
   priorYearShortTermLossCarryover: 0,
   priorYearLongTermLossCarryover: 0,
   selfEmploymentIncome: 0,
@@ -151,8 +151,8 @@ function buildSpouseInputs(
     stateTaxWithheld: inputs.stateTaxWithheld * wages,
     federalEstimatedPaid: inputs.federalEstimatedPaid * wages,
     stateEstimatedPaid: inputs.stateEstimatedPaid * wages,
-    priorYearFederalTaxPaid: inputs.priorYearFederalTaxPaid * wages,
-    priorYearStateTaxPaid: inputs.priorYearStateTaxPaid * wages,
+    priorYearFederalTax: inputs.priorYearFederalTax * wages,
+    priorYearStateTax: inputs.priorYearStateTax * wages,
   };
 }
 

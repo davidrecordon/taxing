@@ -227,7 +227,7 @@ describe("calculateIllinoisTax", () => {
     it("calculates safe harbor correctly", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        priorYearStateTaxPaid: 5000,
+        priorYearStateTax: 5000,
         selectedState: "illinois",
         filingStatus: "single",
       });

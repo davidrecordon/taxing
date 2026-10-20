@@ -92,7 +92,7 @@ export function calculateDCTax(
   const safeHarbor = calculateSafeHarbor(
     totalTax,
     totalPaid,
-    inputs.priorYearStateTaxPaid,
+    inputs.priorYearStateTax,
     {
       currentYearPercent: dcLimits.safeHarbor.currentYearPercent,
       priorYearPercent: dcLimits.safeHarbor.priorYearPercent,

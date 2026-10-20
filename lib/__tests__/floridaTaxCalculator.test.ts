@@ -120,7 +120,7 @@ describe("calculateFloridaTax", () => {
     it("does not include safe harbor (no tax to safe harbor against)", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        priorYearStateTaxPaid: 5000,
+        priorYearStateTax: 5000,
         selectedState: "florida",
         filingStatus: "single",
       });

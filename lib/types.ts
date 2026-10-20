@@ -400,8 +400,8 @@ export interface TaxInputs {
   preTaxMedical: number;
 
   // Prior year
-  priorYearFederalTaxPaid: number;
-  priorYearStateTaxPaid: number;
+  priorYearFederalTax: number;
+  priorYearStateTax: number;
   priorYearShortTermLossCarryover: number;
   priorYearLongTermLossCarryover: number;
   selfEmploymentIncome: number;

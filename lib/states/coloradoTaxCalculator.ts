@@ -132,7 +132,7 @@ export function calculateColoradoTax(
   const safeHarbor = calculateSafeHarbor(
     totalTax,
     totalPaid,
-    inputs.priorYearStateTaxPaid,
+    inputs.priorYearStateTax,
     {
       currentYearPercent: coloradoLimits.safeHarbor.currentYearPercent,
       priorYearPercent: coloradoLimits.safeHarbor.priorYearPercent,

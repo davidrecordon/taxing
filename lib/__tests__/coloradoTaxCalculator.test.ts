@@ -110,7 +110,7 @@ describe("calculateColoradoTax", () => {
     it("calculates safe harbor correctly", () => {
       const inputs = createDefaultInputs({
         federalIncome: 100000,
-        priorYearStateTaxPaid: 4000,
+        priorYearStateTax: 4000,
         selectedState: "colorado",
         filingStatus: "single",
       });

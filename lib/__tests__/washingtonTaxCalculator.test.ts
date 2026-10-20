@@ -292,7 +292,7 @@ describe("calculateWashingtonTax", () => {
       const inputs = createDefaultInputs({
         federalIncome: 0,
         longTermCapitalGains: 500000,
-        priorYearStateTaxPaid: 50000, // Should be ignored
+        priorYearStateTax: 50000, // Should be ignored
         filingStatus: "single",
       });
 

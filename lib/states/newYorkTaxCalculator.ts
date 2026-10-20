@@ -207,7 +207,7 @@ export function calculateNewYorkTax(
   const safeHarbor = calculateSafeHarbor(
     totalTax,
     totalPaid,
-    inputs.priorYearStateTaxPaid,
+    inputs.priorYearStateTax,
     {
       currentYearPercent: newYorkLimits.safeHarbor.currentYearPercent,
       priorYearPercent: isHighIncome

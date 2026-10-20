@@ -341,7 +341,7 @@ export function calculateFederalTax(
   const safeHarbor = calculateSafeHarbor(
     totalTax,
     totalPaid,
-    inputs.priorYearFederalTaxPaid,
+    inputs.priorYearFederalTax,
     {
       currentYearPercent: federalLimits.safeHarbor.currentYearPercent,
       priorYearPercent: federalLimits.safeHarbor.priorYearPercent,
