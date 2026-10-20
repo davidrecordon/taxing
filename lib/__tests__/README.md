@@ -19,7 +19,7 @@ bun run test:coverage   # With coverage report
 | `coloradoTaxCalculator.test.ts`   | 8     | CO flat tax, federal taxable income basis                  |
 | `dcTaxCalculator.test.ts`         | 15    | DC progressive tax, same brackets all statuses             |
 | `floridaTaxCalculator.test.ts`    | 9     | FL no income tax, zero calculations                        |
-| `illinoisTaxCalculator.test.ts`   | 19    | IL flat tax, personal exemptions                           |
+| `illinoisTaxCalculator.test.ts`   | 25    | IL flat tax, personal exemptions, property tax credit      |
 | `newYorkTaxCalculator.test.ts`    | 39    | NY state tax, NYC local tax, high-income safe harbor       |
 | `washingtonTaxCalculator.test.ts` | 22    | WA capital gains tax, exemption, surtax                    |
 | `deductionCalculator.test.ts`     | 31    | Standard vs itemized, SALT cap, mortgage proration         |

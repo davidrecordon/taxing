@@ -109,12 +109,19 @@ export default memo(function IllinoisBreakdown({ result, taxYear }: Props) {
             </span>
           </div>
         )}
-        <div className="flex justify-between text-positive">
-          <span>Less: Personal Exemption</span>
-          <span className="font-mono">
-            -{formatCurrency(result.deductionBreakdown.deductionAmount)}
-          </span>
-        </div>
+        {result.deductionBreakdown.deductionAmount > 0 ? (
+          <div className="flex justify-between text-positive">
+            <span>Less: Personal Exemption</span>
+            <span className="font-mono">
+              -{formatCurrency(result.deductionBreakdown.deductionAmount)}
+            </span>
+          </div>
+        ) : (
+          <p className="text-xs text-text-muted">
+            No personal exemption or property tax credit: income is over the
+            Illinois limit.
+          </p>
+        )}
         <div className="flex justify-between font-medium border-t border-border pt-1 text-text-primary">
           <span>Illinois Taxable Income</span>
           <span className="font-mono">
@@ -131,6 +138,22 @@ export default memo(function IllinoisBreakdown({ result, taxYear }: Props) {
         totalLabel="Illinois Income Tax:"
         totalAmount={result.ordinaryIncomeTax}
       />
+
+      {/* Property Tax Credit */}
+      {(result.propertyTaxCredit ?? 0) > 0 && (
+        <div className="bg-secondary p-3 rounded-[var(--radius-md)] mb-4 text-sm">
+          <div className="flex justify-between text-positive">
+            <span>
+              Less: Property Tax Credit (
+              {formatPercent(limits.propertyTaxCreditRate)} of property tax
+              paid)
+            </span>
+            <span className="font-mono">
+              -{formatCurrency(result.propertyTaxCredit!)}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Final Summary */}
       <TaxSummarySection

@@ -383,6 +383,91 @@ describe("calculateIllinoisTax", () => {
     });
   });
 
+  describe("high-income exemption limit", () => {
+    const calculate = (overrides: Parameters<typeof createDefaultInputs>[0]) =>
+      calculateIllinoisTax(
+        createDefaultInputs({ selectedState: "illinois", ...overrides }),
+        illinoisBrackets,
+        illinoisDeductions,
+        sharedLimits,
+        illinoisLimits,
+      );
+
+    it("keeps the exemption at exactly $250,000 of AGI", () => {
+      const result = calculate({ federalIncome: 250000 });
+
+      expect(result.deductionBreakdown.deductionAmount).toBe(2925);
+      expect(result.taxableOrdinaryIncome).toBe(247075);
+    });
+
+    it("disallows the exemption above $250,000 of AGI", () => {
+      const result = calculate({ federalIncome: 300000 });
+
+      expect(result.deductionBreakdown.deductionAmount).toBe(0);
+      expect(result.taxableOrdinaryIncome).toBe(300000);
+      expect(result.totalTax).toBeCloseTo(300000 * 0.0495, 2);
+    });
+
+    it("uses a $500,000 limit for married filing jointly", () => {
+      const under = calculate({
+        federalIncome: 400000,
+        filingStatus: "marriedFilingJointly",
+      });
+      const over = calculate({
+        federalIncome: 600000,
+        filingStatus: "marriedFilingJointly",
+      });
+
+      expect(under.deductionBreakdown.deductionAmount).toBe(5850);
+      expect(over.deductionBreakdown.deductionAmount).toBe(0);
+    });
+  });
+
+  describe("property tax credit", () => {
+    const calculate = (overrides: Parameters<typeof createDefaultInputs>[0]) =>
+      calculateIllinoisTax(
+        createDefaultInputs({ selectedState: "illinois", ...overrides }),
+        illinoisBrackets,
+        illinoisDeductions,
+        sharedLimits,
+        illinoisLimits,
+      );
+
+    it("credits 5% of property tax paid", () => {
+      // ($150,000 - $5,850) x 4.95% = $7,135.43, less 5% x $8,000 = $400
+      const result = calculate({
+        federalIncome: 150000,
+        propertyTaxesPaid: 8000,
+        filingStatus: "marriedFilingJointly",
+      });
+
+      expect(result.propertyTaxCredit).toBe(400);
+      expect(result.ordinaryIncomeTax).toBeCloseTo(7135.43, 1);
+      expect(result.totalTax).toBeCloseTo(6735.43, 1);
+    });
+
+    it("limits the credit to the tax", () => {
+      // ($10,000 - $2,925) x 4.95% = $350.21, credit would be $500
+      const result = calculate({
+        federalIncome: 10000,
+        propertyTaxesPaid: 10000,
+      });
+
+      expect(result.propertyTaxCredit).toBeCloseTo(350.21, 1);
+      expect(result.totalTax).toBe(0);
+    });
+
+    it("allows no credit above the income limit", () => {
+      const result = calculate({
+        federalIncome: 300000,
+        propertyTaxesPaid: 10000,
+      });
+
+      expect(result.propertyTaxCredit).toBe(0);
+      expect(result.totalTax).toBeCloseTo(300000 * 0.0495, 2);
+    });
+  });
+
   describe("edge cases", () => {
     it("handles zero income", () => {
       const inputs = createDefaultInputs({

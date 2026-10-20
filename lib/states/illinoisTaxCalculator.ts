@@ -20,10 +20,9 @@ import {
  * Illinois State Tax Calculator
  *
  * Illinois has a flat 4.95% income tax rate on all income.
- * Instead of standard deductions, Illinois uses personal exemptions:
- * - Single: $2,850
- * - MFJ: $5,700
- * - MFS: $2,850
+ * Instead of standard deductions, Illinois uses personal exemptions (amounts
+ * in data/illinois-deductions.json). The exemption and the 5% property tax
+ * credit are not allowed when AGI exceeds $250,000 ($500,000 joint).
  *
  * All capital gains are taxed as ordinary income (like CA).
  *
@@ -67,14 +66,22 @@ export function calculateIllinoisTax(
   const preTaxDeductions =
     inputs.contributions401k + inputs.preTaxMedical + deductibleSETax;
 
-  // Step 3: Apply Illinois personal exemption (instead of standard deduction)
-  const personalExemption = illinoisDeductions.personalExemption[filingStatus];
-
   const adjustedGrossIncome =
     grossIncome -
     shortTermLossCarryoverOffset -
     longTermLossCarryoverOffset -
     preTaxDeductions;
+
+  // Step 3: Apply Illinois personal exemption (instead of standard deduction)
+  // The exemption and the property tax credit are lost above the income limit
+  const incomeLimit =
+    filingStatus === "marriedFilingJointly"
+      ? illinoisLimits.incomeLimit.marriedFilingJointly
+      : illinoisLimits.incomeLimit.default;
+  const overIncomeLimit = adjustedGrossIncome > incomeLimit;
+  const personalExemption = overIncomeLimit
+    ? 0
+    : illinoisDeductions.personalExemption[filingStatus];
 
   // Step 4: Calculate taxable income
   const taxableOrdinaryIncome = Math.max(
@@ -88,7 +95,16 @@ export function calculateIllinoisTax(
     illinoisBrackets.brackets[filingStatus],
   );
 
-  const totalTax = ordinaryTax.total;
+  // Step 5b: Property tax credit (nonrefundable). Assumes the property tax
+  // entered is for an Illinois principal residence.
+  const propertyTaxCredit = overIncomeLimit
+    ? 0
+    : Math.min(
+        ordinaryTax.total,
+        inputs.propertyTaxesPaid * illinoisLimits.propertyTaxCreditRate,
+      );
+
+  const totalTax = ordinaryTax.total - propertyTaxCredit;
 
   // Step 6: Calculate remaining owed using shared utility
   const { totalPaid, remainingOwed, refundDue } = calculatePaymentSummary(
@@ -143,6 +159,7 @@ export function calculateIllinoisTax(
     ordinaryIncomeBracketBreakdown: ordinaryTax.breakdown,
     ltcgBracketBreakdown: [], // No LTCG brackets for IL
     ordinaryIncomeTax: ordinaryTax.total,
+    propertyTaxCredit,
     ltcgTax: 0,
     totalTax,
     withheld: inputs.stateTaxWithheld,

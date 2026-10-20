@@ -153,6 +153,13 @@ export interface NewYorkLimitsData {
 
 // Illinois-specific limits
 export interface IllinoisLimitsData {
+  // Federal AGI above which the personal exemption and the property tax
+  // credit are not allowed
+  incomeLimit: {
+    default: number;
+    marriedFilingJointly: number;
+  };
+  propertyTaxCreditRate: number;
   safeHarbor: {
     currentYearPercent: number;
     priorYearPercent: number;
@@ -387,6 +394,7 @@ export interface TaxCalculationResult {
   ordinaryIncomeTax: number;
   ltcgTax: number;
   caMentalHealthTax?: number; // California only - 1% on income over $1M
+  propertyTaxCredit?: number; // Illinois only - credit for property tax paid
   nycTax?: number; // New York City local tax
   nycBracketBreakdown?: BracketBreakdown[]; // NYC tax bracket breakdown
   ficaBreakdown?: FicaBreakdown;

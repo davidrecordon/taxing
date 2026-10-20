@@ -255,6 +255,18 @@ This document verifies that all tax data in the JSON files matches official gove
 | Single        | $2,850   | $2,850   | Yes   |
 | MFJ           | $5,700   | $5,700   | Yes   |
 
+### Income Limit and Property Tax Credit
+
+**Source:** [IL-1040 Instructions](https://tax.illinois.gov/content/dam/soi/en/web/tax/forms/incometax/documents/currentyear/individual/il-1040-instr.pdf), Schedule ICR instructions, [35 ILCS 5/204(g)](https://www.ilga.gov/legislation/ilcs/documents/003500050K204.htm), [35 ILCS 5/208](https://www.ilga.gov/legislation/ilcs/documents/003500050K208.htm)
+
+| Item                                    | Our Data | Official | Match |
+| --------------------------------------- | -------- | -------- | ----- |
+| Exemption and credit income limit       | $250,000 | $250,000 | Yes   |
+| Exemption and credit income limit (MFJ) | $500,000 | $500,000 | Yes   |
+| Property tax credit rate                | 5%       | 5%       | Yes   |
+
+**Note:** No exemption or property tax credit is allowed when federal AGI exceeds the limit (a cliff, not a phaseout). The credit is nonrefundable and applies only to an Illinois principal residence; the calculator assumes the property tax entered qualifies. The limits are statutory, so the same values are used for 2026.
+
 ---
 
 ## Colorado (2025)
