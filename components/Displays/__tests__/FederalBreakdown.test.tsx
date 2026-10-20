@@ -3,6 +3,10 @@ import { render, screen } from "@testing-library/react";
 import FederalBreakdown from "../FederalBreakdown";
 import { TaxCalculationResult } from "@/lib/types";
 import { TAX_YEAR } from "@/lib/config";
+import {
+  calculateResults,
+  rowText,
+} from "../../States/__tests__/calculateResults";
 
 const createMockResult = (
   overrides: Partial<TaxCalculationResult> = {},
@@ -295,6 +299,59 @@ describe("FederalBreakdown", () => {
       render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(screen.getByText(/Safe Harbor Met/)).toBeInTheDocument();
+    });
+  });
+
+  describe("with calculated results", () => {
+    const renderFederal = (
+      overrides: Parameters<typeof calculateResults>[1],
+    ) => {
+      const { federal } = calculateResults("california", overrides);
+      render(<FederalBreakdown result={federal} taxYear={TAX_YEAR} />);
+      return federal;
+    };
+
+    it("keeps payroll tax out of the Federal tax total", () => {
+      // $100,000 wages: income tax $13,170; FICA $7,650 is informational
+      renderFederal({ federalIncome: 100000, federalTaxWithheld: 13170 });
+
+      expect(rowText("Total FICA")).toContain("$7,650");
+      expect(
+        screen.getByText(/Not included in the\s+Federal tax total below/),
+      ).toBeInTheDocument();
+      expect(rowText("Total Federal Tax")).toContain("$13,170");
+      expect(screen.getByText("No Tax Due")).toBeInTheDocument();
+    });
+
+    it("shows AGI before the deduction and taxable income after it", () => {
+      renderFederal({
+        federalIncome: 100000,
+        longTermCapitalGains: 10000,
+        contributions401k: 20000,
+      });
+
+      expect(rowText("Adjusted Gross Income (AGI)")).toContain("$90,000");
+      // $90,000 less the $16,100 standard deduction
+      expect(rowText("Taxable Income")).toContain("$73,900");
+    });
+
+    it("shows the charitable floor and the overall limitation when itemizing", () => {
+      // MFJ, AGI $1,000,000: charity $45,000 less the $5,000 floor, and
+      // $80,000 of deductions reduced by 2/37
+      renderFederal({
+        federalIncome: 1000000,
+        stateTaxWithheld: 60000,
+        mortgageInterestPaid: 30000,
+        charitableContributions: 45000,
+        filingStatus: "marriedFilingJointly",
+      });
+
+      expect(rowText("SALT (capped)")).toContain("$10,000");
+      expect(
+        rowText(/Charitable Contributions\s+\(above the AGI floor\)/),
+      ).toContain("$40,000");
+      expect(rowText("Less: High-Income Limitation")).toContain("-$4,324");
+      expect(rowText("Taxable Income")).toContain("$924,324");
     });
   });
 });

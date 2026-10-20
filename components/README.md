@@ -63,6 +63,7 @@ Tests are colocated with components in `__tests__/` subdirectories:
 - `Forms/__tests__/` - Form interaction tests
 - `Displays/__tests__/` - Display rendering tests
 - `Modals/__tests__/` - Modal dialog tests
+- `States/__tests__/` - State breakdown tests, rendered from real calculator results via `calculateResults.tsx`
 - `UI/__tests__/` - UI component tests
 - `shared/__tests__/` - Shared component tests
 
