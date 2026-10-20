@@ -6,6 +6,7 @@ import {
   DeductionBreakdown,
   BracketBreakdown,
 } from "../types";
+import { splitDividends, taxableInterest } from "../taxUtils";
 import { calculatePaymentSummary, calculateSafeHarbor } from "./stateCalcUtils";
 
 /**
@@ -39,9 +40,16 @@ export function calculateWashingtonTax(
   const effectiveSTCG = Math.max(0, inputs.shortTermCapitalGains);
   const effectiveLTCG = Math.max(0, inputs.longTermCapitalGains);
 
-  // Washington only taxes LONG-TERM capital gains
-  // Short-term gains and wages are NOT taxed
-  const grossIncome = stateIncome + effectiveSTCG + effectiveLTCG;
+  // Washington only taxes LONG-TERM capital gains. Everything else is
+  // counted in gross income, which is used for the effective rate, but is
+  // not taxed.
+  const grossIncome =
+    stateIncome +
+    (inputs.selfEmploymentIncome ?? 0) +
+    taxableInterest(inputs) +
+    splitDividends(inputs).ordinary +
+    effectiveSTCG +
+    effectiveLTCG;
 
   // Apply long-term loss carryover to LTCG only
   const ltCarryover = inputs.priorYearLongTermLossCarryover;
