@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useRef } from "react";
 import { formatCurrency } from "@/lib/formatters";
 import { TaxInputs } from "@/lib/types";
+import { useDialogKeyboard } from "../UI/useDialogKeyboard";
 
 export interface SplitConfig {
   wages: number;
@@ -142,18 +143,9 @@ export default function FilingStatusComparisonModal({
     return calculateMFSScenario(splits);
   }, [splits, calculateMFSScenario]);
 
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
-      return () => document.removeEventListener("keydown", handleEscape);
-    }
-  }, [isOpen, onClose]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  useDialogKeyboard(isOpen, onClose, dialogRef, closeButtonRef);
 
   if (!isOpen) return null;
 
@@ -189,14 +181,24 @@ export default function FilingStatusComparisonModal({
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative theme-card max-w-full sm:max-w-4xl w-full p-4 sm:p-6 animate-scale-in">
+        <div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="filing-status-comparison-title"
+          className="relative theme-card max-w-full sm:max-w-4xl w-full p-4 sm:p-6 animate-scale-in"
+        >
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-text-primary font-display">
+            <h2
+              id="filing-status-comparison-title"
+              className="text-xl font-semibold text-text-primary font-display"
+            >
               Compare MFJ vs MFS
             </h2>
             <button
               onClick={onClose}
+              aria-label="Close"
               className="text-text-muted hover:text-text-primary transition-colors"
             >
               <svg
@@ -341,6 +343,7 @@ export default function FilingStatusComparisonModal({
           {/* Footer */}
           <div className="flex justify-end">
             <button
+              ref={closeButtonRef}
               onClick={onClose}
               className="px-4 py-2 text-text-secondary border border-border rounded-[var(--radius-md)] hover:bg-secondary transition-colors"
             >

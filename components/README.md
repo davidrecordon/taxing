@@ -38,6 +38,7 @@ components/
     CurrencyInput.tsx      # Formatted currency input field
     ErrorBoundary.tsx      # React error boundary
     ThemeSelector.tsx      # Light/dark theme toggle
+    useDialogKeyboard.ts   # Focus, Tab and Escape handling shared by the dialogs
 ```
 
 ## Data Flow

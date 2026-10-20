@@ -298,6 +298,21 @@ describe("CharitableWhatIfModal", () => {
     expect(screen.getByText("Close")).toHaveFocus();
   });
 
+  it("keeps Tab inside the dialog", async () => {
+    renderModal();
+    const dialog = screen.getByRole("dialog");
+
+    // Focus starts on the last button, so Tab wraps to the first
+    await userEvent.tab();
+    const [xButton] = screen.getAllByRole("button", { name: "Close" });
+    expect(xButton).toHaveFocus();
+
+    // And Shift+Tab wraps back to the last
+    await userEvent.tab({ shift: true });
+    expect(screen.getByText("Close")).toHaveFocus();
+    expect(dialog).toContainElement(document.activeElement as HTMLElement);
+  });
+
   it("renders nothing when closed", () => {
     const { container } = renderModal({ isOpen: false });
 

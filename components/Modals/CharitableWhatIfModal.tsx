@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import {
   CharitableScenario,
   compareWithNoGiving,
 } from "@/lib/charitableScenario";
 import { formatCurrency } from "@/lib/formatters";
+import { useDialogKeyboard } from "../UI/useDialogKeyboard";
 
 interface Props {
   isOpen: boolean;
@@ -30,29 +31,10 @@ export default function CharitableWhatIfModal({
   calculateScenario,
   onApply,
 }: Props) {
+  const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
-
-    // Move focus into the dialog, and give it back when the dialog closes
-    const previouslyFocused = document.activeElement;
-    closeButtonRef.current?.focus();
-
-    document.addEventListener("keydown", handleEscape);
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-      if (previouslyFocused instanceof HTMLElement) {
-        previouslyFocused.focus();
-      }
-    };
-  }, [isOpen, onClose]);
+  useDialogKeyboard(isOpen, onClose, dialogRef, closeButtonRef);
 
   if (!isOpen) return null;
 
@@ -175,6 +157,7 @@ export default function CharitableWhatIfModal({
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
         <div
+          ref={dialogRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="charitable-what-if-title"
