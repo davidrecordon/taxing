@@ -50,6 +50,19 @@ export default function DeductionInputs({
     return `Will be limited to the ${formatCurrency(applicableSaltLimit)} Federal SALT deduction.`;
   };
 
+  // Federal mortgage limits: loans from before December 16, 2017 keep the
+  // older, higher limit
+  const isSeparate = inputs.filingStatus === "marriedFilingSeparately";
+  const standardMortgageLimit = isSeparate
+    ? federalLimits.mortgageBalanceLimit.marriedFilingSeparately
+    : federalLimits.mortgageBalanceLimit.default;
+  const grandfatheredMortgageLimit = isSeparate
+    ? federalLimits.grandfatheredMortgageBalanceLimit.marriedFilingSeparately
+    : federalLimits.grandfatheredMortgageBalanceLimit.default;
+  const applicableMortgageLimit = inputs.isMortgageGrandfathered
+    ? grandfatheredMortgageLimit
+    : standardMortgageLimit;
+
   const contribution401kLimit =
     inputs.filingStatus === "marriedFilingJointly"
       ? sharedLimits.contribution401k.standard * 2
@@ -104,15 +117,32 @@ export default function DeductionInputs({
           onChange={(v) => onUpdate("mortgageBalance", v)}
           hint="Average balance across the year."
           warning={
-            inputs.mortgageBalance >
-            (inputs.filingStatus === "marriedFilingSeparately"
-              ? federalLimits.mortgageBalanceLimit.marriedFilingSeparately
-              : federalLimits.mortgageBalanceLimit.default)
+            inputs.mortgageBalance > applicableMortgageLimit
               ? `Interest deduction will be prorated based on mortgage limits.`
               : undefined
           }
         />
       </div>
+
+      {inputs.mortgageBalance > standardMortgageLimit && (
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={inputs.isMortgageGrandfathered ?? false}
+            onChange={(e) =>
+              onUpdate("isMortgageGrandfathered", e.target.checked)
+            }
+            className="w-4 h-4 accent-accent border-border rounded focus:ring-accent"
+          />
+          <span className="text-sm font-medium text-text-primary">
+            Loan is from before December 16, 2017
+          </span>
+          <span className="text-xs text-text-muted">
+            (uses the older {formatCurrency(grandfatheredMortgageLimit)} Federal
+            limit)
+          </span>
+        </label>
+      )}
 
       <div className="flex gap-4 items-end">
         <div className="flex-1">

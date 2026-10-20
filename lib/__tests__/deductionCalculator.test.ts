@@ -25,6 +25,7 @@ interface DeductionInputs {
   propertyTaxesPaid: number;
   mortgageInterestPaid: number;
   mortgageBalance: number;
+  isMortgageGrandfathered?: boolean;
   charitableContributions: number;
   stateTaxWithheld: number;
   stateEstimatedPaid: number;
@@ -820,6 +821,44 @@ describe("mortgage interest edge cases across both jurisdictions", () => {
     expect(federalResult.mortgageInterest).toBe(37500);
     // CA: Full $40k (within $1M limit)
     expect(caResult.mortgageInterest).toBe(40000);
+  });
+});
+
+describe("calculateFederalDeductions grandfathered mortgage", () => {
+  const mortgage = (
+    mortgageBalance: number,
+    isMortgageGrandfathered: boolean,
+    filingStatus: Parameters<typeof calculateFederalDeductions>[1] = "single",
+  ) =>
+    calculateFederalDeductions(
+      createDefaultDeductionInputs({
+        mortgageInterestPaid: 40000,
+        mortgageBalance,
+        isMortgageGrandfathered,
+      }),
+      filingStatus,
+      federalDeductions,
+      federalLimits,
+      LOW_AGI,
+    ).mortgageInterest;
+
+  it("prorates above $750,000 for a loan from after December 15, 2017", () => {
+    // ($750k / $1M) * $40k = $30,000
+    expect(mortgage(1000000, false)).toBe(30000);
+  });
+
+  it("allows full interest up to $1,000,000 for an older loan", () => {
+    expect(mortgage(1000000, true)).toBe(40000);
+  });
+
+  it("prorates an older loan above $1,000,000", () => {
+    // ($1M / $1.25M) * $40k = $32,000
+    expect(mortgage(1250000, true)).toBe(32000);
+  });
+
+  it("uses $500,000 for an older loan when married filing separately", () => {
+    // ($500k / $800k) * $40k = $25,000
+    expect(mortgage(800000, true, "marriedFilingSeparately")).toBe(25000);
   });
 });
 

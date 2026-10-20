@@ -80,6 +80,8 @@ This document verifies that all tax data in the JSON files matches official gove
 | QBI Phase-in Range (Single/MFS) | $50,000          | $50,000          | Yes   |
 | QBI Phase-in Range (MFJ)        | $100,000         | $100,000         | Yes   |
 
+**Mortgage limits (2025 and 2026):** $750,000 ($375,000 MFS), or $1,000,000 ($500,000 MFS) for loans taken out on or before December 15, 2017, selected with a checkbox that appears when the balance is over the standard limit. Source: [2025 Schedule A instructions](https://www.irs.gov/pub/irs-pdf/i1040sca.pdf) ("For qualifying debt taken out on or before December 15, 2017, you can only deduct home mortgage interest on up to $1,000,000 ($500,000 if you are married filing separately)"); Public Law 119-21 section 70108 made the $750,000 limit permanent. Not modelled: a household with both older and newer debt, where the newer limit is reduced by the older debt.
+
 **Correction (2026-10-19):** The QBI thresholds were previously recorded as $191,950 and $383,900 (the 2024 amounts). The SALT cap was previously recorded as $40,000 for MFJ and $20,000 for Single, dropping straight to $10,000 at $500,000 of AGI. The One Big Beautiful Bill Act sets one cap for all filers (half for MFS) and reduces it by 30% of modified AGI over the threshold, down to a $10,000 floor.
 
 **Correction (2026-10-19, MFS):** For married filing separately the full cap is reduced by 30% of modified AGI over half the threshold, floored at $10,000, and then halved (2025 Schedule A State and Local Tax Deduction Worksheet, lines 5 to 10). The first version of this change halved the cap and floor before applying the 30% reduction, which phased the MFS cap down twice as fast as the law does.
@@ -154,7 +156,7 @@ This document verifies that all tax data in the JSON files matches official gove
 | Overall limitation threshold (MFJ)    | $768,700 | $768,700 | Yes   |
 | Overall limitation threshold (MFS)    | $384,350 | $384,350 | Yes   |
 
-**Notes:** Neither rule applies for 2025 (rate 0 and numerator 0 in the data). The overall limitation threshold is the start of the 37% bracket and is read from `federal-brackets.json`, not stored separately. It is applied after every other limit, to AGI less the QBI deduction, and the QBI deduction is computed without regard to it. The statute says 2/37; the 2026 Form 1040-ES and Pub. 505 worksheets use 5.4%, a difference of about $0.54 per $1,000. Not modelled: the non-itemizer charitable deduction ($1,000, $2,000 joint, cash gifts only), the percentage-of-AGI limits on charitable gifts, and the $1,000,000 mortgage limit for loans from before December 16, 2017.
+**Notes:** Neither rule applies for 2025 (rate 0 and numerator 0 in the data). The overall limitation threshold is the start of the 37% bracket and is read from `federal-brackets.json`, not stored separately. It is applied after every other limit, to AGI less the QBI deduction, and the QBI deduction is computed without regard to it. The statute says 2/37; the 2026 Form 1040-ES and Pub. 505 worksheets use 5.4%, a difference of about $0.54 per $1,000. Not modelled: the non-itemizer charitable deduction ($1,000, $2,000 joint, cash gifts only), and the percentage-of-AGI limits on charitable gifts.
 
 ---
 

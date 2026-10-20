@@ -12,6 +12,7 @@ interface DeductionInputs {
   propertyTaxesPaid: number;
   mortgageInterestPaid: number;
   mortgageBalance: number;
+  isMortgageGrandfathered?: boolean;
   charitableContributions: number;
   stateTaxWithheld: number;
   stateEstimatedPaid: number;
@@ -44,6 +45,17 @@ function calculateDeductibleMortgageInterest(
 
   // Otherwise, only the proportion within the limit is deductible
   return (balanceLimit / balance) * interestPaid;
+}
+
+// Loans taken out on or before December 15, 2017 keep the older, higher
+// federal limit
+function federalMortgageBalanceLimit(
+  inputs: DeductionInputs,
+  federalLimits: FederalLimitsData,
+): MortgageBalanceLimit {
+  return inputs.isMortgageGrandfathered
+    ? federalLimits.grandfatheredMortgageBalanceLimit
+    : federalLimits.mortgageBalanceLimit;
 }
 
 /**
@@ -94,7 +106,7 @@ export function calculateFederalDeductions(
   const deductibleMortgageInterest = calculateDeductibleMortgageInterest(
     inputs,
     filingStatus,
-    federalLimits.mortgageBalanceLimit,
+    federalMortgageBalanceLimit(inputs, federalLimits),
   );
 
   // Charitable contributions count only above a share of AGI (2026 onward)
@@ -372,7 +384,7 @@ export function calculateDCDeductions(
       : calculateDeductibleMortgageInterest(
           inputs,
           filingStatus,
-          federalLimits.mortgageBalanceLimit,
+          federalMortgageBalanceLimit(inputs, federalLimits),
         ),
     propertyTax: inputs.propertyTaxesPaid,
   };

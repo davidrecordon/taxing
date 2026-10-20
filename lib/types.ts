@@ -73,6 +73,11 @@ export interface FederalLimitsData {
   // Share of AGI below which charitable contributions are not deductible
   // for itemizers (0 before 2026)
   charitableFloorRate: number;
+  // Mortgage limit for loans taken out on or before December 15, 2017
+  grandfatheredMortgageBalanceLimit: {
+    default: number;
+    marriedFilingSeparately: number;
+  };
   // Overall limitation on itemized deductions (IRC 68): the fraction applied
   // to the lesser of itemized deductions or income above the start of the top
   // bracket (numerator 0 before 2026)
@@ -337,6 +342,7 @@ export interface TaxInputs {
   propertyTaxesPaid: number;
   mortgageInterestPaid: number;
   mortgageBalance: number;
+  isMortgageGrandfathered?: boolean; // Loan from on or before December 15, 2017
   charitableContributions: number;
   contributions401k: number;
   preTaxMedical: number;

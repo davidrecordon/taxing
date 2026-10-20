@@ -1,6 +1,10 @@
 {
   "2025": {
     "charitableFloorRate": 0,
+    "grandfatheredMortgageBalanceLimit": {
+      "default": 1000000,
+      "marriedFilingSeparately": 500000
+    },
     "itemizedDeductionReduction": {
       "denominator": 37,
       "numerator": 0
@@ -46,6 +50,10 @@
   },
   "2026": {
     "charitableFloorRate": 0.005,
+    "grandfatheredMortgageBalanceLimit": {
+      "default": 1000000,
+      "marriedFilingSeparately": 500000
+    },
     "itemizedDeductionReduction": {
       "denominator": 37,
       "numerator": 2

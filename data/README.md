@@ -58,6 +58,10 @@ Federal-specific limits and thresholds.
 ```typescript
 {
   charitableFloorRate: number,       // 0.5% of AGI from 2026, 0 before
+  grandfatheredMortgageBalanceLimit: {   // Loans from on or before December 15, 2017
+    default: number,
+    marriedFilingSeparately: number
+  },
   itemizedDeductionReduction: {      // IRC 68: 2/37 from 2026, 0/37 before
     denominator: number,
     numerator: number
