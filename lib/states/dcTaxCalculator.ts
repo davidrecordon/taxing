@@ -57,14 +57,7 @@ export function calculateDCTax(
 
   // Step 3: Calculate deductions
   const deductionBreakdown = calculateDCDeductions(
-    {
-      propertyTaxesPaid: inputs.propertyTaxesPaid,
-      mortgageInterestPaid: inputs.mortgageInterestPaid,
-      mortgageBalance: inputs.mortgageBalance,
-      charitableContributions: inputs.charitableContributions,
-      stateTaxWithheld: inputs.stateTaxWithheld,
-      stateEstimatedPaid: inputs.stateEstimatedPaid,
-    },
+    inputs,
     filingStatus,
     dcDeductions,
     federalLimits,

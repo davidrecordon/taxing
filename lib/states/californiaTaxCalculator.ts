@@ -43,14 +43,7 @@ export function calculateCaliforniaTax(
 
   // Step 3b: Calculate deductions (property tax allowed, state income tax not)
   const deductionBreakdown = calculateCaliforniaDeductions(
-    {
-      propertyTaxesPaid: inputs.propertyTaxesPaid,
-      mortgageInterestPaid: inputs.mortgageInterestPaid,
-      mortgageBalance: inputs.mortgageBalance,
-      charitableContributions: inputs.charitableContributions,
-      stateTaxWithheld: inputs.stateTaxWithheld,
-      stateEstimatedPaid: inputs.stateEstimatedPaid,
-    },
+    inputs,
     filingStatus,
     californiaDeductions,
     californiaLimits,

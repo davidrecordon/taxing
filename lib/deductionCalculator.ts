@@ -17,11 +17,25 @@ interface DeductionInputs {
   stateEstimatedPaid: number;
 }
 
+interface MortgageBalanceLimit {
+  default: number;
+  marriedFilingSeparately: number;
+}
+
+// Mortgage interest is deductible in proportion to the balance within the
+// jurisdiction's limit
 function calculateDeductibleMortgageInterest(
-  interestPaid: number,
-  balance: number,
-  balanceLimit: number,
+  inputs: DeductionInputs,
+  filingStatus: FilingStatus,
+  limit: MortgageBalanceLimit,
 ): number {
+  const { mortgageBalance: balance, mortgageInterestPaid: interestPaid } =
+    inputs;
+  const balanceLimit =
+    filingStatus === "marriedFilingSeparately"
+      ? limit.marriedFilingSeparately
+      : limit.default;
+
   // If no balance entered, assume 100% is deductible
   if (balance <= 0) return interestPaid;
 
@@ -77,15 +91,10 @@ export function calculateFederalDeductions(
   const saltCapped = totalStateAndLocalTaxes > saltLimit;
 
   // Calculate deductible mortgage interest (limited by balance)
-  const mortgageBalanceLimit =
-    filingStatus === "marriedFilingSeparately"
-      ? federalLimits.mortgageBalanceLimit.marriedFilingSeparately
-      : federalLimits.mortgageBalanceLimit.default;
-
   const deductibleMortgageInterest = calculateDeductibleMortgageInterest(
-    inputs.mortgageInterestPaid,
-    inputs.mortgageBalance,
-    mortgageBalanceLimit,
+    inputs,
+    filingStatus,
+    federalLimits.mortgageBalanceLimit,
   );
 
   // Charitable contributions count only above a share of AGI (2026 onward)
@@ -169,21 +178,45 @@ export function applyFederalItemizedLimit(
   };
 }
 
+interface StateItemizedComponents {
+  charitableContributions: number;
+  mortgageInterest: number;
+  propertyTax: number;
+}
+
 /**
- * Reduce itemized deductions by a percentage of AGI over a threshold, up to a
- * maximum share of the deductions. Returns the amount of the reduction.
+ * Build the deduction breakdown for a state return, where property tax is
+ * deductible outside any SALT cap and state income tax is not deductible.
+ * `itemizedDeduction` is the amount left after the state's income-based
+ * limitation.
  */
-function calculateHighIncomeReduction(
-  itemizedDeductions: number,
-  agi: number,
-  threshold: number,
-  rate: number,
-  maxReductionRate: number,
-): number {
-  return Math.min(
-    Math.max(0, agi - threshold) * rate,
-    itemizedDeductions * maxReductionRate,
-  );
+function buildStateDeductionBreakdown(
+  standardDeduction: number,
+  components: StateItemizedComponents,
+  itemizedDeduction: number,
+  useItemized: boolean,
+  followsFederalChoice?: boolean,
+): DeductionBreakdown {
+  const beforeLimit =
+    components.propertyTax +
+    components.mortgageInterest +
+    components.charitableContributions;
+
+  return {
+    standardDeduction,
+    itemizedDeduction,
+    deductionUsed: useItemized ? "itemized" : "standard",
+    deductionAmount: useItemized ? itemizedDeduction : standardDeduction,
+    saltDeduction: 0, // State income tax is not deductible
+    saltCapped: false,
+    mortgageInterest: useItemized ? components.mortgageInterest : 0,
+    charitableContributions: useItemized
+      ? components.charitableContributions
+      : 0,
+    propertyTax: useItemized ? components.propertyTax : 0,
+    highIncomeReduction: useItemized ? beforeLimit - itemizedDeduction : 0,
+    ...(followsFederalChoice === undefined ? {} : { followsFederalChoice }),
+  };
 }
 
 // California allows property tax in full (no SALT cap) but not state income
@@ -199,47 +232,37 @@ export function calculateCaliforniaDeductions(
   const standardDeduction =
     californiaDeductions.standardDeduction[filingStatus];
 
-  // Calculate deductible mortgage interest (CA limit is $1M, $500k MFS)
-  const mortgageBalanceLimit =
-    filingStatus === "marriedFilingSeparately"
-      ? californiaLimits.mortgageBalanceLimit.marriedFilingSeparately
-      : californiaLimits.mortgageBalanceLimit.default;
-  const deductibleMortgageInterest = calculateDeductibleMortgageInterest(
-    inputs.mortgageInterestPaid,
-    inputs.mortgageBalance,
-    mortgageBalanceLimit,
-  );
-
-  const beforeLimit =
-    inputs.propertyTaxesPaid +
-    deductibleMortgageInterest +
-    inputs.charitableContributions;
-
-  // High-income limitation (Schedule CA Itemized Deductions Worksheet)
-  const limit = californiaLimits.itemizedDeductionLimit;
-  const highIncomeReduction = calculateHighIncomeReduction(
-    beforeLimit,
-    agi,
-    limit.threshold[filingStatus],
-    limit.rate,
-    limit.maxReductionRate,
-  );
-  const itemizedDeduction = beforeLimit - highIncomeReduction;
-
-  const useItemized = itemizedDeduction > standardDeduction;
-
-  return {
-    standardDeduction,
-    itemizedDeduction,
-    deductionUsed: useItemized ? "itemized" : "standard",
-    deductionAmount: useItemized ? itemizedDeduction : standardDeduction,
-    saltDeduction: 0, // State income tax is not deductible
-    saltCapped: false,
-    mortgageInterest: useItemized ? deductibleMortgageInterest : 0,
-    charitableContributions: useItemized ? inputs.charitableContributions : 0,
-    propertyTax: useItemized ? inputs.propertyTaxesPaid : 0,
-    highIncomeReduction: useItemized ? highIncomeReduction : 0,
+  // CA mortgage limit is $1M ($500k MFS)
+  const components = {
+    charitableContributions: inputs.charitableContributions,
+    mortgageInterest: calculateDeductibleMortgageInterest(
+      inputs,
+      filingStatus,
+      californiaLimits.mortgageBalanceLimit,
+    ),
+    propertyTax: inputs.propertyTaxesPaid,
   };
+  const beforeLimit =
+    components.propertyTax +
+    components.mortgageInterest +
+    components.charitableContributions;
+
+  // High-income limitation (Schedule CA Itemized Deductions Worksheet): 6% of
+  // AGI over the threshold, up to 80% of the deductions
+  const limit = californiaLimits.itemizedDeductionLimit;
+  const itemizedDeduction =
+    beforeLimit -
+    Math.min(
+      Math.max(0, agi - limit.threshold[filingStatus]) * limit.rate,
+      beforeLimit * limit.maxReductionRate,
+    );
+
+  return buildStateDeductionBreakdown(
+    standardDeduction,
+    components,
+    itemizedDeduction,
+    itemizedDeduction > standardDeduction,
+  );
 }
 
 // New York itemized deductions follow the federal rules as they stood before
@@ -256,43 +279,32 @@ export function calculateNewYorkDeductions(
 ): DeductionBreakdown {
   const standardDeduction = newYorkDeductions.standardDeduction[filingStatus];
 
-  const mortgageBalanceLimit =
-    filingStatus === "marriedFilingSeparately"
-      ? newYorkLimits.mortgageBalanceLimit.marriedFilingSeparately
-      : newYorkLimits.mortgageBalanceLimit.default;
-  const deductibleMortgageInterest = calculateDeductibleMortgageInterest(
-    inputs.mortgageInterestPaid,
-    inputs.mortgageBalance,
-    mortgageBalanceLimit,
-  );
-
-  const beforeLimit =
-    inputs.propertyTaxesPaid +
-    deductibleMortgageInterest +
-    inputs.charitableContributions;
+  const components = {
+    charitableContributions: inputs.charitableContributions,
+    mortgageInterest: calculateDeductibleMortgageInterest(
+      inputs,
+      filingStatus,
+      newYorkLimits.mortgageBalanceLimit,
+    ),
+    propertyTax: inputs.propertyTaxesPaid,
+  };
 
   const itemizedDeduction = applyNewYorkItemizedAdjustment(
-    beforeLimit,
-    inputs.charitableContributions,
+    components.propertyTax +
+      components.mortgageInterest +
+      components.charitableContributions,
+    components.charitableContributions,
     filingStatus,
     newYorkLimits,
     agi,
   );
 
-  const useItemized = itemizedDeduction > standardDeduction;
-
-  return {
+  return buildStateDeductionBreakdown(
     standardDeduction,
+    components,
     itemizedDeduction,
-    deductionUsed: useItemized ? "itemized" : "standard",
-    deductionAmount: useItemized ? itemizedDeduction : standardDeduction,
-    saltDeduction: 0, // State income tax is not deductible
-    saltCapped: false,
-    mortgageInterest: useItemized ? deductibleMortgageInterest : 0,
-    charitableContributions: useItemized ? inputs.charitableContributions : 0,
-    propertyTax: useItemized ? inputs.propertyTaxesPaid : 0,
-    highIncomeReduction: useItemized ? beforeLimit - itemizedDeduction : 0,
-  };
+    itemizedDeduction > standardDeduction,
+  );
 }
 
 // The worksheets round each phase-in ratio to four decimal places
@@ -351,54 +363,41 @@ export function calculateDCDeductions(
   const federalItemized = federalDeduction?.deductionUsed === "itemized";
 
   // DC follows the federal mortgage interest and charitable amounts
-  const mortgageBalanceLimit =
-    filingStatus === "marriedFilingSeparately"
-      ? federalLimits.mortgageBalanceLimit.marriedFilingSeparately
-      : federalLimits.mortgageBalanceLimit.default;
-  const deductibleMortgageInterest = federalItemized
-    ? federalDeduction.mortgageInterest
-    : calculateDeductibleMortgageInterest(
-        inputs.mortgageInterestPaid,
-        inputs.mortgageBalance,
-        mortgageBalanceLimit,
-      );
-  const charitableContributions = federalItemized
-    ? federalDeduction.charitableContributions
-    : inputs.charitableContributions;
-
+  const components = {
+    charitableContributions: federalItemized
+      ? federalDeduction.charitableContributions
+      : inputs.charitableContributions,
+    mortgageInterest: federalItemized
+      ? federalDeduction.mortgageInterest
+      : calculateDeductibleMortgageInterest(
+          inputs,
+          filingStatus,
+          federalLimits.mortgageBalanceLimit,
+        ),
+    propertyTax: inputs.propertyTaxesPaid,
+  };
   const beforeLimit =
-    inputs.propertyTaxesPaid +
-    deductibleMortgageInterest +
-    charitableContributions;
+    components.propertyTax +
+    components.mortgageInterest +
+    components.charitableContributions;
 
   // High-income limitation: 5% of DC AGI over the threshold, with no cap
+  // other than the deductions themselves
   const limit = dcLimits.itemizedDeductionLimit;
-  const highIncomeReduction = calculateHighIncomeReduction(
-    beforeLimit,
-    agi,
+  const threshold =
     filingStatus === "marriedFilingSeparately"
       ? limit.threshold.marriedFilingSeparately
-      : limit.threshold.default,
-    limit.rate,
-    1,
+      : limit.threshold.default;
+  const itemizedDeduction = Math.max(
+    0,
+    beforeLimit - Math.max(0, agi - threshold) * limit.rate,
   );
-  const itemizedDeduction = beforeLimit - highIncomeReduction;
 
-  const useItemized = federalDeduction
-    ? federalItemized
-    : itemizedDeduction > standardDeduction;
-
-  return {
+  return buildStateDeductionBreakdown(
     standardDeduction,
+    components,
     itemizedDeduction,
-    deductionUsed: useItemized ? "itemized" : "standard",
-    deductionAmount: useItemized ? itemizedDeduction : standardDeduction,
-    saltDeduction: 0, // State income tax is not deductible
-    saltCapped: false,
-    mortgageInterest: useItemized ? deductibleMortgageInterest : 0,
-    charitableContributions: useItemized ? charitableContributions : 0,
-    propertyTax: useItemized ? inputs.propertyTaxesPaid : 0,
-    highIncomeReduction: useItemized ? highIncomeReduction : 0,
-    followsFederalChoice: federalDeduction !== undefined,
-  };
+    federalDeduction ? federalItemized : itemizedDeduction > standardDeduction,
+    federalDeduction !== undefined,
+  );
 }

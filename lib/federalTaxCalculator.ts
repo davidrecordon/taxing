@@ -203,14 +203,7 @@ export function calculateFederalTax(
 
   // Step 3: Calculate deductions (before the overall itemized limitation)
   const baseDeductionBreakdown = calculateFederalDeductions(
-    {
-      propertyTaxesPaid: inputs.propertyTaxesPaid,
-      mortgageInterestPaid: inputs.mortgageInterestPaid,
-      mortgageBalance: inputs.mortgageBalance,
-      charitableContributions: inputs.charitableContributions,
-      stateTaxWithheld: inputs.stateTaxWithheld,
-      stateEstimatedPaid: inputs.stateEstimatedPaid,
-    },
+    inputs,
     filingStatus,
     federalDeductions,
     federalLimits,
