@@ -325,6 +325,8 @@ Above $107,650 of NY AGI the benefit of the lower brackets is phased out over th
 
 **Note:** SB 5813 (signed May 20, 2025) added the 9.9% tier for gains over $1M, retroactive to January 1, 2025.
 
+**Note on the 80% figure:** Washington has no estimated-payment regime for this tax; it is due in full with the return. The 80% is the threshold for the substantial underpayment penalty only ([WA DOR capital gains tax](https://dor.wa.gov/taxes-rates/other-taxes/capital-gains-tax): "Substantially underpaid means you have paid less than 80% of the tax due"), and the breakdown says so rather than calling it a safe harbor.
+
 **Correction (2026-10-19):** The $1,000,000 surtax threshold applies to Washington capital gains after the standard deduction (RCW 82.87.040(1)(b) with RCW 82.87.060; the DOR notice refers to "your first $1 million in taxable Washington capital gains"). The 9.9% tier in `washington-brackets.json` therefore starts at $1,278,000 of gains (the deduction plus $1,000,000), not $1,000,000. The 2026 tier must move with the 2026 deduction once it is published.
 
 ---

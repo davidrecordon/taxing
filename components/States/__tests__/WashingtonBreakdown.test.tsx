@@ -31,4 +31,31 @@ describe("WashingtonBreakdown", () => {
     expect(rowText("Less: Loss Carryover")).toContain("-$100,000");
     expect(rowText("Net Long-Term Capital Gains")).toContain("$400,000");
   });
+
+  it("describes the 80% rule as the substantial underpayment penalty only", () => {
+    // $500,000 of gains: tax is 7% x $222,000 = $15,540, nothing paid
+    renderStateBreakdown(WashingtonBreakdown, "washington", {
+      longTermCapitalGains: 500000,
+    });
+
+    expect(screen.getByText("Underpayment Penalty")).toBeInTheDocument();
+    expect(
+      screen.getByText(/any unpaid balance still draws\s+late-payment/),
+    ).toBeInTheDocument();
+    expect(rowText(/Still Needed to Reach\s+80%/)).toContain("$12,432");
+    expect(screen.queryByText(/Safe Harbor Met/)).not.toBeInTheDocument();
+  });
+
+  it("does not promise that no penalties apply once 80% is paid", () => {
+    renderStateBreakdown(WashingtonBreakdown, "washington", {
+      longTermCapitalGains: 500000,
+      stateEstimatedPaid: 13000,
+    });
+
+    expect(
+      screen.getByText(
+        /At least\s+80%\s+paid - no\s+substantial underpayment penalty/,
+      ),
+    ).toBeInTheDocument();
+  });
 });

@@ -93,10 +93,14 @@ export default memo(function WashingtonBreakdown({ result, taxYear }: Props) {
       {/* Safe Harbor Section - Only show if tax is owed */}
       {result.safeHarbor && result.totalTax > 0 && result.remainingOwed > 0 && (
         <div className="bg-warning-bg p-3 rounded-[var(--radius-md)] space-y-2">
-          <h3 className="font-medium text-text-primary">Safe Harbor (Penalty Avoidance)</h3>
+          <h3 className="font-medium text-text-primary">
+            Underpayment Penalty
+          </h3>
           <p className="text-xs text-text-muted mb-2">
-            Washington requires {formatPercent(limits.safeHarbor.percent)} of
-            current year tax to avoid an underpayment penalty.
+            Washington&apos;s capital gains tax is due in full with the return
+            in April. Paying at least {formatPercent(limits.safeHarbor.percent)}{" "}
+            by then avoids the substantial underpayment penalty; any unpaid
+            balance still draws late-payment penalties and interest.
           </p>
           <div className="text-sm space-y-1">
             <div className="flex justify-between text-text-secondary">
@@ -116,11 +120,14 @@ export default memo(function WashingtonBreakdown({ result, taxYear }: Props) {
           </div>
           {result.safeHarbor.met ? (
             <div className="text-positive font-medium pt-2 border-t border-warning">
-              Safe Harbor Met - no additional payment needed to avoid penalties
+              At least {formatPercent(limits.safeHarbor.percent)} paid - no
+              substantial underpayment penalty
             </div>
           ) : (
             <div className="flex justify-between font-bold pt-2 border-t border-warning">
-              <span className="text-text-primary">Still Needed for Safe Harbor</span>
+              <span className="text-text-primary">
+                Still Needed to Reach {formatPercent(limits.safeHarbor.percent)}
+              </span>
               <span className="text-warning font-mono">
                 {formatCurrency(result.safeHarbor.remaining)}
               </span>
