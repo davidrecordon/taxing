@@ -55,6 +55,48 @@ describe("TaxCalculator", () => {
     expect(row("Double")).toContain("Federal $1,236, State $0");
   });
 
+  it("compares married filing jointly with filing separately", async () => {
+    render(<TaxCalculator />);
+
+    await userEvent.selectOptions(
+      screen.getByLabelText("Filing Status"),
+      "marriedFilingJointly",
+    );
+    await userEvent.selectOptions(screen.getByLabelText("State"), "florida");
+    await screen.findByLabelText("Florida Tax Withheld");
+    await enter("Wages & Other Income", "232200");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Compare MFJ vs MFS" }),
+    );
+
+    // 2026 joint: $232,200 less the $32,200 standard deduction is $200,000.
+    // 10% x $24,800 + 12% x $76,000 + 22% x $99,200 = $33,424.
+    // Split evenly, each spouse has $100,000 on a schedule with half the
+    // joint thresholds, so the two returns add up to the same tax.
+    const dialog = within(
+      screen.getByRole("dialog", { name: "Compare MFJ vs MFS" }),
+    );
+    const federalRow =
+      dialog.getByText("Federal Tax").closest("tr")?.textContent ?? "";
+    expect(federalRow).toBe("Federal Tax$33,424$33,424No change");
+  });
+
+  it("recalculates for the tax year chosen", async () => {
+    render(<TaxCalculator />);
+    await enter("Wages & Other Income", "100000");
+
+    // 2026 single: $100,000 less $16,100 is $83,900.
+    // 10% x $12,400 + 12% x $38,000 + 22% x $33,500 = $13,170
+    expect(screen.getAllByText("$13,170").length).toBeGreaterThan(0);
+
+    await userEvent.selectOptions(screen.getByLabelText("Tax Year"), "2025");
+
+    expect(screen.queryByText("$13,170")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /2025 Estimated Tax/ }),
+    ).toBeInTheDocument();
+  });
+
   it("does not refer to tax forms anywhere on the page", () => {
     render(<TaxCalculator />);
 

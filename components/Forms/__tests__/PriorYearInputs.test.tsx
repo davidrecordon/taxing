@@ -1,14 +1,18 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import PriorYearInputs from "../PriorYearInputs";
 import { TaxInputs } from "@/lib/types";
 import { createDefaultInputs, sharedLimits } from "@/lib/__tests__/testData";
 
-const renderPriorYear = (overrides: Partial<TaxInputs> = {}) =>
+const renderPriorYear = (
+  overrides: Partial<TaxInputs> = {},
+  onUpdate = vi.fn(),
+) =>
   render(
     <PriorYearInputs
       inputs={createDefaultInputs(overrides)}
-      onUpdate={vi.fn()}
+      onUpdate={onUpdate}
       sharedLimits={sharedLimits}
     />,
   );
@@ -91,6 +95,33 @@ describe("PriorYearInputs", () => {
       });
 
       expect(screen.getByRole("checkbox")).not.toBeChecked();
+    });
+  });
+
+  it("records the answer when the income checkbox is unticked", async () => {
+    const onUpdate = vi.fn();
+    renderPriorYear({ priorYearFederalTax: 30000 }, onUpdate);
+
+    await userEvent.click(screen.getByRole("checkbox"));
+
+    expect(onUpdate).toHaveBeenCalledWith("priorYearIncomeOverThreshold", false);
+  });
+
+  describe("typing in a field", () => {
+    // Sub-fields are rendered by giving their parent field a value
+    it.each<[string, keyof TaxInputs, Partial<TaxInputs>]>([
+      ["Last year's Federal tax", "priorYearFederalTax", {}],
+      ["Last year's California tax", "priorYearStateTax", {}],
+      ["California balance paid this year", "priorYearStateBalancePaid", { priorYearStateTax: 9000 }],
+      ["Short-Term Loss Carryover", "priorYearShortTermLossCarryover", {}],
+      ["Long-Term Loss Carryover", "priorYearLongTermLossCarryover", {}],
+    ])("%s updates %s", async (label, field, overrides) => {
+      const onUpdate = vi.fn();
+      renderPriorYear(overrides, onUpdate);
+
+      await userEvent.type(screen.getByLabelText(label), "5000");
+
+      expect(onUpdate).toHaveBeenLastCalledWith(field, 5000);
     });
   });
 });

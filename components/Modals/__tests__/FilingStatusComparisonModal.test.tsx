@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import FilingStatusComparisonModal, {
   MFSScenarioResult,
 } from "../FilingStatusComparisonModal";
@@ -160,77 +159,12 @@ describe("FilingStatusComparisonModal", () => {
     });
   });
 
-  describe("close button", () => {
-    it("calls onClose when close button is clicked", () => {
-      const handleClose = vi.fn();
-      render(
-        <FilingStatusComparisonModal {...defaultProps} onClose={handleClose} />,
-      );
+  // Closing and keyboard behaviour belong to Dialog and are tested there
+  it("opens in a dialog titled for the comparison", () => {
+    render(<FilingStatusComparisonModal {...defaultProps} />);
 
-      fireEvent.click(screen.getByText("Close"));
-
-      expect(handleClose).toHaveBeenCalled();
-    });
-
-    it("calls onClose when backdrop is clicked", () => {
-      const handleClose = vi.fn();
-      render(
-        <FilingStatusComparisonModal {...defaultProps} onClose={handleClose} />,
-      );
-
-      // Click on the backdrop (first fixed element with bg-black)
-      const backdrop = document.querySelector(".bg-black.bg-opacity-50");
-      if (backdrop) {
-        fireEvent.click(backdrop);
-        expect(handleClose).toHaveBeenCalled();
-      }
-    });
-
-    it("calls onClose when X button is clicked", () => {
-      const handleClose = vi.fn();
-      render(
-        <FilingStatusComparisonModal {...defaultProps} onClose={handleClose} />,
-      );
-
-      // The X button is named by its label; the footer button by its text
-      const [xButton] = screen.getAllByRole("button", { name: "Close" });
-      fireEvent.click(xButton);
-
-      expect(handleClose).toHaveBeenCalled();
-    });
-  });
-
-  describe("keyboard", () => {
-    it("is a labelled dialog that takes focus", () => {
-      render(<FilingStatusComparisonModal {...defaultProps} />);
-
-      expect(
-        screen.getByRole("dialog", { name: "Compare MFJ vs MFS" }),
-      ).toBeInTheDocument();
-      expect(screen.getByText("Close")).toHaveFocus();
-    });
-
-    it("keeps Tab inside the dialog", async () => {
-      render(<FilingStatusComparisonModal {...defaultProps} />);
-
-      // Focus starts on the last button, so Tab wraps to the first
-      await userEvent.tab();
-      const [xButton] = screen.getAllByRole("button", { name: "Close" });
-      expect(xButton).toHaveFocus();
-
-      await userEvent.tab({ shift: true });
-      expect(screen.getByText("Close")).toHaveFocus();
-    });
-
-    it("closes on Escape", async () => {
-      const handleClose = vi.fn();
-      render(
-        <FilingStatusComparisonModal {...defaultProps} onClose={handleClose} />,
-      );
-
-      await userEvent.keyboard("{Escape}");
-
-      expect(handleClose).toHaveBeenCalled();
-    });
+    expect(
+      screen.getByRole("dialog", { name: "Compare MFJ vs MFS" }),
+    ).toBeInTheDocument();
   });
 });

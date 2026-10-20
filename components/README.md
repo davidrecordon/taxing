@@ -64,15 +64,17 @@ For the wording of labels, hints, warnings and notes, follow "Writing On-Screen 
 
 ## Testing
 
-Tests are colocated with components in `__tests__/` subdirectories:
+Tests are colocated with components in `__tests__/` subdirectories. Each behaviour is tested with the component that owns it:
 
 - `__tests__/` - The whole calculator, from typing into the form to a result on screen
-- `Forms/__tests__/` - Form interaction tests
-- `Displays/__tests__/` - Display rendering tests
-- `Modals/__tests__/` - Modal dialog tests
-- `States/__tests__/` - State breakdown tests, rendered from real calculator results via `calculateResults.tsx`
-- `UI/__tests__/` - UI component tests
-- `shared/__tests__/` - Shared component tests
+- `Forms/__tests__/` - Which fields each form shows and when, its hints and warnings, and that each field updates the right input
+- `Displays/__tests__/` - The Federal breakdown, and showing the right state breakdown for the selected state
+- `Modals/__tests__/` - What each dialog shows. Opening, closing and keyboard behaviour belong to `Dialog` and are tested in `UI/__tests__/`
+- `States/__tests__/` - State breakdowns, rendered from real calculator results via `calculateResults.tsx`
+- `UI/__tests__/` - The currency input, the dialog shell, the theme switch and the error boundary
+- `shared/__tests__/` - Pieces the breakdowns share: bracket tables, itemized deduction details, the payment summary
+
+The numbers themselves are tested in `lib/__tests__/`; component tests check that they are shown, not how they are worked out.
 
 Run tests with `bun run test:run` (plain `bun test` uses Bun's own runner, which has no DOM for the component tests).
 

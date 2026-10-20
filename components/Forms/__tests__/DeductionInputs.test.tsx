@@ -208,4 +208,36 @@ describe("DeductionInputs", () => {
       ).toBeInTheDocument();
     });
   });
+
+  it("records the answer when the older loan checkbox is ticked", async () => {
+    const onUpdate = vi.fn();
+    renderDeductions(
+      { mortgageInterestPaid: 40000, mortgageBalance: 900000 },
+      undefined,
+      onUpdate,
+    );
+
+    await userEvent.click(screen.getByRole("checkbox"));
+
+    expect(onUpdate).toHaveBeenCalledWith("isMortgageGrandfathered", true);
+  });
+
+  describe("typing in a field", () => {
+    // Sub-fields are rendered by giving their parent field a value
+    it.each<[string, keyof TaxInputs, Partial<TaxInputs>]>([
+      ["401(k) Pre-Tax Contributions", "contributions401k", {}],
+      ["Pre-Tax Medical", "preTaxMedical", {}],
+      ["Property Taxes Paid", "propertyTaxesPaid", {}],
+      ["Mortgage Interest Paid", "mortgageInterestPaid", {}],
+      ["Mortgage Balance", "mortgageBalance", { mortgageInterestPaid: 9000 }],
+      ["Charitable Contributions", "charitableContributions", {}],
+    ])("%s updates %s", async (label, field, overrides) => {
+      const onUpdate = vi.fn();
+      renderDeductions(overrides, undefined, onUpdate);
+
+      await userEvent.type(screen.getByLabelText(label), "5000");
+
+      expect(onUpdate).toHaveBeenLastCalledWith(field, 5000);
+    });
+  });
 });

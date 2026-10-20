@@ -1,14 +1,18 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import IncomeInputs from "../IncomeInputs";
 import { TaxInputs } from "@/lib/types";
 import { createDefaultInputs, sharedLimits } from "@/lib/__tests__/testData";
 
-const renderIncome = (overrides: Partial<TaxInputs> = {}) =>
+const renderIncome = (
+  overrides: Partial<TaxInputs> = {},
+  onUpdate = vi.fn(),
+) =>
   render(
     <IncomeInputs
       inputs={createDefaultInputs(overrides)}
-      onUpdate={vi.fn()}
+      onUpdate={onUpdate}
       sharedLimits={sharedLimits}
     />,
   );
@@ -89,6 +93,28 @@ describe("IncomeInputs", () => {
       expect(
         screen.getByText(/up to \$1,500 of other income/),
       ).toBeInTheDocument();
+    });
+  });
+
+  describe("typing in a field", () => {
+    // Sub-fields are rendered by giving their parent field a value
+    it.each<[string, keyof TaxInputs, Partial<TaxInputs>]>([
+      ["Wages & Other Income", "federalIncome", {}],
+      ["California Income", "stateIncome", {}],
+      ["Self-Employment Income", "selfEmploymentIncome", {}],
+      ["Interest", "interestIncome", {}],
+      ["Of which U.S. Treasury", "treasuryInterest", { interestIncome: 9000 }],
+      ["Ordinary Dividends", "ordinaryDividends", {}],
+      ["Qualified Dividends", "qualifiedDividends", { ordinaryDividends: 9000 }],
+      ["Short-Term Capital Gains", "shortTermCapitalGains", {}],
+      ["Long-Term Capital Gains", "longTermCapitalGains", {}],
+    ])("%s updates %s", async (label, field, overrides) => {
+      const onUpdate = vi.fn();
+      renderIncome(overrides, onUpdate);
+
+      await userEvent.type(screen.getByLabelText(label), "5000");
+
+      expect(onUpdate).toHaveBeenLastCalledWith(field, 5000);
     });
   });
 });
