@@ -11,7 +11,7 @@ lib/
   formatters.ts          # Currency/percentage formatting utilities
   taxUtils.ts            # Shared calculation utilities
   deductionCalculator.ts # Federal and state deduction logic (standard vs itemized)
-  deductionChoice.ts     # Picks the deduction type for federal and DC together
+  deductionChoice.ts     # Picks the deduction type where it changes state tax (DC, CO)
   federalTaxCalculator.ts # Federal income tax calculations
   stateData.ts           # Lazy loading of state tax data by state and year
   states/

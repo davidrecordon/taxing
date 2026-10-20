@@ -36,7 +36,10 @@ import FilingStatusComparisonModal, {
   ScenarioResult,
   MFSScenarioResult,
 } from "./Modals/FilingStatusComparisonModal";
-import { calculateWithSharedDeductionChoice } from "@/lib/deductionChoice";
+import {
+  STATES_SHARING_DEDUCTION_CHOICE,
+  calculateWithSharedDeductionChoice,
+} from "@/lib/deductionChoice";
 
 // Import federal data only (always needed) - these are small and required for all calculations
 import allFederalBrackets from "@/data/federal-brackets.json";
@@ -298,8 +301,8 @@ export default function TaxCalculator() {
     });
   }, [inputs.selectedState, taxYear, loadedStateData]);
 
-  // Federal and state tax for a set of inputs. DC must take the same type of
-  // deduction as the federal return, so the pair is chosen together.
+  // Federal and state tax for a set of inputs. In DC and Colorado the type of
+  // federal deduction changes the state tax, so the pair is chosen together.
   const calculateTaxes = useCallback(
     (taxInputs: TaxInputs) => {
       const stateData = loadedStateData.get(
@@ -323,7 +326,7 @@ export default function TaxCalculator() {
           federal,
         );
 
-      if (taxInputs.selectedState === "dc") {
+      if (STATES_SHARING_DEDUCTION_CHOICE.includes(taxInputs.selectedState)) {
         return calculateWithSharedDeductionChoice(
           (deductionChoice) => calculateFederal(taxInputs, deductionChoice),
           calculateState,

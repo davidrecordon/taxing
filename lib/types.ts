@@ -463,7 +463,7 @@ export interface DeductionBreakdown {
   propertyTax?: number; // State returns: property tax deducted outside any SALT cap
   highIncomeReduction?: number; // Itemized deductions lost to a high-income limit
   followsFederalChoice?: boolean; // Standard vs itemized is set by the federal return
-  chosenForStateTax?: boolean; // The smaller federal deduction was taken because it lowers federal and state tax combined
+  chosenForStateTax?: boolean; // The smaller federal deduction was taken because it lowers federal and state tax combined (DC, Colorado)
   charitableFloorReduction?: number; // Charitable giving under the AGI floor
 }
 

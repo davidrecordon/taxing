@@ -179,9 +179,8 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
             Using standard deduction (
             {formatCurrency(result.deductionBreakdown.standardDeduction)})
             although itemized would be{" "}
-            {formatCurrency(result.deductionBreakdown.itemizedDeduction)}: your
-            state return must make the same choice, and this lowers the two
-            taxes combined.
+            {formatCurrency(result.deductionBreakdown.itemizedDeduction)}: this
+            lowers your Federal and state tax combined.
           </p>
         ) : (
           <p className="text-sm text-text-secondary mb-4">

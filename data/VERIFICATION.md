@@ -643,7 +643,7 @@ NY enacted 0.1% rate reductions for the bottom 5 brackets effective 2026:
 | Deduction addback limit (Single/MFS) | $1,000   | $1,000   | Yes   |
 | Deduction addback limit (MFJ)        | $2,000   | $2,000   | Yes   |
 
-**Note:** Proposition MM (November 2025) lowered the limits from $12,000/$16,000 for 2026 and later. The other rules are unchanged from 2025. The 2026 federal changes (charitable floor, 2/37 limit) flow in through federal taxable income.
+**Note:** Proposition MM (November 2025) lowered the limits from $12,000/$16,000 for 2026 and later. The other rules are unchanged from 2025. The 2026 federal changes (charitable floor, 2/37 limit) flow in through federal taxable income. Because the charitable subtraction is only for filers who take the federal standard deduction, and a federal filer may take either type, the calculator works out both and uses the one with the lower combined federal and Colorado tax.
 
 ---
 

@@ -59,7 +59,7 @@ export default memo(function ItemizedDeductionDetails({
         {deductionBreakdown.followsFederalChoice
           ? "(Itemizing is required here because the Federal return itemizes.)"
           : deductionBreakdown.chosenForStateTax
-            ? `(Standard deduction would be ${formatCurrency(deductionBreakdown.standardDeduction)}. Your state return must make the same choice, and itemizing lowers the two taxes combined.)`
+            ? `(Standard deduction would be ${formatCurrency(deductionBreakdown.standardDeduction)}. Itemizing lowers your Federal and state tax combined.)`
             : `(Standard deduction would be ${formatCurrency(deductionBreakdown.standardDeduction)}).`}
       </p>
     </div>

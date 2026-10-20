@@ -1,5 +1,8 @@
 import { TAX_YEAR, TaxYear } from "../config";
-import { calculateWithSharedDeductionChoice } from "../deductionChoice";
+import {
+  STATES_SHARING_DEDUCTION_CHOICE,
+  calculateWithSharedDeductionChoice,
+} from "../deductionChoice";
 import { calculateFederalTax } from "../federalTaxCalculator";
 import { calculateCaliforniaTax } from "../states/californiaTaxCalculator";
 import { calculateColoradoTax } from "../states/coloradoTaxCalculator";
@@ -106,8 +109,8 @@ export function calculateResults(
     }
   };
 
-  // DC takes the same type of deduction as the federal return, as in the app
-  if (selectedState === "dc") {
+  // The federal and state deduction type is chosen together, as in the app
+  if (STATES_SHARING_DEDUCTION_CHOICE.includes(selectedState)) {
     return calculateWithSharedDeductionChoice(calculateFederal, calculateState);
   }
 

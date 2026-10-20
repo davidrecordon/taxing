@@ -3,7 +3,8 @@ import { calculateResults } from "./calculateResults";
 
 // DC must take the same type of deduction as the federal return, and a filer
 // may take the smaller federal deduction, so the pair with the lower combined
-// tax is used (2026, single: $16,100 standard deduction on both returns)
+// tax is used (2026, single: $16,100 standard deduction on both returns).
+// Colorado is chosen the same way because of its charitable subtraction.
 describe("calculateWithSharedDeductionChoice", () => {
   it("keeps the larger federal deduction when that is lower overall", () => {
     // Federal itemized: $9,500 + $6,000 + $5,000 + $250 of charity above the
@@ -61,6 +62,43 @@ describe("calculateWithSharedDeductionChoice", () => {
 
     // Federal taxable income is $600,000 - $11,900
     expect(federal.taxableOrdinaryIncome).toBe(588100);
+  });
+
+  it("takes the federal standard deduction when itemizing would lose Colorado's charitable subtraction", () => {
+    // Federal itemized: $6,000 + $6,000 + $4,250 of charity above the $750
+    // floor = $16,250, worth $150 x 24% = $36. Colorado adds back that $150
+    // of state income tax, and its subtraction for non-itemizers would be
+    // ($5,000 - $500) x 4.4% = $198.
+    const inputs = {
+      federalIncome: 150000,
+      stateTaxWithheld: 6000,
+      propertyTaxesPaid: 6000,
+    };
+    const withoutGift = calculateResults("colorado", inputs);
+    const { federal, state } = calculateResults("colorado", {
+      ...inputs,
+      charitableContributions: 5000,
+    });
+
+    expect(federal.deductionBreakdown.deductionUsed).toBe("standard");
+    expect(federal.deductionBreakdown.itemizedDeduction).toBe(16250);
+    expect(federal.deductionBreakdown.chosenForStateTax).toBe(true);
+    expect(federal.totalTax).toBe(withoutGift.federal.totalTax);
+    expect(withoutGift.state.totalTax - state.totalTax).toBeCloseTo(198, 2);
+  });
+
+  it("itemizes in Colorado once that saves more than the subtraction", () => {
+    // An $8,000 gift makes Federal itemized $19,250, worth $3,150 x 24% =
+    // $756, against a Colorado subtraction of $7,500 x 4.4% = $330
+    const { federal } = calculateResults("colorado", {
+      federalIncome: 150000,
+      stateTaxWithheld: 6000,
+      propertyTaxesPaid: 6000,
+      charitableContributions: 8000,
+    });
+
+    expect(federal.deductionBreakdown.deductionUsed).toBe("itemized");
+    expect(federal.deductionBreakdown.chosenForStateTax).toBeUndefined();
   });
 
   it("leaves other states to choose their own deduction", () => {
