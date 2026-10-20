@@ -151,8 +151,7 @@ export interface CaliforniaLimitsData {
   };
   mentalHealthTax: {
     rate: number;
-    threshold: number;
-    thresholdMFS: number;
+    threshold: number; // Taxable income; the same for every filing status
   };
   mortgageBalanceLimit: {
     default: number;

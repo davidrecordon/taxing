@@ -138,7 +138,6 @@ California-specific limits and thresholds.
   mortgageBalanceLimit: { default: number, marriedFilingSeparately: number },
   mentalHealthTax: {
     threshold: number,
-    thresholdMFS: number,
     rate: number
   },
   safeHarbor: {

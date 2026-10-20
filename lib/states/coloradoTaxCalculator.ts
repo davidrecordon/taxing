@@ -34,7 +34,8 @@ import {
  *
  * All capital gains are taxed as ordinary income at the flat rate.
  *
- * Safe harbor: 90% of current year tax OR 100% of prior year tax
+ * Safe harbor: 70% of current year tax, or 100% of prior year tax (110% when
+ * last year's income was over $150,000)
  */
 export function calculateColoradoTax(
   inputs: TaxInputs,

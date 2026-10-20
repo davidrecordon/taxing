@@ -11,8 +11,7 @@
     },
     "mentalHealthTax": {
       "rate": 0.01,
-      "threshold": 1000000,
-      "thresholdMFS": 500000
+      "threshold": 1000000
     },
     "mortgageBalanceLimit": {
       "default": 1000000,
@@ -40,8 +39,7 @@
     },
     "mentalHealthTax": {
       "rate": 0.01,
-      "threshold": 1000000,
-      "thresholdMFS": 500000
+      "threshold": 1000000
     },
     "mortgageBalanceLimit": {
       "default": 1000000,
