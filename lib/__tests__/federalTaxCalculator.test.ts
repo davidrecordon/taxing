@@ -2050,6 +2050,59 @@ describe("calculateFederalTax", () => {
       expect(result.qbiDeduction!.finalDeduction).toBe(0);
     });
 
+    it("counts qualified dividends toward the phaseout threshold", () => {
+      // Single filer, $100,000 SE income + $300,000 qualified dividends
+      // Deductible half of SE tax: $7,064.78
+      // Taxable ordinary before QBI: $100,000 - $7,064.78 - $16,100 = $76,835.22
+      // Total taxable before QBI: $376,835.22, above the full phaseout
+      // point of $241,950, so QBI is fully phased out
+      const inputs = createDefaultInputs({
+        selfEmploymentIncome: 100000,
+        ordinaryDividends: 300000,
+        qualifiedDividends: 300000,
+        filingStatus: "single",
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData,
+      );
+
+      expect(result.qbiDeduction!.phaseoutApplied).toBe(true);
+      expect(result.qbiDeduction!.finalDeduction).toBe(0);
+      expect(result.taxableOrdinaryIncome).toBeCloseTo(76835.22, 1);
+    });
+
+    it("excludes qualified dividends from the 20% taxable income limit", () => {
+      // Single filer, $100,000 SE income + $50,000 qualified dividends
+      // Total taxable before QBI: $126,835.22, under the $191,950 threshold
+      // Limit: 20% x $76,835.22 ordinary taxable income = $15,367.04
+      const inputs = createDefaultInputs({
+        selfEmploymentIncome: 100000,
+        ordinaryDividends: 50000,
+        qualifiedDividends: 50000,
+        filingStatus: "single",
+      });
+
+      const result = calculateFederalTax(
+        inputs,
+        federalBrackets,
+        ltcgBrackets,
+        federalDeductions,
+        sharedLimits,
+        federalLimits,
+        ficaData,
+      );
+
+      expect(result.qbiDeduction!.phaseoutApplied).toBe(false);
+      expect(result.qbiDeduction!.finalDeduction).toBeCloseTo(15367.04, 1);
+    });
+
     it("calculates QBI at start of phaseout range", () => {
       // To land exactly in phaseout, need taxable around $210,000
       // Using $50,000 SE + $175,000 W-2

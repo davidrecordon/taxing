@@ -91,12 +91,16 @@ function calculateSelfEmploymentTax(
 
 function calculateQbiDeduction(
   selfEmploymentIncome: number,
+  taxableOrdinaryIncomeBeforeQbi: number,
   taxableIncomeBeforeQbi: number,
   filingStatus: FilingStatus,
   limits: FederalLimitsData,
 ): QbiDeduction {
+  // The 20% income limit excludes income taxed at long-term capital gains
+  // rates, but the phaseout threshold is tested against total taxable income
   const tentativeDeduction = selfEmploymentIncome * limits.qbiDeduction.rate;
-  const taxableIncomeLimit = taxableIncomeBeforeQbi * limits.qbiDeduction.rate;
+  const taxableIncomeLimit =
+    taxableOrdinaryIncomeBeforeQbi * limits.qbiDeduction.rate;
 
   let finalDeduction = Math.min(tentativeDeduction, taxableIncomeLimit);
   let phaseoutApplied = false;
@@ -217,14 +221,19 @@ export function calculateFederalTax(
   const taxableOrdinaryIncomeBeforeQbi = Math.max(0, ordinaryAfterDeductions);
   const excessDeductions = Math.max(0, -ordinaryAfterDeductions);
 
-  // Step 4a: Calculate QBI deduction (if applicable)
-  // QBI is 20% of qualified business income, limited to 20% of taxable income
-  // Phase out starts at $191,950 single / $383,900 MFJ
+  // Step 4a: Calculate income taxed at long-term capital gains rates
+  // (net long-term gains plus qualified dividends)
+  const taxableLTCG = Math.max(0, preferentialIncome - excessDeductions);
+
+  // Step 4b: Calculate QBI deduction (if applicable)
+  // QBI is 20% of qualified business income, limited to 20% of taxable
+  // ordinary income, and phases out based on total taxable income
   const qbiDeduction =
     selfEmploymentIncome > 0 && taxableOrdinaryIncomeBeforeQbi > 0
       ? calculateQbiDeduction(
           selfEmploymentIncome,
           taxableOrdinaryIncomeBeforeQbi,
+          taxableOrdinaryIncomeBeforeQbi + taxableLTCG,
           filingStatus,
           federalLimits,
         )
@@ -236,10 +245,6 @@ export function calculateFederalTax(
     0,
     taxableOrdinaryIncomeBeforeQbi - qbiAmount,
   );
-
-  // Step 4b: Calculate income taxed at long-term capital gains rates
-  // (net long-term gains plus qualified dividends)
-  const taxableLTCG = Math.max(0, preferentialIncome - excessDeductions);
 
   // Step 4d: Calculate AGI (includes all deductions for display)
   const adjustedGrossIncome =
