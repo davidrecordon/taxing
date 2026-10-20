@@ -2,6 +2,7 @@ import {
   TaxInputs,
   TaxCalculationResult,
   TaxBracketsData,
+  DeductionChoice,
   DeductionsData,
   SharedLimitsData,
   FederalLimitsData,
@@ -135,6 +136,7 @@ export function calculateFederalTax(
   sharedLimits: SharedLimitsData,
   federalLimits: FederalLimitsData,
   ficaData?: FicaData,
+  deductionChoice?: DeductionChoice,
 ): TaxCalculationResult {
   const { filingStatus } = inputs;
 
@@ -209,6 +211,7 @@ export function calculateFederalTax(
     federalDeductions,
     federalLimits,
     adjustedGrossIncome,
+    deductionChoice,
   );
 
   // Step 4: Taxable income for a given deduction (before QBI)
@@ -254,6 +257,7 @@ export function calculateFederalTax(
     adjustedGrossIncome - (baseQbiDeduction?.finalDeduction ?? 0),
     topBracketStart,
     federalLimits,
+    deductionChoice,
   );
 
   // Step 4b: Final taxable income and QBI deduction

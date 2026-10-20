@@ -4,6 +4,7 @@ import {
   FederalLimitsData,
   CaliforniaLimitsData,
   DCLimitsData,
+  DeductionChoice,
   DeductionsData,
   NewYorkLimitsData,
 } from "./types";
@@ -88,6 +89,7 @@ export function calculateFederalDeductions(
   federalDeductions: DeductionsData,
   federalLimits: FederalLimitsData,
   agi: number,
+  deductionChoice?: DeductionChoice,
 ): DeductionBreakdown {
   const standardDeduction = federalDeductions.standardDeduction[filingStatus];
 
@@ -125,8 +127,11 @@ export function calculateFederalDeductions(
   const itemizedDeduction =
     saltDeduction + deductibleMortgageInterest + charitableContributions;
 
-  // Use whichever is higher
-  const useItemized = itemizedDeduction > standardDeduction;
+  // Use whichever is higher, unless the choice is made for the taxpayer (a
+  // filer may itemize even when the standard deduction is larger)
+  const useItemized = deductionChoice
+    ? deductionChoice === "itemized"
+    : itemizedDeduction > standardDeduction;
 
   return {
     standardDeduction,
@@ -146,7 +151,7 @@ export function calculateFederalDeductions(
  * Deductions are reduced by a fraction of the lesser of the deductions or the
  * income above the start of the top bracket, after every other limit. If the
  * reduced amount no longer beats the standard deduction, the standard
- * deduction is used.
+ * deduction is used, unless itemizing was chosen regardless.
  *
  * `incomeBeforeItemized` is taxable income with itemized deductions added
  * back: AGI less the QBI deduction.
@@ -156,6 +161,7 @@ export function applyFederalItemizedLimit(
   incomeBeforeItemized: number,
   topBracketStart: number,
   federalLimits: FederalLimitsData,
+  deductionChoice?: DeductionChoice,
 ): DeductionBreakdown {
   const { denominator, numerator } = federalLimits.itemizedDeductionReduction;
   if (breakdown.deductionUsed !== "itemized" || numerator === 0) {
@@ -172,7 +178,10 @@ export function applyFederalItemizedLimit(
   if (highIncomeReduction <= 0) return breakdown;
 
   const itemizedDeduction = breakdown.itemizedDeduction - highIncomeReduction;
-  if (itemizedDeduction > breakdown.standardDeduction) {
+  if (
+    deductionChoice === "itemized" ||
+    itemizedDeduction > breakdown.standardDeduction
+  ) {
     return {
       ...breakdown,
       itemizedDeduction,

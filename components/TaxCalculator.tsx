@@ -6,6 +6,7 @@ import {
   FilingStatus,
   TaxState,
   CalculationResults,
+  DeductionChoice,
   STATE_LABELS,
   TaxCalculationResult,
   SharedLimitsData,
@@ -35,6 +36,7 @@ import FilingStatusComparisonModal, {
   ScenarioResult,
   MFSScenarioResult,
 } from "./Modals/FilingStatusComparisonModal";
+import { calculateWithSharedDeductionChoice } from "@/lib/deductionChoice";
 
 // Import federal data only (always needed) - these are small and required for all calculations
 import allFederalBrackets from "@/data/federal-brackets.json";
@@ -259,7 +261,7 @@ export default function TaxCalculator() {
 
   // Federal calculation bound to the selected year's data
   const calculateFederal = useCallback(
-    (federalInputs: TaxInputs) =>
+    (federalInputs: TaxInputs, deductionChoice?: DeductionChoice) =>
       calculateFederalTax(
         federalInputs,
         federalData.federalBrackets,
@@ -268,6 +270,7 @@ export default function TaxCalculator() {
         federalData.sharedLimits,
         federalData.federalLimits,
         federalData.ficaData,
+        deductionChoice,
       ),
     [federalData],
   );
@@ -295,32 +298,48 @@ export default function TaxCalculator() {
     });
   }, [inputs.selectedState, taxYear, loadedStateData]);
 
-  // Get the current state's data (may be undefined while loading)
-  const currentStateData = loadedStateData.get(stateDataKey);
+  // Federal and state tax for a set of inputs. DC must take the same type of
+  // deduction as the federal return, so the pair is chosen together.
+  const calculateTaxes = useCallback(
+    (taxInputs: TaxInputs) => {
+      const stateData = loadedStateData.get(
+        `${taxInputs.selectedState}-${taxYear}`,
+      );
+      if (!stateData) {
+        // Placeholder state result until the state data has loaded
+        return {
+          federal: calculateFederal(taxInputs),
+          state: EMPTY_STATE_RESULT,
+        };
+      }
 
-  const results: CalculationResults = useMemo(() => {
-    const federal = calculateFederal(inputs);
+      const calculateState = (federal: TaxCalculationResult) =>
+        calculateStateTaxWithData(
+          taxInputs,
+          stateData,
+          federalData.sharedLimits,
+          federalData.federalLimits,
+          federalData.ficaData,
+          federal,
+        );
 
-    // If state data isn't loaded yet, return a placeholder state result
-    if (!currentStateData) {
-      return {
-        federal,
-        state: EMPTY_STATE_RESULT,
-        selectedState: inputs.selectedState,
-      };
-    }
+      if (taxInputs.selectedState === "dc") {
+        return calculateWithSharedDeductionChoice(
+          (deductionChoice) => calculateFederal(taxInputs, deductionChoice),
+          calculateState,
+        );
+      }
 
-    const state = calculateStateTaxWithData(
-      inputs,
-      currentStateData,
-      federalData.sharedLimits,
-      federalData.federalLimits,
-      federalData.ficaData,
-      federal,
-    );
+      const federal = calculateFederal(taxInputs);
+      return { federal, state: calculateState(federal) };
+    },
+    [loadedStateData, taxYear, federalData, calculateFederal],
+  );
 
-    return { federal, state, selectedState: inputs.selectedState };
-  }, [inputs, currentStateData, federalData, calculateFederal]);
+  const results: CalculationResults = useMemo(
+    () => ({ ...calculateTaxes(inputs), selectedState: inputs.selectedState }),
+    [inputs, calculateTaxes],
+  );
 
   const updateInput = <K extends keyof TaxInputs>(
     field: K,
@@ -340,11 +359,10 @@ export default function TaxCalculator() {
   // Calculate federal tax scenario with different charitable contributions
   const calculateCharitableScenario = useCallback(
     (contributions: number) => {
-      const modifiedInputs = {
+      const scenarioResult = calculateTaxes({
         ...inputs,
         charitableContributions: contributions,
-      };
-      const scenarioResult = calculateFederal(modifiedInputs);
+      }).federal;
       return {
         totalTax: scenarioResult.totalTax,
         remainingOwed: scenarioResult.remainingOwed,
@@ -355,7 +373,7 @@ export default function TaxCalculator() {
             : 0,
       };
     },
-    [inputs, calculateFederal],
+    [inputs, calculateTaxes],
   );
 
   // Extract federal results for the modal
@@ -372,78 +390,50 @@ export default function TaxCalculator() {
     [results.federal],
   );
 
-  // Helper to calculate state tax for a given set of inputs (used by MFJ/MFS scenarios)
-  const calculateStateForInputs = useCallback(
-    (stateInputs: TaxInputs) => {
-      const key = `${stateInputs.selectedState}-${taxYear}`;
-      const stateData = loadedStateData.get(key);
-      if (!stateData) {
-        // Return zero result if state data not loaded (shouldn't happen in practice)
-        return EMPTY_STATE_RESULT;
-      }
-      const federalResult = calculateFederal(stateInputs);
-      return calculateStateTaxWithData(
-        stateInputs,
-        stateData,
-        federalData.sharedLimits,
-        federalData.federalLimits,
-        federalData.ficaData,
-        federalResult,
-      );
+  // Federal, state and combined tax for a filing status comparison scenario
+  const calculateScenarioResult = useCallback(
+    (scenarioInputs: TaxInputs): ScenarioResult => {
+      const { federal, state } = calculateTaxes(scenarioInputs);
+      return {
+        federalTax: federal.totalTax,
+        stateTax: state.totalTax,
+        totalTax: federal.totalTax + state.totalTax,
+      };
     },
-    [loadedStateData, taxYear, federalData, calculateFederal],
+    [calculateTaxes],
   );
 
   // Calculate MFJ scenario results for filing status comparison
-  const mfjResults: ScenarioResult = useMemo(() => {
-    const mfjInputs = {
-      ...inputs,
-      filingStatus: "marriedFilingJointly" as const,
-    };
-    const federal = calculateFederal(mfjInputs);
-    const state = calculateStateForInputs(mfjInputs);
-    return {
-      federalTax: federal.totalTax,
-      stateTax: state.totalTax,
-      totalTax: federal.totalTax + state.totalTax,
-    };
-  }, [inputs, calculateStateForInputs, calculateFederal]);
+  const mfjResults: ScenarioResult = useMemo(
+    () =>
+      calculateScenarioResult({
+        ...inputs,
+        filingStatus: "marriedFilingJointly" as const,
+      }),
+    [inputs, calculateScenarioResult],
+  );
 
   // Calculate MFS scenario with spouse splits
   const calculateMFSScenario = useCallback(
     (splits: SplitConfig): MFSScenarioResult => {
-      const spouse1Inputs = buildSpouseInputs(inputs, splits, true);
-      const spouse2Inputs = buildSpouseInputs(inputs, splits, false);
-
-      // Calculate each spouse's taxes
-      const spouse1Federal = calculateFederal(spouse1Inputs);
-      const spouse1State = calculateStateForInputs(spouse1Inputs);
-      const spouse2Federal = calculateFederal(spouse2Inputs);
-      const spouse2State = calculateStateForInputs(spouse2Inputs);
+      const spouse1 = calculateScenarioResult(
+        buildSpouseInputs(inputs, splits, true),
+      );
+      const spouse2 = calculateScenarioResult(
+        buildSpouseInputs(inputs, splits, false),
+      );
 
       return {
-        spouse1: {
-          federalTax: spouse1Federal.totalTax,
-          stateTax: spouse1State.totalTax,
-          totalTax: spouse1Federal.totalTax + spouse1State.totalTax,
-        },
-        spouse2: {
-          federalTax: spouse2Federal.totalTax,
-          stateTax: spouse2State.totalTax,
-          totalTax: spouse2Federal.totalTax + spouse2State.totalTax,
-        },
+        spouse1,
+        spouse2,
         combined: {
-          federalTax: spouse1Federal.totalTax + spouse2Federal.totalTax,
-          stateTax: spouse1State.totalTax + spouse2State.totalTax,
-          totalTax:
-            spouse1Federal.totalTax +
-            spouse2Federal.totalTax +
-            spouse1State.totalTax +
-            spouse2State.totalTax,
+          federalTax: spouse1.federalTax + spouse2.federalTax,
+          stateTax: spouse1.stateTax + spouse2.stateTax,
+          totalTax: spouse1.totalTax + spouse2.totalTax,
         },
       };
     },
-    [inputs, calculateStateForInputs, calculateFederal],
+    [inputs, calculateScenarioResult],
   );
 
   const stateLabel = STATE_LABELS[inputs.selectedState];

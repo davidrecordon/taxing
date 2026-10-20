@@ -448,6 +448,9 @@ export interface BracketBreakdown {
   taxForBracket: number;
 }
 
+// Forces the standard or itemized deduction instead of taking the larger one
+export type DeductionChoice = "standard" | "itemized";
+
 export interface DeductionBreakdown {
   standardDeduction: number;
   itemizedDeduction: number;
@@ -460,6 +463,7 @@ export interface DeductionBreakdown {
   propertyTax?: number; // State returns: property tax deducted outside any SALT cap
   highIncomeReduction?: number; // Itemized deductions lost to a high-income limit
   followsFederalChoice?: boolean; // Standard vs itemized is set by the federal return
+  chosenForStateTax?: boolean; // The smaller federal deduction was taken because it lowers federal and state tax combined
   charitableFloorReduction?: number; // Charitable giving under the AGI floor
 }
 

@@ -461,7 +461,7 @@ Above $107,650 of NY AGI the benefit of the lower brackets is phased out over th
 | High-income limit threshold               | $200,000 | $200,000 | Yes   |
 | High-income limit threshold (MFS)         | $100,000 | $100,000 | Yes   |
 
-**Notes:** Mortgage interest and charitable contributions follow the federal Schedule A amounts. The limitation thresholds are fixed in statute and not indexed, so 2026 uses the same values. For 2026 the federal 0.5% charitable floor flows through with the federal charitable amount; whether DC's 2026 Calculation F starts after the federal 2/37 limitation is not yet published, and the calculator does not apply that limitation to DC. DC does not allow the federal non-itemizer charitable deduction.
+**Notes:** Mortgage interest and charitable contributions follow the federal Schedule A amounts. The limitation thresholds are fixed in statute and not indexed, so 2026 uses the same values. For 2026 the federal 0.5% charitable floor flows through with the federal charitable amount; whether DC's 2026 Calculation F starts after the federal 2/37 limitation is not yet published, and the calculator does not apply that limitation to DC. DC does not allow the federal non-itemizer charitable deduction. Because DC requires the same type of deduction as the federal return, and a federal filer may itemize even when the standard deduction is larger, the calculator works out both types and uses the one with the lower combined federal and DC tax.
 
 **Correction (2026-10-19):** The calculator previously dropped property tax from DC itemized deductions, applied no high-income limitation, and chose the larger of the standard and itemized deduction regardless of the federal return.
 

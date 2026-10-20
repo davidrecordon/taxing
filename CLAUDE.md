@@ -56,7 +56,7 @@ Each supported state follows the same structure:
 TaxInputs → TaxCalculator.tsx → federalTaxCalculator → stateCalculator → CalculationResults → Display components
 ```
 
-The federal calculation runs first. Some states depend on it: Colorado starts from federal taxable income, and DC must follow the federal choice between the standard and itemized deduction. State calculators that tax all income as ordinary income get wages, gross income, loss offsets and AGI from `calculateStateIncome()` in `lib/states/stateCalcUtils.ts`.
+The federal calculation runs first. Some states depend on it: Colorado starts from federal taxable income, and DC must take the same type of deduction (standard or itemized) as the federal return, so for DC both types are calculated and the pair with the lower combined tax is used (`lib/deductionChoice.ts`). State calculators that tax all income as ordinary income get wages, gross income, loss offsets and AGI from `calculateStateIncome()` in `lib/states/stateCalcUtils.ts`.
 
 Deductions for every jurisdiction live in `lib/deductionCalculator.ts`. Capital gains, losses and carryovers are netted once, in `netCapitalGains()` in `lib/taxUtils.ts`, for both federal and state.
 

@@ -11,6 +11,7 @@ lib/
   formatters.ts          # Currency/percentage formatting utilities
   taxUtils.ts            # Shared calculation utilities
   deductionCalculator.ts # Federal and state deduction logic (standard vs itemized)
+  deductionChoice.ts     # Picks the deduction type for federal and DC together
   federalTaxCalculator.ts # Federal income tax calculations
   stateData.ts           # Lazy loading of state tax data by state and year
   states/
@@ -83,7 +84,7 @@ State deductions, where property tax is deductible outside the SALT cap and stat
 
 - `calculateCaliforniaDeductions()` - 6% / 80% high-income limitation
 - `calculateNewYorkDeductions()` - New York itemized deduction adjustment tiers
-- `calculateDCDeductions()` - 5% limitation; follows the federal standard-or-itemized choice
+- `calculateDCDeductions()` - 5% limitation; follows the federal standard-or-itemized choice, which `calculateWithSharedDeductionChoice()` in `deductionChoice.ts` makes for the lower combined tax
 
 Percentage-of-AGI limits on charitable contributions are not modelled.
 

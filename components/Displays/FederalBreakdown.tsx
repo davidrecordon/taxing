@@ -173,14 +173,24 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
         deductionBreakdown={result.deductionBreakdown}
       />
       {result.deductionBreakdown.deductionUsed === "standard" &&
-        result.deductionBreakdown.itemizedDeduction > 0 && (
+        result.deductionBreakdown.itemizedDeduction > 0 &&
+        (result.deductionBreakdown.chosenForStateTax ? (
+          <p className="text-sm text-text-secondary mb-4">
+            Using standard deduction (
+            {formatCurrency(result.deductionBreakdown.standardDeduction)})
+            although itemized would be{" "}
+            {formatCurrency(result.deductionBreakdown.itemizedDeduction)}: your
+            state return must make the same choice, and this lowers the two
+            taxes combined.
+          </p>
+        ) : (
           <p className="text-sm text-text-secondary mb-4">
             Using standard deduction (
             {formatCurrency(result.deductionBreakdown.standardDeduction)}) —
             itemized would only be{" "}
             {formatCurrency(result.deductionBreakdown.itemizedDeduction)}.
           </p>
-        )}
+        ))}
 
       {/* Bracket Breakdown - Ordinary Income */}
       <BracketTable
