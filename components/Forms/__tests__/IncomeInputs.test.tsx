@@ -75,6 +75,32 @@ describe("IncomeInputs", () => {
     });
   });
 
+  describe("bonuses and stock sub-field", () => {
+    const label = "Of which Bonuses & Stock";
+
+    it("is hidden until wages are entered", () => {
+      renderIncome();
+
+      expect(screen.queryByText(label)).not.toBeInTheDocument();
+    });
+
+    it("appears once wages have a value", () => {
+      renderIncome({ federalIncome: 250000 });
+
+      expect(screen.getByText(label)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Only affects the withholding estimate/),
+      ).toBeInTheDocument();
+    });
+
+    it("stays visible while it holds a value of its own, and warns", () => {
+      renderIncome({ federalIncome: 0, supplementalWages: 50000 });
+
+      expect(screen.getByText(label)).toBeInTheDocument();
+      expect(screen.getByText(/Cannot exceed wages/)).toBeInTheDocument();
+    });
+  });
+
   describe("capital loss hint", () => {
     it("shows the $3,000 limit for a negative entry", () => {
       renderIncome({ longTermCapitalGains: -5000 });
@@ -104,6 +130,7 @@ describe("IncomeInputs", () => {
       ["Self-Employment Income", "selfEmploymentIncome", {}],
       ["Interest", "interestIncome", {}],
       ["Of which U.S. Treasury", "treasuryInterest", { interestIncome: 9000 }],
+      ["Of which Bonuses & Stock", "supplementalWages", { federalIncome: 9000 }],
       ["Ordinary Dividends", "ordinaryDividends", {}],
       ["Qualified Dividends", "qualifiedDividends", { ordinaryDividends: 9000 }],
       ["Short-Term Capital Gains", "shortTermCapitalGains", {}],

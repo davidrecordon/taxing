@@ -37,6 +37,7 @@ export function buildSpouseInputs(
     filingStatus: "marriedFilingSeparately",
     federalIncome: inputs.federalIncome * wages,
     stateIncome: inputs.stateIncome * wages,
+    supplementalWages: inputs.supplementalWages * wages,
     selfEmploymentIncome: (inputs.selfEmploymentIncome || 0) * wages,
     shortTermCapitalGains: inputs.shortTermCapitalGains * stcg,
     longTermCapitalGains: inputs.longTermCapitalGains * ltcg,

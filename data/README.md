@@ -82,6 +82,11 @@ Federal-specific limits and thresholds.
   safeHarbor: {
     currentYearPercent: number,
     priorYearPercent: number
+  },
+  supplementalWithholding: {        // Flat withholding on bonuses and stock:
+    highRate: number,               //   `rate` up to `highThreshold` of supplemental
+    highThreshold: number,          //   wages in the year, `highRate` above it
+    rate: number
   }
 }
 ```
@@ -143,7 +148,8 @@ California-specific limits and thresholds.
   safeHarbor: {
     currentYearPercent: number,
     priorYearPercent: number
-  }
+  },
+  supplementalWithholdingRate: number  // Flat withholding on bonuses and stock
 }
 ```
 

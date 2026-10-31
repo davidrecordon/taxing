@@ -106,6 +106,7 @@ export function createDefaultInputs(
     taxYear: TAX_YEAR,
     federalIncome: 0,
     stateIncome: 0,
+    supplementalWages: 0,
     shortTermCapitalGains: 0,
     longTermCapitalGains: 0,
     interestIncome: 0,

@@ -134,6 +134,13 @@ export interface FederalLimitsData {
       marriedFilingSeparately: number;
     };
   };
+  // Flat withholding on bonuses and stock: `rate` up to `highThreshold` of
+  // supplemental wages in the year, `highRate` above it
+  supplementalWithholding: {
+    highRate: number;
+    highThreshold: number;
+    rate: number;
+  };
 }
 
 // California-specific limits
@@ -167,6 +174,8 @@ export interface CaliforniaLimitsData {
       marriedFilingSeparately: number;
     };
   };
+  // Flat withholding rate on bonuses and stock
+  supplementalWithholdingRate: number;
 }
 
 // Washington-specific limits
@@ -383,6 +392,9 @@ export interface TaxInputs {
   // Income fields
   federalIncome: number;
   stateIncome: number;
+  // The part of wages paid as bonuses or stock. Withheld on at flat rates, so
+  // it only affects the withholding estimate, not the tax.
+  supplementalWages: number;
   shortTermCapitalGains: number;
   longTermCapitalGains: number;
   interestIncome: number; // 1099-INT box 1 (taxable interest)
@@ -566,6 +578,7 @@ export interface TaxCalculationResult {
 
   // Payments already made
   withheld: number;
+  withheldEstimated?: boolean; // Withholding was estimated from wages, not entered
   estimatedPaid: number;
   totalPaid: number;
 

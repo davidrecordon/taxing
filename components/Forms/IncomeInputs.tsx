@@ -34,6 +34,8 @@ export default function IncomeInputs({
     (inputs.interestIncome > 0 || inputs.treasuryInterest > 0);
   const showQualifiedDividends =
     inputs.ordinaryDividends > 0 || inputs.qualifiedDividends > 0;
+  const showSupplementalWages =
+    inputs.federalIncome > 0 || inputs.supplementalWages > 0;
 
   return (
     <div className="theme-card p-4 space-y-4">
@@ -59,6 +61,20 @@ export default function IncomeInputs({
           }
         />
       </div>
+
+      {showSupplementalWages && (
+        <CurrencyInput
+          label="Of which Bonuses & Stock"
+          value={inputs.supplementalWages}
+          onChange={(v) => onUpdate("supplementalWages", v)}
+          hint="Bonuses and vested stock, withheld on at flat rates. Only affects the withholding estimate."
+          warning={
+            inputs.supplementalWages > inputs.federalIncome
+              ? "Cannot exceed wages. The excess is ignored."
+              : undefined
+          }
+        />
+      )}
 
       <CurrencyInput
         label="Self-Employment Income"

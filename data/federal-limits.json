@@ -37,7 +37,7 @@
     "safeHarbor": {
       "currentYearPercent": 0.9,
       "highIncomePriorYearPercent": 1.1,
-      "priorYearPercent": 1.0
+      "priorYearPercent": 1
     },
     "saltLimit": {
       "floor": 10000,
@@ -47,6 +47,11 @@
         "default": 500000,
         "marriedFilingSeparately": 250000
       }
+    },
+    "supplementalWithholding": {
+      "highRate": 0.37,
+      "highThreshold": 1000000,
+      "rate": 0.22
     }
   },
   "2026": {
@@ -87,7 +92,7 @@
     "safeHarbor": {
       "currentYearPercent": 0.9,
       "highIncomePriorYearPercent": 1.1,
-      "priorYearPercent": 1.0
+      "priorYearPercent": 1
     },
     "saltLimit": {
       "floor": 10000,
@@ -97,6 +102,11 @@
         "default": 505000,
         "marriedFilingSeparately": 252500
       }
+    },
+    "supplementalWithholding": {
+      "highRate": 0.37,
+      "highThreshold": 1000000,
+      "rate": 0.22
     }
   }
 }

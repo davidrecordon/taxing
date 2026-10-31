@@ -12,6 +12,7 @@ describe("FilingStatusComparisonModal", () => {
     taxYear: TAX_YEAR,
     federalIncome: 150000,
     stateIncome: 150000,
+    supplementalWages: 0,
     shortTermCapitalGains: 10000,
     longTermCapitalGains: 50000,
     interestIncome: 0,

@@ -22,6 +22,7 @@ The calculation code is layered: shared building blocks, then one calculator per
 | `deductionCalculator.test.ts` | Standard versus itemized (including a forced choice), and every itemized rule, for federal, California, New York and DC: SALT cap and phase-down, mortgage limits, charitable floor, each jurisdiction's high-income limit, DC following the federal deduction type |
 | `stateCalcUtils.test.ts`      | What states that tax all income as ordinary income share: state income and AGI, pre-tax deductions, the deductible half of self-employment tax, payments, refund or amount owed, the safe harbor comparison |
 | `spouseInputs.test.ts`        | Dividing a joint return between two spouses for the married-filing-separately comparison |
+| `withholdingEstimate.test.ts` | Withholding estimated from wages: the annual schedule on regular wages, the flat rates on bonuses and stock, and when the estimate stands in for a blank field |
 | `formatters.test.ts`          | Currency, percentage and number-input formatting |
 | `data.test.ts`                | The shape of the data files: every supported year is present with the same fields, and every bracket schedule is well formed |
 | `stateData.test.ts`           | Loading and caching state data |

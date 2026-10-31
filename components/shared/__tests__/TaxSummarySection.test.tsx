@@ -35,6 +35,37 @@ describe("TaxSummarySection", () => {
     });
   });
 
+  describe("estimated withholding", () => {
+    it("says when the withheld amount was estimated from wages", () => {
+      render(
+        <TaxSummarySection
+          totalTax={10000}
+          withheld={5000}
+          withheldEstimated={true}
+          estimatedPaid={0}
+          remainingOwed={5000}
+          refundDue={0}
+          taxLabel="Federal"
+        />,
+      );
+      expect(screen.getByText("Less: Withheld (estimated)")).toBeInTheDocument();
+    });
+
+    it("labels an entered amount plainly", () => {
+      render(
+        <TaxSummarySection
+          totalTax={10000}
+          withheld={5000}
+          estimatedPaid={0}
+          remainingOwed={5000}
+          refundDue={0}
+          taxLabel="Federal"
+        />,
+      );
+      expect(screen.getByText("Less: Withheld")).toBeInTheDocument();
+    });
+  });
+
   describe("refund scenario", () => {
     it("shows refund in green", () => {
       render(

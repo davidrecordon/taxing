@@ -81,6 +81,36 @@ describe("TaxCalculator", () => {
     expect(federalRow).toBe("Federal Tax$33,424$33,424No change");
   });
 
+  it("estimates withholding from wages until an amount is entered", async () => {
+    render(<TaxCalculator />);
+    await screen.findByLabelText("California Tax Withheld");
+
+    await enter("Wages & Other Income", "300000");
+    await enter("Of which Bonuses & Stock", "100000");
+
+    // Single, California, 2026. Federal: regular wages $200,000 less $16,100
+    // is $183,900, taxed 10% x $12,400 + 12% x $38,000 + 22% x $55,300 +
+    // 24% x $78,200 = $36,734; the $100,000 of bonuses at 22% adds $22,000,
+    // so $58,734. California: $200,000 less $5,900 is $194,100, taxed
+    // $3,310.88 + 9.3% x $118,903 = $14,368.86; bonuses at 10.23% add
+    // $10,230, so $24,599.
+    expect(
+      await screen.findByText(/Estimated at \$58,734 from your wages/),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Estimated at \$24,599 from your wages/),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("Less: Withheld (estimated)")).toHaveLength(2);
+
+    await enter("Federal Tax Withheld", "60000");
+
+    expect(
+      screen.queryByText(/Estimated at \$58,734/),
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByText("Less: Withheld (estimated)")).toHaveLength(1);
+    expect(screen.getByText("Less: Withheld")).toBeInTheDocument();
+  });
+
   it("recalculates for the tax year chosen", async () => {
     render(<TaxCalculator />);
     await enter("Wages & Other Income", "100000");

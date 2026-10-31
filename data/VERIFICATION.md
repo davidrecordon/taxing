@@ -172,6 +172,18 @@ This document verifies that all tax data in the JSON files matches official gove
 
 **Correction (2026-10-20):** The calculator previously took 20% of gross business income for the QBI deduction, and did not charge the Additional Medicare tax on self-employment earnings.
 
+### Wage Withholding Estimate (2025 and 2026)
+
+**Sources:** [Pub. 15 (2026)](https://www.irs.gov/publications/p15), section 7 Supplemental Wages ("The withholding rate on supplemental wages remains 22% (37% if supplemental wages paid to an employee during the calendar year exceed $1 million)"); [Pub. 15-T](https://www.irs.gov/publications/p15t), Percentage Method Tables for Automated Payroll Systems. Verified 2026-10-30.
+
+| Item                                        | Our Data   | Official   | Match |
+| ------------------------------------------- | ---------- | ---------- | ----- |
+| Supplemental rate                           | 22%        | 22%        | Yes   |
+| Supplemental rate above the threshold       | 37%        | 37%        | Yes   |
+| Threshold (supplemental wages in the year)  | $1,000,000 | $1,000,000 | Yes   |
+
+**Notes:** Used only where the user has not entered the amount withheld; an entered amount always wins, and the result says when the figure was estimated. Regular wages (wages less bonuses and stock, 401(k) and pre-tax medical) are withheld on by the annual bracket schedule after the standard deduction, which is the shape of the percentage method for a W-4 with no adjustments. Known approximations: a W-4 with extra withholding, a second job or dependents gives a different amount; the pre-tax deductions are taken wholly from regular wages; the Additional Medicare tax withheld is not part of the estimate because payroll tax is kept out of the amount owed. The same rates apply for 2025 (Pub. 15 (2025), section 7).
+
 ---
 
 ## California (2025)
@@ -546,6 +558,16 @@ Above $107,650 of NY AGI the benefit of the lower brackets is phased out over th
 | High-income limit threshold (MFJ)        | $504,411 | TBD      | WAITING - using 2025 value |
 
 **Note:** The FTB indexes these thresholds each year and publishes them in the Schedule CA (540) instructions, expected in late December 2026. The other itemized deduction rules are statutory and unchanged from 2025.
+
+### Supplemental Wage Withholding (2025 and 2026)
+
+**Source:** [EDD DE 231PS](https://edd.ca.gov/siteassets/files/pdf_pub_ctr/de231ps.pdf), Personal Income Tax Withholding - Supplemental Wage Payments ("For stock options and bonuses that were paid on or after November 1, 2009, the flat rate is 10.23 percent. For other types of supplemental wage payments made on or after November 1, 2009, the flat rate is 6.6 percent."). Verified 2026-10-30.
+
+| Item                              | Our Data | Official | Match |
+| --------------------------------- | -------- | -------- | ----- |
+| Flat rate on bonuses and stock    | 10.23%   | 10.23%   | Yes   |
+
+**Notes:** The input is bonuses and stock, so the 6.6% rate for other supplemental pay (commissions, overtime, back pay) is not used. Regular wages are withheld on by the tax rate schedule after the standard deduction, an approximation of the EDD withholding schedules (Method B), which have their own low-income exemption and allowance tables. California is the only state with a withholding estimate; for the other states the user enters the amount.
 
 ---
 

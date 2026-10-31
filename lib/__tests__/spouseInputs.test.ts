@@ -11,6 +11,7 @@ const joint: TaxInputs = createDefaultInputs({
   isMortgageGrandfathered: true,
   priorYearIncomeOverThreshold: false,
   federalIncome: 400000,
+  supplementalWages: 50000,
   stateIncome: 380000,
   selfEmploymentIncome: 60000,
   shortTermCapitalGains: 20000,
@@ -93,7 +94,7 @@ describe("buildSpouseInputs", () => {
       (field) => typeof joint[field] === "number",
     );
 
-    expect(amountFields).toHaveLength(24);
+    expect(amountFields).toHaveLength(25);
     for (const field of amountFields) {
       expect(
         (spouse1[field] as number) + (spouse2[field] as number),
@@ -140,6 +141,7 @@ describe("buildSpouseInputs", () => {
         "stateEstimatedPaid",
         "stateIncome",
         "stateTaxWithheld",
+        "supplementalWages",
       ]);
     });
 

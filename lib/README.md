@@ -12,6 +12,7 @@ lib/
   taxUtils.ts            # Shared calculation utilities
   charitableScenario.ts  # Tax saved by charitable giving, for the what-if tool
   spouseInputs.ts        # Divides a joint return for the filing status comparison
+  withholdingEstimate.ts # Withholding worked out from wages, used where none is entered
   deductionCalculator.ts # Federal and state deduction logic (standard vs itemized)
   deductionChoice.ts     # Picks the deduction type where it changes state tax (DC, CO)
   federalTaxCalculator.ts # Federal income tax calculations
@@ -89,6 +90,13 @@ State deductions, where property tax is deductible outside the SALT cap and stat
 - `calculateDCDeductions()` - 5% limitation; follows the federal standard-or-itemized choice, which `calculateWithSharedDeductionChoice()` in `deductionChoice.ts` makes for the lower combined tax
 
 Percentage-of-AGI limits on charitable contributions are not modelled.
+
+### withholdingEstimate.ts
+
+What an employer would withhold over the year, from the wage inputs, standing in for a withholding amount the user has not entered:
+
+- `estimateWithholding()` - Regular wages by the annual schedule after pre-tax deductions and the standard deduction; bonuses and stock at the flat supplemental rates (federal 22%, 37% above $1,000,000 in the year; California 10.23%). Only California's state withholding is estimated.
+- `applyWithholdingEstimate()` - The inputs the calculators run on: an entered amount always wins, and the result says which amounts were estimated
 
 ### states/stateCalcUtils.ts
 

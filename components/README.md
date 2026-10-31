@@ -16,7 +16,7 @@ components/
     DeductionInputs.tsx       # Deductions (property tax, mortgage, charitable, 401k)
     IncomeInputs.tsx          # Income fields (wages, interest, dividends, capital gains)
     PriorYearInputs.tsx       # Prior year tax and loss carryovers
-    WithholdingInputs.tsx     # Tax withholding and estimated payments
+    WithholdingInputs.tsx     # Tax withholding and estimated payments, with the estimate from wages as a hint
   Modals/                # Modal dialogs
     CharitableWhatIfModal.tsx      # Tax saved by giving half, the same, or double
     FilingStatusComparisonModal.tsx # MFJ vs MFS comparison

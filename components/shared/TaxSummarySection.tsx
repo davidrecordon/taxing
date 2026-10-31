@@ -11,6 +11,8 @@ interface TaxSummarySectionProps {
   totalTax: number;
   /** Amount withheld from paychecks */
   withheld: number;
+  /** The withheld amount was estimated from wages, not entered */
+  withheldEstimated?: boolean;
   /** Estimated tax payments already made */
   estimatedPaid: number;
   /** Amount still owed (0 if refund due) */
@@ -32,6 +34,7 @@ interface TaxSummarySectionProps {
 export default memo(function TaxSummarySection({
   totalTax,
   withheld,
+  withheldEstimated = false,
   estimatedPaid,
   remainingOwed,
   refundDue,
@@ -47,7 +50,9 @@ export default memo(function TaxSummarySection({
       </div>
       {withheld > 0 && (
         <div className="flex justify-between text-sm text-positive">
-          <span>Less: Withheld</span>
+          <span>
+            {withheldEstimated ? "Less: Withheld (estimated)" : "Less: Withheld"}
+          </span>
           <span className="font-mono">-{formatCurrency(withheld)}</span>
         </div>
       )}

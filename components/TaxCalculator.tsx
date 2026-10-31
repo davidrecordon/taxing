@@ -44,6 +44,10 @@ import {
   calculateWithSharedDeductionChoice,
 } from "@/lib/deductionChoice";
 import { SplitConfig, buildSpouseInputs } from "@/lib/spouseInputs";
+import {
+  applyWithholdingEstimate,
+  estimateWithholding,
+} from "@/lib/withholdingEstimate";
 
 // Import federal data only (always needed) - these are small and required for all calculations
 import allFederalBrackets from "@/data/federal-brackets.json";
@@ -59,6 +63,7 @@ const defaultInputs: TaxInputs = {
   taxYear: TAX_YEAR,
   federalIncome: 0,
   stateIncome: 0,
+  supplementalWages: 0,
   shortTermCapitalGains: 0,
   longTermCapitalGains: 0,
   interestIncome: 0,
@@ -295,10 +300,32 @@ export default function TaxCalculator() {
     [loadedStateData, taxYear, federalData, calculateFederal],
   );
 
-  const results: CalculationResults = useMemo(
-    () => ({ ...calculateTaxes(inputs), selectedState: inputs.selectedState }),
-    [inputs, calculateTaxes],
+  // Withholding the user has not entered is estimated from the wage inputs.
+  // The form shows the raw inputs with the estimate as a hint; every
+  // calculation runs on the resolved inputs.
+  const withholdingEstimate = useMemo(
+    () =>
+      estimateWithholding(
+        inputs,
+        federalData,
+        loadedStateData.get(stateDataKey),
+      ),
+    [inputs, federalData, loadedStateData, stateDataKey],
   );
+  const resolved = useMemo(
+    () => applyWithholdingEstimate(inputs, withholdingEstimate),
+    [inputs, withholdingEstimate],
+  );
+  const calcInputs = resolved.inputs;
+
+  const results: CalculationResults = useMemo(() => {
+    const { federal, state } = calculateTaxes(resolved.inputs);
+    return {
+      federal: { ...federal, withheldEstimated: resolved.federalEstimated },
+      state: { ...state, withheldEstimated: resolved.stateEstimated },
+      selectedState: resolved.inputs.selectedState,
+    };
+  }, [resolved, calculateTaxes]);
 
   const updateInput = <K extends keyof TaxInputs>(
     field: K,
@@ -320,7 +347,7 @@ export default function TaxCalculator() {
   const calculateCharitableScenario = useCallback(
     (contributions: number): CharitableScenario => {
       const { federal, state } = calculateTaxes({
-        ...inputs,
+        ...calcInputs,
         charitableContributions: contributions,
       });
       return summarizeCharitableScenario(
@@ -329,7 +356,7 @@ export default function TaxCalculator() {
         federalData.federalLimits,
       );
     },
-    [inputs, calculateTaxes, federalData],
+    [calcInputs, calculateTaxes, federalData],
   );
 
   // Federal, state and combined tax for a filing status comparison scenario
@@ -349,20 +376,20 @@ export default function TaxCalculator() {
   const mfjResults: ScenarioResult = useMemo(
     () =>
       calculateScenarioResult({
-        ...inputs,
+        ...calcInputs,
         filingStatus: "marriedFilingJointly" as const,
       }),
-    [inputs, calculateScenarioResult],
+    [calcInputs, calculateScenarioResult],
   );
 
   // Calculate MFS scenario with spouse splits
   const calculateMFSScenario = useCallback(
     (splits: SplitConfig): MFSScenarioResult => {
       const spouse1 = calculateScenarioResult(
-        buildSpouseInputs(inputs, splits, true),
+        buildSpouseInputs(calcInputs, splits, true),
       );
       const spouse2 = calculateScenarioResult(
-        buildSpouseInputs(inputs, splits, false),
+        buildSpouseInputs(calcInputs, splits, false),
       );
 
       return {
@@ -375,7 +402,7 @@ export default function TaxCalculator() {
         },
       };
     },
-    [inputs, calculateScenarioResult],
+    [calcInputs, calculateScenarioResult],
   );
 
   const stateLabel = STATE_LABELS[inputs.selectedState];
@@ -471,7 +498,11 @@ export default function TaxCalculator() {
               sharedLimits={federalData.sharedLimits}
             />
 
-            <WithholdingInputs inputs={inputs} onUpdate={updateInput} />
+            <WithholdingInputs
+              inputs={inputs}
+              onUpdate={updateInput}
+              estimate={withholdingEstimate}
+            />
 
             <DeductionInputs
               inputs={inputs}
@@ -509,7 +540,7 @@ export default function TaxCalculator() {
       <FilingStatusComparisonModal
         isOpen={isFilingCompareOpen}
         onClose={() => setIsFilingCompareOpen(false)}
-        currentInputs={inputs}
+        currentInputs={calcInputs}
         mfjResults={mfjResults}
         calculateMFSScenario={calculateMFSScenario}
       />
