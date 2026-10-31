@@ -1,22 +1,13 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { MFSScenarioResult, ScenarioResult } from "@/lib/calculate";
 import { formatCurrency } from "@/lib/formatters";
 import { SplitConfig } from "@/lib/spouseInputs";
 import { TaxInputs } from "@/lib/types";
 import Dialog from "../UI/Dialog";
 
-export interface ScenarioResult {
-  federalTax: number;
-  stateTax: number;
-  totalTax: number;
-}
-
-export interface MFSScenarioResult {
-  spouse1: ScenarioResult;
-  spouse2: ScenarioResult;
-  combined: ScenarioResult;
-}
+export type { MFSScenarioResult, ScenarioResult };
 
 interface Props {
   isOpen: boolean;

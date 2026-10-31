@@ -1,0 +1,34 @@
+import { TAX_YEAR } from "./config";
+import { TaxInputs } from "./types";
+
+// A blank return: every amount zero, the default year, single, California
+export const DEFAULT_TAX_INPUTS: TaxInputs = {
+  taxYear: TAX_YEAR,
+  federalIncome: 0,
+  stateIncome: 0,
+  supplementalWages: 0,
+  shortTermCapitalGains: 0,
+  longTermCapitalGains: 0,
+  interestIncome: 0,
+  treasuryInterest: 0,
+  ordinaryDividends: 0,
+  qualifiedDividends: 0,
+  federalTaxWithheld: 0,
+  stateTaxWithheld: 0,
+  federalEstimatedPaid: 0,
+  stateEstimatedPaid: 0,
+  filingStatus: "single",
+  selectedState: "california",
+  propertyTaxesPaid: 0,
+  mortgageInterestPaid: 0,
+  mortgageBalance: 0,
+  charitableContributions: 0,
+  contributions401k: 0,
+  preTaxMedical: 0,
+  priorYearFederalTax: 0,
+  priorYearStateTax: 0,
+  priorYearStateBalancePaid: 0,
+  priorYearShortTermLossCarryover: 0,
+  priorYearLongTermLossCarryover: 0,
+  selfEmploymentIncome: 0,
+};

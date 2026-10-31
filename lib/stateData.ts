@@ -6,6 +6,7 @@ export interface StateData {
   brackets: unknown;
   deductions?: unknown;
   limits: unknown;
+  nycBrackets?: unknown; // New York City's schedule, alongside the state's
   withholding?: unknown; // Employer withholding tables, where modelled
   nycWithholding?: unknown; // New York City's, alongside the state's
 }
