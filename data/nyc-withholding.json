@@ -1,0 +1,226 @@
+{
+  "2025": {
+    "assumedExemptions": {
+      "marriedFilingJointly": 0,
+      "marriedFilingSeparately": 0,
+      "single": 0
+    },
+    "brackets": {
+      "marriedFilingJointly": [
+        {
+          "min": 0,
+          "max": 8000,
+          "rate": 0.0205
+        },
+        {
+          "min": 8000,
+          "max": 8700,
+          "rate": 0.028
+        },
+        {
+          "min": 8700,
+          "max": 15000,
+          "rate": 0.0325
+        },
+        {
+          "min": 15000,
+          "max": 25000,
+          "rate": 0.0395
+        },
+        {
+          "min": 25000,
+          "max": 60000,
+          "rate": 0.0415
+        },
+        {
+          "min": 60000,
+          "max": null,
+          "rate": 0.0425
+        }
+      ],
+      "marriedFilingSeparately": [
+        {
+          "min": 0,
+          "max": 8000,
+          "rate": 0.0205
+        },
+        {
+          "min": 8000,
+          "max": 8700,
+          "rate": 0.028
+        },
+        {
+          "min": 8700,
+          "max": 15000,
+          "rate": 0.0325
+        },
+        {
+          "min": 15000,
+          "max": 25000,
+          "rate": 0.0395
+        },
+        {
+          "min": 25000,
+          "max": 60000,
+          "rate": 0.0415
+        },
+        {
+          "min": 60000,
+          "max": null,
+          "rate": 0.0425
+        }
+      ],
+      "single": [
+        {
+          "min": 0,
+          "max": 8000,
+          "rate": 0.0205
+        },
+        {
+          "min": 8000,
+          "max": 8700,
+          "rate": 0.028
+        },
+        {
+          "min": 8700,
+          "max": 15000,
+          "rate": 0.0325
+        },
+        {
+          "min": 15000,
+          "max": 25000,
+          "rate": 0.0395
+        },
+        {
+          "min": 25000,
+          "max": 60000,
+          "rate": 0.0415
+        },
+        {
+          "min": 60000,
+          "max": null,
+          "rate": 0.0425
+        }
+      ]
+    },
+    "deduction": {
+      "marriedFilingJointly": 5500,
+      "marriedFilingSeparately": 5000,
+      "single": 5000
+    },
+    "exemption": 1000,
+    "supplementalRate": 0.0425
+  },
+  "2026": {
+    "assumedExemptions": {
+      "marriedFilingJointly": 0,
+      "marriedFilingSeparately": 0,
+      "single": 0
+    },
+    "brackets": {
+      "marriedFilingJointly": [
+        {
+          "min": 0,
+          "max": 8000,
+          "rate": 0.0205
+        },
+        {
+          "min": 8000,
+          "max": 8700,
+          "rate": 0.028
+        },
+        {
+          "min": 8700,
+          "max": 15000,
+          "rate": 0.0325
+        },
+        {
+          "min": 15000,
+          "max": 25000,
+          "rate": 0.0395
+        },
+        {
+          "min": 25000,
+          "max": 60000,
+          "rate": 0.0415
+        },
+        {
+          "min": 60000,
+          "max": null,
+          "rate": 0.0425
+        }
+      ],
+      "marriedFilingSeparately": [
+        {
+          "min": 0,
+          "max": 8000,
+          "rate": 0.0205
+        },
+        {
+          "min": 8000,
+          "max": 8700,
+          "rate": 0.028
+        },
+        {
+          "min": 8700,
+          "max": 15000,
+          "rate": 0.0325
+        },
+        {
+          "min": 15000,
+          "max": 25000,
+          "rate": 0.0395
+        },
+        {
+          "min": 25000,
+          "max": 60000,
+          "rate": 0.0415
+        },
+        {
+          "min": 60000,
+          "max": null,
+          "rate": 0.0425
+        }
+      ],
+      "single": [
+        {
+          "min": 0,
+          "max": 8000,
+          "rate": 0.0205
+        },
+        {
+          "min": 8000,
+          "max": 8700,
+          "rate": 0.028
+        },
+        {
+          "min": 8700,
+          "max": 15000,
+          "rate": 0.0325
+        },
+        {
+          "min": 15000,
+          "max": 25000,
+          "rate": 0.0395
+        },
+        {
+          "min": 25000,
+          "max": 60000,
+          "rate": 0.0415
+        },
+        {
+          "min": 60000,
+          "max": null,
+          "rate": 0.0425
+        }
+      ]
+    },
+    "deduction": {
+      "marriedFilingJointly": 5500,
+      "marriedFilingSeparately": 5000,
+      "single": 5000
+    },
+    "exemption": 1000,
+    "supplementalRate": 0.0425
+  }
+}

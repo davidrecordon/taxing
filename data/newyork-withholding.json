@@ -1,0 +1,414 @@
+{
+  "2025": {
+    "assumedExemptions": {
+      "marriedFilingJointly": 0,
+      "marriedFilingSeparately": 0,
+      "single": 0
+    },
+    "brackets": {
+      "marriedFilingJointly": [
+        {
+          "min": 0,
+          "max": 8500,
+          "rate": 0.04
+        },
+        {
+          "min": 8500,
+          "max": 11700,
+          "rate": 0.045
+        },
+        {
+          "min": 11700,
+          "max": 13900,
+          "rate": 0.0525
+        },
+        {
+          "min": 13900,
+          "max": 80650,
+          "rate": 0.055
+        },
+        {
+          "min": 80650,
+          "max": 96800,
+          "rate": 0.06
+        },
+        {
+          "min": 96800,
+          "max": 107650,
+          "rate": 0.0667
+        },
+        {
+          "min": 107650,
+          "max": 157650,
+          "rate": 0.0717
+        },
+        {
+          "min": 157650,
+          "max": 211550,
+          "rate": 0.0811
+        },
+        {
+          "min": 211550,
+          "max": 323200,
+          "rate": 0.065
+        },
+        {
+          "min": 323200,
+          "max": 373200,
+          "rate": 0.1284
+        },
+        {
+          "min": 373200,
+          "max": 1077550,
+          "rate": 0.0735
+        },
+        {
+          "min": 1077550,
+          "max": 2155350,
+          "rate": 0.0765
+        }
+      ],
+      "marriedFilingSeparately": [
+        {
+          "min": 0,
+          "max": 8500,
+          "rate": 0.04
+        },
+        {
+          "min": 8500,
+          "max": 11700,
+          "rate": 0.045
+        },
+        {
+          "min": 11700,
+          "max": 13900,
+          "rate": 0.0525
+        },
+        {
+          "min": 13900,
+          "max": 80650,
+          "rate": 0.055
+        },
+        {
+          "min": 80650,
+          "max": 96800,
+          "rate": 0.06
+        },
+        {
+          "min": 96800,
+          "max": 107650,
+          "rate": 0.0714
+        },
+        {
+          "min": 107650,
+          "max": 157650,
+          "rate": 0.0764
+        },
+        {
+          "min": 157650,
+          "max": 215400,
+          "rate": 0.065
+        },
+        {
+          "min": 215400,
+          "max": 265400,
+          "rate": 0.1101
+        },
+        {
+          "min": 265400,
+          "max": 1077550,
+          "rate": 0.0735
+        }
+      ],
+      "single": [
+        {
+          "min": 0,
+          "max": 8500,
+          "rate": 0.04
+        },
+        {
+          "min": 8500,
+          "max": 11700,
+          "rate": 0.045
+        },
+        {
+          "min": 11700,
+          "max": 13900,
+          "rate": 0.0525
+        },
+        {
+          "min": 13900,
+          "max": 80650,
+          "rate": 0.055
+        },
+        {
+          "min": 80650,
+          "max": 96800,
+          "rate": 0.06
+        },
+        {
+          "min": 96800,
+          "max": 107650,
+          "rate": 0.0714
+        },
+        {
+          "min": 107650,
+          "max": 157650,
+          "rate": 0.0764
+        },
+        {
+          "min": 157650,
+          "max": 215400,
+          "rate": 0.065
+        },
+        {
+          "min": 215400,
+          "max": 265400,
+          "rate": 0.1101
+        },
+        {
+          "min": 265400,
+          "max": 1077550,
+          "rate": 0.0735
+        }
+      ]
+    },
+    "deduction": {
+      "marriedFilingJointly": 7950,
+      "marriedFilingSeparately": 7400,
+      "single": 7400
+    },
+    "exemption": 1000,
+    "supplementalRate": 0.117,
+    "topRates": {
+      "threshold": {
+        "marriedFilingJointly": 2155350,
+        "marriedFilingSeparately": 1077550,
+        "single": 1077550
+      },
+      "tiers": [
+        {
+          "min": 0,
+          "max": 5000000,
+          "rate": 0.1045
+        },
+        {
+          "min": 5000000,
+          "max": 25000000,
+          "rate": 0.111
+        },
+        {
+          "min": 25000000,
+          "max": null,
+          "rate": 0.117
+        }
+      ]
+    }
+  },
+  "2026": {
+    "assumedExemptions": {
+      "marriedFilingJointly": 0,
+      "marriedFilingSeparately": 0,
+      "single": 0
+    },
+    "brackets": {
+      "marriedFilingJointly": [
+        {
+          "min": 0,
+          "max": 8500,
+          "rate": 0.039
+        },
+        {
+          "min": 8500,
+          "max": 11700,
+          "rate": 0.044
+        },
+        {
+          "min": 11700,
+          "max": 13900,
+          "rate": 0.0515
+        },
+        {
+          "min": 13900,
+          "max": 80650,
+          "rate": 0.054
+        },
+        {
+          "min": 80650,
+          "max": 96800,
+          "rate": 0.059
+        },
+        {
+          "min": 96800,
+          "max": 107650,
+          "rate": 0.0657
+        },
+        {
+          "min": 107650,
+          "max": 157650,
+          "rate": 0.0707
+        },
+        {
+          "min": 157650,
+          "max": 211550,
+          "rate": 0.0801
+        },
+        {
+          "min": 211550,
+          "max": 323200,
+          "rate": 0.064
+        },
+        {
+          "min": 323200,
+          "max": 373200,
+          "rate": 0.1349
+        },
+        {
+          "min": 373200,
+          "max": 1077550,
+          "rate": 0.0735
+        },
+        {
+          "min": 1077550,
+          "max": 2155350,
+          "rate": 0.0765
+        }
+      ],
+      "marriedFilingSeparately": [
+        {
+          "min": 0,
+          "max": 8500,
+          "rate": 0.039
+        },
+        {
+          "min": 8500,
+          "max": 11700,
+          "rate": 0.044
+        },
+        {
+          "min": 11700,
+          "max": 13900,
+          "rate": 0.0515
+        },
+        {
+          "min": 13900,
+          "max": 80650,
+          "rate": 0.054
+        },
+        {
+          "min": 80650,
+          "max": 96800,
+          "rate": 0.059
+        },
+        {
+          "min": 96800,
+          "max": 107650,
+          "rate": 0.0703
+        },
+        {
+          "min": 107650,
+          "max": 157650,
+          "rate": 0.0753
+        },
+        {
+          "min": 157650,
+          "max": 215400,
+          "rate": 0.064
+        },
+        {
+          "min": 215400,
+          "max": 265400,
+          "rate": 0.1144
+        },
+        {
+          "min": 265400,
+          "max": 1077550,
+          "rate": 0.0735
+        }
+      ],
+      "single": [
+        {
+          "min": 0,
+          "max": 8500,
+          "rate": 0.039
+        },
+        {
+          "min": 8500,
+          "max": 11700,
+          "rate": 0.044
+        },
+        {
+          "min": 11700,
+          "max": 13900,
+          "rate": 0.0515
+        },
+        {
+          "min": 13900,
+          "max": 80650,
+          "rate": 0.054
+        },
+        {
+          "min": 80650,
+          "max": 96800,
+          "rate": 0.059
+        },
+        {
+          "min": 96800,
+          "max": 107650,
+          "rate": 0.0703
+        },
+        {
+          "min": 107650,
+          "max": 157650,
+          "rate": 0.0753
+        },
+        {
+          "min": 157650,
+          "max": 215400,
+          "rate": 0.064
+        },
+        {
+          "min": 215400,
+          "max": 265400,
+          "rate": 0.1144
+        },
+        {
+          "min": 265400,
+          "max": 1077550,
+          "rate": 0.0735
+        }
+      ]
+    },
+    "deduction": {
+      "marriedFilingJointly": 7950,
+      "marriedFilingSeparately": 7400,
+      "single": 7400
+    },
+    "exemption": 1000,
+    "supplementalRate": 0.117,
+    "topRates": {
+      "threshold": {
+        "marriedFilingJointly": 2155350,
+        "marriedFilingSeparately": 1077550,
+        "single": 1077550
+      },
+      "tiers": [
+        {
+          "min": 0,
+          "max": 5000000,
+          "rate": 0.1045
+        },
+        {
+          "min": 5000000,
+          "max": 25000000,
+          "rate": 0.111
+        },
+        {
+          "min": 25000000,
+          "max": null,
+          "rate": 0.117
+        }
+      ]
+    }
+  }
+}

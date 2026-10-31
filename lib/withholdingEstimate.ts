@@ -6,6 +6,7 @@ import {
   DeductionsData,
   FederalLimitsData,
   IllinoisWithholdingData,
+  NewYorkWithholdingData,
   TaxBracketsData,
   TaxInputs,
 } from "./types";
@@ -32,11 +33,17 @@ import {
  * filing status; Illinois's allowance for the employee, and one more for a
  * spouse on a joint return).
  *
+ * New York regular wages: Method II exact calculation on wages less the
+ * deduction and exemptions, by the annual schedule whose out-of-order rates
+ * recapture the lower brackets; from $1,077,550 of net wages ($2,155,350
+ * joint) Method III withholds a flat share of all of them. A city resident
+ * has the city's Method II added, on its own deduction and schedule.
+ *
  * Bonuses and stock: the flat supplemental rates. Federal withholds 22% on
  * the first $1,000,000 of supplemental wages in the year and 37% above that.
- * California withholds 10.23% on bonuses and stock. Colorado and Illinois
- * have no separate rule, so bonuses and stock are withheld on at the flat
- * rate like any other wages.
+ * California withholds 10.23% on bonuses and stock, New York 11.70% and the
+ * city a further 4.25%. Colorado and Illinois have no separate rule, so
+ * bonuses and stock are withheld on at the flat rate like any other wages.
  */
 export interface WithholdingEstimate {
   federal: number;
@@ -160,6 +167,46 @@ function flatRateWithholding(
   };
 }
 
+// Method II on one New York schedule, state or city: the annual schedule on
+// net wages, or Method III's flat share of all net wages from its threshold
+function newYorkMethodII(
+  regular: number,
+  table: NewYorkWithholdingData,
+  filingStatus: TaxInputs["filingStatus"],
+): number {
+  const net = Math.max(
+    0,
+    regular -
+      table.deduction[filingStatus] -
+      table.assumedExemptions[filingStatus] * table.exemption,
+  );
+  const top = table.topRates;
+  if (top && net >= top.threshold[filingStatus]) {
+    const tier = top.tiers.find((t) => t.max === null || net < t.max);
+    return net * (tier?.rate ?? 0);
+  }
+  return calculateTaxByBrackets(net, table.brackets[filingStatus]).total;
+}
+
+// The state's withholding, plus the city's for a city resident; each has its
+// own deduction, schedule and bonus rate
+function estimateNewYorkWithholding(
+  inputs: TaxInputs,
+  state: NewYorkWithholdingData,
+  city: NewYorkWithholdingData | undefined,
+): WithholdingParts {
+  const { filingStatus } = inputs;
+  const { regular, supplemental } = stateWages(inputs);
+  const tables = inputs.isNYCResident && city ? [state, city] : [state];
+  return tables.reduce(
+    (parts, table) => ({
+      regular: parts.regular + newYorkMethodII(regular, table, filingStatus),
+      supplemental: parts.supplemental + supplemental * table.supplementalRate,
+    }),
+    { regular: 0, supplemental: 0 },
+  );
+}
+
 // The states with a modelled withholding estimate. Other states return null
 // and the user enters the amount.
 function estimateStateWithholding(
@@ -192,6 +239,12 @@ function estimateStateWithholding(
         table.assumedAllowances[filingStatus] * table.allowance,
       );
     }
+    case "newyork":
+      return estimateNewYorkWithholding(
+        inputs,
+        stateData.withholding as NewYorkWithholdingData,
+        stateData.nycWithholding as NewYorkWithholdingData | undefined,
+      );
     default:
       return null;
   }

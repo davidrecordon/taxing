@@ -22,6 +22,11 @@ import {
   illinoisDeductions,
   illinoisLimits,
   illinoisWithholding,
+  newYorkBrackets,
+  newYorkDeductions,
+  newYorkLimits,
+  newYorkWithholding,
+  nycWithholding,
 } from "./testData";
 
 // Figures used throughout (2026, the default tax year):
@@ -44,6 +49,18 @@ import {
 // Illinois employer withholding (IL-700-T, 2026): 4.95% of wages less $2,925
 //   per allowance, one assumed ($5,850 for two on a joint return); no separate
 //   rate on bonuses and stock
+// New York employer withholding (NYS-50-T-NYS 1/26, Method II annual
+//   schedule) on wages less $7,400 ($7,950 married), no exemptions: single
+//   3.9% to $8,500, 4.4% to $11,700, 5.15% to $13,900, 5.4% to $80,650, 5.9%
+//   to $96,800, 7.03% to $107,650, 7.53% to $157,650, 6.4% to $215,400, 11.44%
+//   to $265,400, 7.35% to $1,077,550; the walk reaches $157,650 at $9,670.705
+//   and $265,400 at $19,086.705. Married: 5.9% to $96,800 as single, then
+//   6.57%, 7.07%, 8.01% to $211,550, ... Method III from $1,077,550 of net
+//   wages (single): 10.45% of all of them. Supplemental 11.70%.
+// New York City (NYS-50-T-NYC 1/26) on wages less $5,000 ($5,500 married):
+//   2.05% to $8,000, 2.8% to $8,700, 3.25% to $15,000, 3.95% to $25,000, 4.15%
+//   to $60,000, 4.25% above; the walk reaches $60,000 at $2,235.85.
+//   Supplemental 4.25%.
 
 const federalData = { federalBrackets, federalDeductions, federalLimits };
 const california: StateData = {
@@ -63,6 +80,14 @@ const illinois: StateData = {
   deductions: illinoisDeductions,
   limits: illinoisLimits,
   withholding: illinoisWithholding,
+};
+
+const newYork: StateData = {
+  brackets: newYorkBrackets,
+  deductions: newYorkDeductions,
+  limits: newYorkLimits,
+  withholding: newYorkWithholding,
+  nycWithholding,
 };
 
 const estimate = (
@@ -185,7 +210,6 @@ describe("estimateWithholding", () => {
         2,
       );
     });
-
   });
 
   describe("Colorado", () => {
@@ -265,10 +289,107 @@ describe("estimateWithholding", () => {
     });
   });
 
+  describe("New York", () => {
+    const ny = (overrides: Partial<TaxInputs> = {}) =>
+      estimate({ selectedState: "newyork", ...overrides }, newYork);
+
+    it("withholds on regular wages by the Method II annual schedule and 11.70% on bonuses and stock", () => {
+      // Regular $300,000 - $100,000 - $24,500 = $175,500; less $7,400 =
+      // $168,100 net wages: 9,670.705 + 6.4% x (168,100 - 157,650) = 6.4% x
+      // 10,450 = 668.8 -> 10,339.505. Bonus: 11.7% x 100,000 = 11,700.
+      const result = ny({
+        federalIncome: 300000,
+        supplementalWages: 100000,
+        contributions401k: 24500,
+      });
+
+      expect(result.stateRegular).toBeCloseTo(10339.505, 2);
+      expect(result.stateSupplemental).toBeCloseTo(11700, 2);
+      expect(result.state).toBeCloseTo(22039.505, 2);
+    });
+
+    it("adds the city's Method II and 4.25% for a city resident", () => {
+      // City: $175,500 less $5,000 = $170,500 net wages: 2,235.85 + 4.25% x
+      // (170,500 - 60,000) = 4.25% x 110,500 = 4,696.25 -> 6,932.10; bonus
+      // 4.25% x 100,000 = 4,250. With the state: 10,339.505 + 6,932.10 =
+      // 17,271.605 regular, 11,700 + 4,250 = 15,950 on the bonus.
+      const result = ny({
+        federalIncome: 300000,
+        supplementalWages: 100000,
+        contributions401k: 24500,
+        isNYCResident: true,
+      });
+
+      expect(result.stateRegular).toBeCloseTo(17271.605, 2);
+      expect(result.stateSupplemental).toBeCloseTo(15950, 2);
+    });
+
+    it("uses the married deduction and schedule for a joint return", () => {
+      // $100,000 less $7,950 = $92,050: 331.5 + 140.8 + 113.3 + 3,604.5 +
+      // 5.9% x (92,050 - 80,650) = 5.9% x 11,400 = 672.6 -> 4,862.7
+      expect(
+        ny({ federalIncome: 100000, filingStatus: "marriedFilingJointly" })
+          .state,
+      ).toBeCloseTo(4862.7, 2);
+    });
+
+    it("switches to Method III's flat share of all net wages at the threshold", () => {
+      // Net wages $1,077,549: 19,086.705 + 7.35% x (1,077,549 - 265,400) =
+      // 7.35% x 812,149 = 59,692.9515 -> 78,779.6565
+      expect(ny({ federalIncome: 1084949 }).stateRegular).toBeCloseTo(
+        78779.6565,
+        2,
+      );
+      // Net wages $1,077,550: 10.45% of all of it = 112,603.975
+      expect(ny({ federalIncome: 1084950 }).stateRegular).toBeCloseTo(
+        112603.975,
+        2,
+      );
+    });
+
+    it("reproduces the booklets' cumulative column within their rounding", () => {
+      // Column 5 of each annual schedule, as printed, is the tax at the top of
+      // the row above it, accumulated from whole-dollar rounded steps, so it
+      // can sit a few dollars off the exact walk
+      const printed = (
+        table: typeof newYorkWithholding,
+        status: "single" | "marriedFilingJointly",
+        column5: number[],
+      ) => {
+        table.brackets[status].slice(1).forEach((row, i) => {
+          const walk = estimateWithholding(
+            createDefaultInputs({
+              selectedState: "newyork",
+              filingStatus: status,
+              federalIncome: row.min + table.deduction[status],
+            }),
+            federalData,
+            { ...newYork, withholding: table, nycWithholding: undefined },
+          ).stateRegular;
+          expect(
+            Math.abs(walk - column5[i]),
+            `${status} ${row.min}`,
+          ).toBeLessThan(5);
+        });
+      };
+      printed(
+        newYorkWithholding,
+        "single",
+        [332, 472, 586, 4190, 5143, 5906, 9673, 13369, 19091],
+      );
+      printed(
+        newYorkWithholding,
+        "marriedFilingJointly",
+        [332, 472, 586, 4190, 5143, 5855, 9388, 13708, 20854, 27600, 79369],
+      );
+      printed(nycWithholding, "single", [164, 184, 388, 783, 2236]);
+    });
+  });
+
   describe("other states", () => {
     it("is not estimated for other states or before the state data has loaded", () => {
       expect(
-        estimate({ federalIncome: 300000, selectedState: "newyork" }).state,
+        estimate({ federalIncome: 300000, selectedState: "dc" }).state,
       ).toBeNull();
       const beforeLoad = estimateWithholding(
         createDefaultInputs({ federalIncome: 300000 }),

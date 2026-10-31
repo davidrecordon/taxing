@@ -237,6 +237,48 @@ export interface IllinoisWithholdingData {
   rate: number;
 }
 
+// NYS-50-T-NYS and NYS-50-T-NYC Method II exact calculation, annual payroll
+// period: what a New York employer withholds. Net wages are wages less a
+// deduction by marital status and $1,000 per exemption; the annual schedule's
+// out-of-order rates recapture the lower brackets the way the return does.
+// The state's Method III withholds a flat share of ALL net wages from its
+// threshold, a cliff. The city has no Method III.
+export interface NewYorkWithholdingData {
+  // Exemptions assumed for the estimate: none. IT-2104 allowances are for
+  // dependents, credits and deductions, not the employee, and with no
+  // certificate the employer uses zero.
+  assumedExemptions: {
+    marriedFilingJointly: number;
+    marriedFilingSeparately: number;
+    single: number;
+  };
+  // The annual tax rate schedule; married filing separately uses the single
+  // one, as the tax tables do
+  brackets: {
+    marriedFilingJointly: TaxBracket[];
+    marriedFilingSeparately: TaxBracket[];
+    single: TaxBracket[];
+  };
+  deduction: {
+    // Table B, annual
+    marriedFilingJointly: number;
+    marriedFilingSeparately: number;
+    single: number;
+  };
+  exemption: number; // Table C, per exemption per year
+  supplementalRate: number; // Flat rate on bonuses and stock
+  // Method III: at or above the threshold of annual net wages, the tier's rate
+  // applies to all of them
+  topRates?: {
+    threshold: {
+      marriedFilingJointly: number;
+      marriedFilingSeparately: number;
+      single: number;
+    };
+    tiers: TaxBracket[];
+  };
+}
+
 // Washington-specific limits
 export interface WashingtonLimitsData {
   baseRate: number;

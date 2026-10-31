@@ -582,7 +582,7 @@ California employers do not withhold from the tax tables. The Method B schedules
 | Low-income exemption, single / married 2+      | $18,368 / $36,736    | $18,368 / $36,736    | Yes   |
 | Allowance credit, annual                       | $163.90              | $163.90              | Yes   |
 
-**Notes:** The estimate assumes no DE 4 for a single filer (EDD withholds as single with zero allowances) and, for a joint return, the married schedule with the two-or-more-allowances deduction and two allowances of credit. The married column for zero or one allowance uses the single deduction and is not modelled. The input is bonuses and stock, so the 6.6% rate for other supplemental pay is not used. State withholding is estimated for California, Colorado and Illinois; for the other states the user enters the amount.
+**Notes:** The estimate assumes no DE 4 for a single filer (EDD withholds as single with zero allowances) and, for a joint return, the married schedule with the two-or-more-allowances deduction and two allowances of credit. The married column for zero or one allowance uses the single deduction and is not modelled. The input is bonuses and stock, so the 6.6% rate for other supplemental pay is not used. State withholding is estimated for California, Colorado, Illinois and New York; for DC the user enters the amount.
 
 ---
 
@@ -632,6 +632,35 @@ NY enacted 0.1% rate reductions for the bottom 5 brackets effective 2026:
 | Single/MFS    | $5,000,000          | $32,786        | $32,500             | Yes   |
 
 **Note:** These come from the 2026 estimated tax instructions and match the statute; re-check against the 2026 IT-201 instructions when published. The New York City school tax credit amounts for 2026 are not yet published, so 2026 reuses the 2025 values (WAITING).
+
+---
+
+### Employer Withholding (2025 and 2026)
+
+**Sources:** [NYS-50-T-NYS (1/26)](https://www.tax.ny.gov/pdf/publications/withholding/nys50_t_nys.pdf), New York State Withholding Tax Tables and Methods, effective January 1, 2026: Table A/B/C (page 14), the Method II annual tax rate schedules (pages 17 and 19), Method III (page 22), and page 3 ("Withhold at the New York State supplemental rate of 11.70% (0.1170)"). [NYS-50-T-NYC (1/26)](https://www.tax.ny.gov/pdf/publications/withholding/nys50_t_nyc.pdf), effective January 1 to December 31, 2026: Table A/B/C (page 24), the annual schedules (pages 25 and 26), and page 3 ("Withhold at the New York City supplemental rate of 4.25% (0.0425)"). For 2025, the [Tax Department bulletin of November 29, 2023](https://content.govdelivery.com/accounts/NYTAX/bulletins/3c1a1c6): "There are no changes to the New York State, New York City, and Yonkers withholding tax tables and methods for 2025. Employers should continue to use the following withholding tax tables and methods for 2025", naming NYS-50-T-NYS (1/23) and NYS-50-T-NYC (1/18), read from the Internet Archive's copies of the state's PDFs. [IT-2104-I (2026)](https://www.tax.ny.gov/forms/current-forms/it/it2104i.htm): "You may not claim a withholding allowance for yourself or, if married, your spouse"; with a 2020-or-later federal W-4 and no IT-2104, "your employer may use zero as your number of allowances". Verified 2026-10-31.
+
+| Item (2026 edition)                                  | Our Data                                 | Official                                 | Match |
+| ---------------------------------------------------- | ---------------------------------------- | ---------------------------------------- | ----- |
+| Deduction (Table B, annual), single / married        | $7,400 / $7,950                          | $7,400 / $7,950                          | Yes   |
+| Exemption (Table C, annual)                          | $1,000                                   | $1,000                                   | Yes   |
+| Single schedule edges                                | $8,500 … $265,400, $1,077,550            | $8,500 … $265,400, $1,077,550            | Yes   |
+| Single schedule rates                                | 3.90, 4.40, 5.15, 5.40, 5.90, 7.03, 7.53, 6.40, 11.44, 7.35% | same                  | Yes   |
+| Married schedule edges                               | $8,500 … $211,550, $323,200, $373,200, $1,077,550, $2,155,350 | same                 | Yes   |
+| Married schedule rates                               | 3.90, 4.40, 5.15, 5.40, 5.90, 6.57, 7.07, 8.01, 6.40, 13.49, 7.35, 7.65% | same     | Yes   |
+| Method III threshold, single / married               | $1,077,550 / $2,155,350                  | $1,077,550 / $2,155,350                  | Yes   |
+| Method III rates (to $5M, to $25M, above)            | 10.45%, 11.10%, 11.70%                   | 10.45%, 11.10%, 11.70%                   | Yes   |
+| State supplemental rate                              | 11.70%                                   | 11.70%                                   | Yes   |
+| City deduction, single / married                     | $5,000 / $5,500                          | $5,000 / $5,500                          | Yes   |
+| City schedule edges and rates                        | $8,000, $8,700, $15,000, $25,000, $60,000; 2.05, 2.80, 3.25, 3.95, 4.15, 4.25% | same | Yes |
+| City supplemental rate                               | 4.25%                                    | 4.25%                                    | Yes   |
+
+| Item (2025: NYS-50-T-NYS 1/23, NYS-50-T-NYC 1/18)    | Our Data                                 | Official                                 | Match |
+| ---------------------------------------------------- | ---------------------------------------- | ---------------------------------------- | ----- |
+| Single schedule rates (same edges)                   | 4.00, 4.50, 5.25, 5.50, 6.00, 7.14, 7.64, 6.50, 11.01, 7.35% | same                  | Yes   |
+| Married schedule rates (same edges)                  | 4.00, 4.50, 5.25, 5.50, 6.00, 6.67, 7.17, 8.11, 6.50, 12.84, 7.35, 7.65% | same     | Yes   |
+| Deductions, Method III, supplemental rates, city     | As 2026                                  | As 2026                                  | Yes   |
+
+**Notes:** The estimate assumes no exemptions for every status: the IT-2104 gives none for the employee or spouse, and an employee with no certificate is withheld on with zero. Married filing separately uses the single schedule and deduction, as the tax tables do; the "Married, but withhold at higher single rate" box, IT-2104 extra withholding, and Yonkers are not modelled. The city's schedule is the same for single and married; only the deduction differs. The booklets' column 5 accumulates whole-dollar-rounded steps, so the exact walk sits up to about $4 from the printed cumulative tax; a test pins every row within $5. Method III is a cliff: at $1,077,550 of single net wages the whole amount is withheld on at 10.45%, which the estimate reproduces because that is what payroll does.
 
 ---
 

@@ -233,6 +233,32 @@ New York-specific limits and thresholds.
 }
 ```
 
+#### `newyork-withholding.json`
+
+What a New York employer withholds (NYS-50-T-NYS Method II exact calculation, annual tax rate schedule), used only for the withholding estimate. Not the tax tables: the schedule's out-of-order rates recapture the lower brackets, and Method III withholds a flat share of all net wages from its threshold. The 2025 figures are the 1/23 edition, which the state kept in force for 2025.
+
+```typescript
+{
+  assumedExemptions: {              // None: IT-2104 allowances are for dependents and credits
+    marriedFilingJointly: number,
+    marriedFilingSeparately: number,
+    single: number
+  },
+  brackets: { marriedFilingJointly: TaxBracket[], marriedFilingSeparately: TaxBracket[], single: TaxBracket[] },
+  deduction: {                      // Table B, annual
+    marriedFilingJointly: number,
+    marriedFilingSeparately: number,
+    single: number
+  },
+  exemption: number,                // Table C, per exemption per year
+  supplementalRate: number,         // Flat rate on bonuses and stock
+  topRates: {                       // Method III: the tier's rate on all net wages from the threshold
+    threshold: { marriedFilingJointly: number, marriedFilingSeparately: number, single: number },
+    tiers: TaxBracket[]
+  }
+}
+```
+
 ### NYC (New York City)
 
 #### `nyc-brackets.json`
@@ -240,6 +266,10 @@ New York-specific limits and thresholds.
 NYC local income tax brackets for city residents.
 
 Same structure as `federal-brackets.json`. This is an additional tax on top of NY state tax.
+
+#### `nyc-withholding.json`
+
+What a New York City employer withholds from a city resident (NYS-50-T-NYC Method II, annual tax rate schedule), added to the state's estimate when the resident box is ticked. Same structure as `newyork-withholding.json` without `topRates`; the 2025 figures are the 1/18 edition, kept in force for 2025.
 
 ### Washington
 

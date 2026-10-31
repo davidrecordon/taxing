@@ -7,6 +7,7 @@ export interface StateData {
   deductions?: unknown;
   limits: unknown;
   withholding?: unknown; // Employer withholding tables, where modelled
+  nycWithholding?: unknown; // New York City's, alongside the state's
 }
 
 // Cache for loaded state data (keyed by `${state}-${year}`)
@@ -77,17 +78,28 @@ const stateDataLoaders: Record<TaxState, (year: TaxYear) => Promise<StateData>> 
     };
   },
   newyork: async (year) => {
-    const [brackets, nycBrackets, deductions, limits] = await Promise.all([
+    const [
+      brackets,
+      nycBrackets,
+      deductions,
+      limits,
+      withholding,
+      nycWithholding,
+    ] = await Promise.all([
       import("@/data/newyork-brackets.json"),
       import("@/data/nyc-brackets.json"),
       import("@/data/newyork-deductions.json"),
       import("@/data/newyork-limits.json"),
+      import("@/data/newyork-withholding.json"),
+      import("@/data/nyc-withholding.json"),
     ]);
     return {
       brackets: brackets.default[year],
       nycBrackets: nycBrackets.default[year],
       deductions: deductions.default[year],
       limits: limits.default[year],
+      withholding: withholding.default[year],
+      nycWithholding: nycWithholding.default[year],
     };
   },
   washington: async (year) => {

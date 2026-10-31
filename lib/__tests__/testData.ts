@@ -16,6 +16,7 @@ import {
   FloridaLimitsData,
   WashingtonLimitsData,
   NewYorkLimitsData,
+  NewYorkWithholdingData,
   IllinoisLimitsData,
   IllinoisDeductionsData,
   IllinoisWithholdingData,
@@ -47,7 +48,9 @@ import allWashingtonLimits from "../../data/washington-limits.json";
 import allNewYorkBrackets from "../../data/newyork-brackets.json";
 import allNewYorkDeductions from "../../data/newyork-deductions.json";
 import allNewYorkLimits from "../../data/newyork-limits.json";
+import allNewYorkWithholding from "../../data/newyork-withholding.json";
 import allNYCBrackets from "../../data/nyc-brackets.json";
+import allNYCWithholding from "../../data/nyc-withholding.json";
 import allIllinoisBrackets from "../../data/illinois-brackets.json";
 import allIllinoisDeductions from "../../data/illinois-deductions.json";
 import allIllinoisLimits from "../../data/illinois-limits.json";
@@ -97,7 +100,13 @@ export const newYorkDeductions = allNewYorkDeductions[
   TAX_YEAR
 ] as DeductionsData;
 export const newYorkLimits = allNewYorkLimits[TAX_YEAR] as NewYorkLimitsData;
+export const newYorkWithholding = allNewYorkWithholding[
+  TAX_YEAR
+] as NewYorkWithholdingData;
 export const nycBrackets = allNYCBrackets[TAX_YEAR] as TaxBracketsData;
+export const nycWithholding = allNYCWithholding[
+  TAX_YEAR
+] as NewYorkWithholdingData;
 export const illinoisBrackets = allIllinoisBrackets[
   TAX_YEAR
 ] as TaxBracketsData;
