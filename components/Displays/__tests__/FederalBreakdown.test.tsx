@@ -290,6 +290,22 @@ describe("FederalBreakdown", () => {
     });
   });
 
+  describe("tax credits", () => {
+    it("shows the credits taken off the income tax", () => {
+      const result = createMockResult({ taxCredits: 2000 });
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
+
+      expect(screen.getByText("Less: Tax Credits")).toBeInTheDocument();
+      expect(screen.getByText("-$2,000")).toBeInTheDocument();
+    });
+
+    it("shows nothing about credits when there are none", () => {
+      render(<FederalBreakdown result={createMockResult()} taxYear={TAX_YEAR} />);
+
+      expect(screen.queryByText("Less: Tax Credits")).not.toBeInTheDocument();
+    });
+  });
+
   describe("bracket tables", () => {
     it("displays ordinary income bracket table", () => {
       const result = createMockResult();

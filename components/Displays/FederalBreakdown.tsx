@@ -377,6 +377,20 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
         </div>
       )}
 
+      {/* Tax credits */}
+      {result.taxCredits !== undefined && result.taxCredits > 0 && (
+        <div className="bg-secondary p-3 rounded-[var(--radius-md)] mb-4">
+          <div className="flex justify-between text-positive">
+            <span>Less: Tax Credits</span>
+            <span className="font-mono">-{formatCurrency(result.taxCredits)}</span>
+          </div>
+          <p className="text-xs text-text-muted">
+            Taken off income tax only, not self-employment tax, NIIT or
+            Additional Medicare.
+          </p>
+        </div>
+      )}
+
       {/* Final Summary */}
       <TaxSummarySection
         totalTax={result.totalTax}

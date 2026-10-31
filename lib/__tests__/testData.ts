@@ -142,6 +142,7 @@ export function createDefaultInputs(
     stateTaxWithheld: 0,
     federalEstimatedPaid: 0,
     stateEstimatedPaid: 0,
+    federalTaxCredits: 0,
     filingStatus: "single",
     selectedState: "california",
     propertyTaxesPaid: 0,

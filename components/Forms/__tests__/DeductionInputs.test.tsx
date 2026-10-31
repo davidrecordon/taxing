@@ -209,6 +209,24 @@ describe("DeductionInputs", () => {
     });
   });
 
+  describe("federal tax credits", () => {
+    it("is always offered, with the credits it is for", () => {
+      renderDeductions();
+
+      expect(screen.getByText("Federal Tax Credits")).toBeInTheDocument();
+      expect(screen.getByText(/foreign taxes paid/)).toBeInTheDocument();
+    });
+
+    it("updates federalTaxCredits", async () => {
+      const onUpdate = vi.fn();
+      renderDeductions({}, undefined, onUpdate);
+
+      await userEvent.type(screen.getByLabelText("Federal Tax Credits"), "2500");
+
+      expect(onUpdate).toHaveBeenLastCalledWith("federalTaxCredits", 2500);
+    });
+  });
+
   it("records the answer when the older loan checkbox is ticked", async () => {
     const onUpdate = vi.fn();
     renderDeductions(

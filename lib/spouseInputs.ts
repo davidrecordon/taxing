@@ -57,6 +57,8 @@ export function buildSpouseInputs(
     treasuryInterest: inputs.treasuryInterest * dividends,
     ordinaryDividends: inputs.ordinaryDividends * dividends,
     qualifiedDividends: inputs.qualifiedDividends * dividends,
+    // Credits follow the investments: the common one is foreign tax on them
+    federalTaxCredits: inputs.federalTaxCredits * dividends,
     contributions401k: inputs.contributions401k * contributions401k,
     preTaxMedical: inputs.preTaxMedical * preTaxMedical,
     mortgageInterestPaid: inputs.mortgageInterestPaid * deductions,

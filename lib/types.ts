@@ -515,6 +515,9 @@ export interface TaxInputs {
   stateTaxWithheld: number;
   federalEstimatedPaid: number;
   stateEstimatedPaid: number;
+  // Nonrefundable federal credits expected (foreign tax, child tax and so
+  // on), applied against income tax only
+  federalTaxCredits: number;
 
   // Filing status and state selection
   filingStatus: FilingStatus;
@@ -683,6 +686,7 @@ export interface TaxCalculationResult {
   niitBreakdown?: NIITBreakdown;
   qbiDeduction?: QbiDeduction;
   selfEmploymentTaxBreakdown?: SelfEmploymentTaxBreakdown;
+  taxCredits?: number; // Federal only: credits taken against income tax
   totalTax: number;
 
   // Payments already made

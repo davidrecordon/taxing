@@ -37,6 +37,7 @@ const joint: TaxInputs = createDefaultInputs({
   stateTaxWithheld: 28000,
   federalEstimatedPaid: 10000,
   stateEstimatedPaid: 5000,
+  federalTaxCredits: 2400,
   priorYearFederalTax: 110000,
   priorYearStateTax: 36000,
   priorYearStateBalancePaid: 3000,
@@ -115,7 +116,7 @@ describe("buildSpouseInputs", () => {
       (field) => typeof joint[field] === "number" && field !== "spouseWages",
     );
 
-    expect(amountFields).toHaveLength(25);
+    expect(amountFields).toHaveLength(26);
     expect(spouse1.spouseWages).toBe(0);
     expect(spouse2.spouseWages).toBe(0);
     for (const field of amountFields) {
@@ -182,8 +183,9 @@ describe("buildSpouseInputs", () => {
       ]);
     });
 
-    it("interest and dividends: both, with their Treasury and qualified portions", () => {
+    it("interest and dividends: both, with their Treasury and qualified portions, and the credits", () => {
       expect(fieldsMovedBy("dividends")).toEqual([
+        "federalTaxCredits",
         "interestIncome",
         "ordinaryDividends",
         "qualifiedDividends",

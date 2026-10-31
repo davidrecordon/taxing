@@ -103,7 +103,7 @@ export default function DeductionInputs({
   return (
     <div className="theme-card p-4 space-y-4">
       <h2 className="text-lg font-semibold text-text-primary border-b border-border pb-2 font-display">
-        Deductions
+        Deductions & Credits
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -196,6 +196,14 @@ export default function DeductionInputs({
           </button>
         )}
       </div>
+
+      <h3 className="text-md font-medium text-text-primary pt-2">Credits</h3>
+      <CurrencyInput
+        label="Federal Tax Credits"
+        value={inputs.federalTaxCredits}
+        onChange={(v) => onUpdate("federalTaxCredits", v)}
+        hint="Credits you expect to claim, such as for foreign taxes paid or for children. Taken off Federal income tax only."
+      />
 
       {calculateCharitableScenario && (
         <CharitableWhatIfModal

@@ -367,15 +367,19 @@ export function calculateFederalTax(
         }
       : undefined;
 
-  // Step 8: Sum up the taxes settled on the return: income tax, then
-  // self-employment tax, NIIT and Additional Medicare (Schedule 2). Social
-  // Security and base Medicare on wages are not part of the return.
+  // Step 8: Sum up the taxes settled on the return. Nonrefundable credits
+  // come off the income tax first and cannot take it below zero (Form 1040
+  // line 22); self-employment tax, NIIT and Additional Medicare are added
+  // after them (Schedule 2). Social Security and base Medicare on wages are
+  // not part of the return.
   const incomeTax = ordinaryTax.total + ltcgTax.total;
+  const taxCredits = Math.min(incomeTax, Math.max(0, inputs.federalTaxCredits));
   const seTax =
     (selfEmploymentTaxBreakdown?.totalSETax ?? 0) +
     (selfEmploymentTaxBreakdown?.additionalMedicareTax ?? 0);
   const additionalMedicareOnWages = ficaBreakdown?.additionalMedicareTax ?? 0;
-  const totalTax = incomeTax + seTax + niitTax + additionalMedicareOnWages;
+  const totalTax =
+    incomeTax - taxCredits + seTax + niitTax + additionalMedicareOnWages;
 
   // Step 9: Calculate remaining owed using shared utility. The Additional
   // Medicare that employers withheld counts with the income tax withheld
@@ -428,6 +432,7 @@ export function calculateFederalTax(
     niitBreakdown,
     qbiDeduction,
     selfEmploymentTaxBreakdown,
+    ...(taxCredits > 0 && { taxCredits }),
     totalTax,
     withheld: inputs.federalTaxWithheld,
     ...(additionalMedicareWithheld > 0 && { additionalMedicareWithheld }),

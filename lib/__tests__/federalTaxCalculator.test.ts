@@ -886,6 +886,44 @@ describe("calculateFederalTax", () => {
     });
   });
 
+  describe("tax credits", () => {
+    it("come off the income tax", () => {
+      // $100,000 of wages, single: $13,170 of tax (see the ordinary income
+      // schedule tests), less $2,000 = $11,170
+      const result = calculate({
+        federalIncome: 100000,
+        federalTaxCredits: 2000,
+        filingStatus: "single",
+      });
+
+      expect(result.taxCredits).toBe(2000);
+      expect(result.totalTax).toBeCloseTo(11170, 2);
+      // The safe harbor is on the tax after credits: 90% x $11,170
+      expect(result.safeHarbor!.currentYear90Percent).toBeCloseTo(10053, 2);
+    });
+
+    it("cannot take the income tax below zero, and do not reduce the other taxes", () => {
+      // $120,000 of self-employment income, single: $28,461.78 in total, of
+      // which $16,955.46 is self-employment tax (see the worked example).
+      // Income tax is the rest, $11,506.32; a $50,000 credit removes only
+      // that and the self-employment tax remains.
+      const result = calculate({
+        selfEmploymentIncome: 120000,
+        federalTaxCredits: 50000,
+        filingStatus: "single",
+      });
+
+      expect(result.taxCredits).toBeCloseTo(11506.32, 2);
+      expect(result.totalTax).toBeCloseTo(16955.46, 2);
+    });
+
+    it("are left out of the result when there are none", () => {
+      expect(
+        calculate({ federalIncome: 100000, filingStatus: "single" }).taxCredits,
+      ).toBeUndefined();
+    });
+  });
+
   describe("self-employment tax", () => {
     it("charges 12.4% Social Security and 2.9% Medicare on 92.35% of $40,000 of business income", () => {
       // Net earnings: $40,000 x 92.35%   = $36,940

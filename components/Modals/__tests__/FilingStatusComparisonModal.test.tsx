@@ -24,6 +24,7 @@ describe("FilingStatusComparisonModal", () => {
     stateTaxWithheld: 10000,
     federalEstimatedPaid: 0,
     stateEstimatedPaid: 0,
+    federalTaxCredits: 0,
     filingStatus: "marriedFilingJointly",
     selectedState: "california",
     propertyTaxesPaid: 15000,
