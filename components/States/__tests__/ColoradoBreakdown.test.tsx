@@ -1,7 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { screen } from "@testing-library/react";
+import { TAX_YEAR } from "@/lib/config";
+import { render, screen } from "@testing-library/react";
 import ColoradoBreakdown from "../ColoradoBreakdown";
-import { renderStateBreakdown, rowText } from "./calculateResults";
+import {
+  calculateResults,
+  renderStateBreakdown,
+  rowText,
+} from "./calculateResults";
 
 describe("ColoradoBreakdown", () => {
   it("shows federal taxable income with no adjustments for a typical filer", () => {
@@ -41,5 +46,17 @@ describe("ColoradoBreakdown", () => {
     );
     // $120,000 - $32,200 standard deduction - $2,500
     expect(rowText("Colorado Taxable Income")).toContain("$85,300");
+  });
+  it("says when the withheld amount was estimated from wages", () => {
+    const { state } = calculateResults("colorado", {
+      federalIncome: 100000,
+      stateTaxWithheld: 3000,
+    });
+
+    render(
+      <ColoradoBreakdown result={{ ...state, withheldEstimated: true }} taxYear={TAX_YEAR} />,
+    );
+
+    expect(screen.getByText("Less: Withheld (estimated)")).toBeInTheDocument();
   });
 });

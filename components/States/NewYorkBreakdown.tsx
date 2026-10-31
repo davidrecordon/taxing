@@ -220,6 +220,7 @@ export default memo(function NewYorkBreakdown({ result, taxYear }: Props) {
       <TaxSummarySection
         totalTax={result.totalTax}
         withheld={result.withheld}
+        withheldEstimated={result.withheldEstimated}
         estimatedPaid={result.estimatedPaid}
         remainingOwed={result.remainingOwed}
         refundDue={result.refundDue}

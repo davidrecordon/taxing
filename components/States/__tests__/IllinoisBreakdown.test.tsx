@@ -1,7 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { screen } from "@testing-library/react";
+import { TAX_YEAR } from "@/lib/config";
+import { render, screen } from "@testing-library/react";
 import IllinoisBreakdown from "../IllinoisBreakdown";
-import { renderStateBreakdown, rowText } from "./calculateResults";
+import {
+  calculateResults,
+  renderStateBreakdown,
+  rowText,
+} from "./calculateResults";
 
 describe("IllinoisBreakdown", () => {
   it("shows the personal exemption and taxable income", () => {
@@ -42,5 +47,17 @@ describe("IllinoisBreakdown", () => {
       screen.queryByText(/Less: Property Tax Credit/),
     ).not.toBeInTheDocument();
     expect(rowText("Illinois Taxable Income")).toContain("$300,000");
+  });
+  it("says when the withheld amount was estimated from wages", () => {
+    const { state } = calculateResults("illinois", {
+      federalIncome: 100000,
+      stateTaxWithheld: 3000,
+    });
+
+    render(
+      <IllinoisBreakdown result={{ ...state, withheldEstimated: true }} taxYear={TAX_YEAR} />,
+    );
+
+    expect(screen.getByText("Less: Withheld (estimated)")).toBeInTheDocument();
   });
 });

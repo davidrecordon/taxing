@@ -1,7 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { screen } from "@testing-library/react";
+import { TAX_YEAR } from "@/lib/config";
+import { render, screen } from "@testing-library/react";
 import NewYorkBreakdown from "../NewYorkBreakdown";
-import { renderStateBreakdown, rowText } from "./calculateResults";
+import {
+  calculateResults,
+  renderStateBreakdown,
+  rowText,
+} from "./calculateResults";
 
 describe("NewYorkBreakdown", () => {
   it("shows AGI before the deduction and taxable income after it", () => {
@@ -68,5 +73,17 @@ describe("NewYorkBreakdown", () => {
     expect(
       screen.queryByText("NYC Local Tax by Bracket"),
     ).not.toBeInTheDocument();
+  });
+  it("says when the withheld amount was estimated from wages", () => {
+    const { state } = calculateResults("newyork", {
+      federalIncome: 100000,
+      stateTaxWithheld: 3000,
+    });
+
+    render(
+      <NewYorkBreakdown result={{ ...state, withheldEstimated: true }} taxYear={TAX_YEAR} />,
+    );
+
+    expect(screen.getByText("Less: Withheld (estimated)")).toBeInTheDocument();
   });
 });
