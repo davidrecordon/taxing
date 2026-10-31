@@ -280,6 +280,78 @@ describe("MCP route", () => {
       ]);
     });
 
+    it("counts Additional Medicare as tax and credits what the one employer withheld", async () => {
+      // Single, $250,000 of wages: $450 owed and $450 withheld
+      const data = await callTool("estimate_tax", {
+        filingStatus: "single",
+        selectedState: "washington",
+        federalIncome: 250000,
+        federalTaxWithheld: 51304,
+      });
+
+      const federal = data.result.structuredContent.federal;
+      expect(federal.additionalMedicareTaxOnWages).toBe(450);
+      expect(federal.additionalMedicareWithheld).toBe(450);
+      expect(federal.payrollTax.additionalMedicareWithheld).toBe(450);
+      expect(federal.totalTax).toBe(51754);
+      expect(federal.totalPaid).toBe(51754);
+      expect(data.result.structuredContent.notes).toEqual([]);
+    });
+
+    it("splits the wages between two earners when the spouse's wages are given", async () => {
+      // Joint, $600,000 of wages of which the spouse earned $300,000: $3,150
+      // owed, $1,800 withheld; Social Security capped once per earner
+      const data = await callTool("estimate_tax", {
+        filingStatus: "marriedFilingJointly",
+        selectedState: "washington",
+        federalIncome: 600000,
+        spouseWages: 300000,
+      });
+
+      const result = data.result.structuredContent;
+      expect(result.federal.additionalMedicareTaxOnWages).toBe(3150);
+      expect(result.federal.additionalMedicareWithheld).toBe(1800);
+      expect(result.federal.payrollTax.socialSecurity).toBe(22878);
+      expect(result.notes).toContainEqual(
+        expect.stringContaining("employers withhold $1,800 toward the $3,150"),
+      );
+      expect(
+        result.assumptions.map((a: { field: string }) => a.field),
+      ).not.toContain("spouseWages");
+    });
+
+    it("assumes one earner on a joint return without the spouse's wages", async () => {
+      const data = await callTool("estimate_tax", {
+        ...EXAMPLE,
+        filingStatus: "marriedFilingJointly",
+      });
+
+      expect(data.result.structuredContent.assumptions).toContainEqual({
+        field: "spouseWages",
+        value: 0,
+        source: "default",
+        reason: expect.stringContaining("one earner"),
+      });
+    });
+
+    it("takes credits off the income tax and notes when they exceed it", async () => {
+      // $120,000 of self-employment income: $11,506.32 of income tax and
+      // $16,955.46 of self-employment tax, which the credit cannot touch
+      const data = await callTool("estimate_tax", {
+        filingStatus: "single",
+        selectedState: "washington",
+        selfEmploymentIncome: 120000,
+        federalTaxCredits: 50000,
+      });
+
+      const result = data.result.structuredContent;
+      expect(result.federal.taxCredits).toBe(11506.32);
+      expect(result.federal.totalTax).toBe(16955.46);
+      expect(result.notes).toContainEqual(
+        expect.stringContaining("tax credits limited to the $11,506 of income tax"),
+      );
+    });
+
     it("reports the data status for the year", async () => {
       const data = await callTool("estimate_tax", { ...EXAMPLE, taxYear: "2025" });
 
@@ -337,6 +409,12 @@ describe("MCP route", () => {
       expect(result.federal.required).toBeGreaterThan(0);
       expect(result.federal.method).toMatch(/^(currentYear|priorYear)$/);
       expect(result.federal.paid.withheld.source).toBe("estimate");
+      // $400,000 of wages, single: $1,800 withheld above $200,000
+      expect(result.federal.paid.additionalMedicareWithheld).toEqual({
+        amount: 1800,
+        source: "estimate",
+      });
+      expect(result.state.paid.additionalMedicareWithheld).toBeUndefined();
       expect(result.state.paid.withheld).toEqual({
         amount: 28000,
         source: "user_input",
@@ -424,6 +502,32 @@ describe("MCP route", () => {
       );
     });
 
+    it("starts the wages split from the spouse's wages when no split is sent", async () => {
+      const data = await callTool("compare_filing_status", {
+        filingStatus: "marriedFilingJointly",
+        selectedState: "florida",
+        federalIncome: 300000,
+        spouseWages: 100000,
+        federalTaxWithheld: 60000,
+      });
+
+      // Spouse 1 on $200,000 of wages and $40,000 withheld, spouse 2 on
+      // $100,000 and $20,000: the two separate returns differ
+      const { spouse1, spouse2 } = data.result.structuredContent.separate;
+      expect(spouse1.federalTax).toBeGreaterThan(spouse2.federalTax);
+      const even = await callTool("compare_filing_status", {
+        filingStatus: "marriedFilingJointly",
+        selectedState: "florida",
+        federalIncome: 300000,
+        spouseWages: 100000,
+        federalTaxWithheld: 60000,
+        split: { wages: 50 },
+      });
+      expect(even.result.structuredContent.separate.spouse1.federalTax).toBe(
+        even.result.structuredContent.separate.spouse2.federalTax,
+      );
+    });
+
     it("refuses a filing status other than married filing jointly", async () => {
       const data = await callTool("compare_filing_status", {
         ...COUPLE,
@@ -449,6 +553,33 @@ describe("MCP route", () => {
       expect(result.federalSupplemental).toBe(11000); // 22% of $50,000
       expect(result.state).toBeGreaterThan(0);
       expect(result.method.state).toContain("Method B");
+    });
+
+    it("estimates each earner separately when the spouse's wages are given", async () => {
+      // The joint example from the withholding tests: $30,500 for two
+      // earners against $43,108 for one
+      const twoEarners = await callTool("estimate_withholding", {
+        filingStatus: "marriedFilingJointly",
+        selectedState: "florida",
+        federalIncome: 300000,
+        spouseWages: 100000,
+        supplementalWages: 30000,
+        contributions401k: 24000,
+      });
+      const oneEarner = await callTool("estimate_withholding", {
+        filingStatus: "marriedFilingJointly",
+        selectedState: "florida",
+        federalIncome: 300000,
+        supplementalWages: 30000,
+        contributions401k: 24000,
+      });
+
+      expect(twoEarners.result.isError).toBeUndefined();
+      expect(twoEarners.result.structuredContent.federal).toBe(30500);
+      expect(oneEarner.result.structuredContent.federal).toBe(43108);
+      expect(twoEarners.result.structuredContent.method.federal).toMatch(
+        /^Each earner's wages separately/,
+      );
     });
 
     it("returns null for a state whose withholding is not modelled", async () => {

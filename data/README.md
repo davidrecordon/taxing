@@ -106,11 +106,12 @@ Social Security and Medicare tax rates and thresholds.
   },
   medicareAdditional: {
     rate: number,
-    thresholds: {
+    thresholds: {            // Wages above which the surtax is owed
       single: number,
       marriedFilingJointly: number,
       marriedFilingSeparately: number
-    }
+    },
+    withholdingThreshold: number  // Wages of one employee above which an employer withholds it
   }
 }
 ```

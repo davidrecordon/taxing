@@ -74,6 +74,7 @@ async function main() {
   const profile = {
     federalIncome: 350000,
     supplementalWages: 80000,
+    spouseWages: 120000, // Ignored except on the joint returns
     selfEmploymentIncome: 40000,
     shortTermCapitalGains: -5000,
     longTermCapitalGains: 120000,
@@ -89,6 +90,7 @@ async function main() {
     charitableContributions: 25000,
     federalEstimatedPaid: 10000,
     stateEstimatedPaid: 3000,
+    federalTaxCredits: 1500,
     priorYearFederalTax: 80000,
     priorYearStateTax: 25000,
     priorYearStateBalancePaid: 2000,

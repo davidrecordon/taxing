@@ -23,7 +23,9 @@ A web-based tax estimation tool for calculating Federal and state income taxes. 
   - The 2026 limit on itemized deductions for top-bracket filers
   - State itemized deductions for California, New York and DC: property tax without the federal cap, state mortgage limits, and each state's income-based reduction
   - 401(k) pre-tax contributions
-- **FICA Taxes**: Social Security and Medicare on wages, shown for information and kept out of the tax owed since employers withhold them
+- **Payroll Taxes**: Social Security and Medicare on wages, shown for information and kept out of the tax owed since employers withhold them. Additional Medicare is counted in the tax owed, with what employers withhold toward it credited as a payment, since the two differ for a couple with two earners
+- **Two Earners**: on a joint return, the spouse's wages divide the couple's wages between two earners for payroll tax and the withholding estimate
+- **Federal Tax Credits**: one amount for the credits expected (foreign tax, children), taken off income tax
 - **Safe Harbor**: Estimated payment calculations to avoid underpayment penalties
 - **Capital Losses**: Schedule D netting of current year losses and prior year carryovers, including the $3,000 deduction against other income
 

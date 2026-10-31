@@ -63,7 +63,9 @@ TaxInputs → lib/calculate.ts → federalTaxCalculator → stateCalculator → 
 
 Deductions for every jurisdiction live in `lib/deductionCalculator.ts`. Capital gains, losses and carryovers are netted once, in `netCapitalGains()` in `lib/taxUtils.ts`, for both federal and state.
 
-Payroll tax on wages (Social Security and Medicare) is calculated and shown for information only. It is not part of the tax total, the amount owed, or the safe harbor test, because employers withhold it.
+Payroll tax on wages is calculated per earner (`lib/earners.ts`: on a joint return the spouse's wages, when entered, divide the wages into two earners for payroll tax and the withholding estimate; income tax is always on the combined figure). Social Security and base Medicare are shown for information only and are not part of the tax total, the amount owed, or the safe harbor test, because employers withhold exactly those amounts. Additional Medicare tax on wages is different: it is owed above a threshold set by filing status but withheld above $200,000 of each earner's wages, so it is part of the tax total and what employers withhold toward it is credited as a payment (`additionalMedicareWithheld`), the way Form 8959 and Form 2210 treat it.
+
+Federal tax credits are one input, taken off income tax only (not self-employment tax, NIIT or Additional Medicare) and not below zero.
 
 ### MCP Interface
 

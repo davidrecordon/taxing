@@ -14,6 +14,7 @@ lib/
   formatters.ts          # Currency/percentage formatting utilities
   taxUtils.ts            # Shared calculation utilities
   charitableScenario.ts  # Tax saved by charitable giving, for the what-if tool
+  earners.ts             # Splits a joint return's wages into two earners for payroll tax and withholding
   spouseInputs.ts        # Divides a joint return for the filing status comparison
   withholdingEstimate.ts # Withholding worked out from wages, used where none is entered
   deductionCalculator.ts # Federal and state deduction logic (standard vs itemized)
@@ -54,8 +55,10 @@ TaxInputs (user form data)
     │     ├─ Determine deduction (standard vs itemized), with the 2026
     │     │  charitable floor and overall itemized limitation
     │     ├─ Calculate tax by bracket
-    │     ├─ Add LTCG / qualified dividend tax, SE tax, and NIIT
-    │     ├─ Calculate FICA on wages (informational, not in the total)
+    │     ├─ Take credits off the income tax (not below zero)
+    │     ├─ Add LTCG / qualified dividend tax, SE tax, NIIT and Additional
+    │     │  Medicare on wages (earners.ts: per earner for the withheld part)
+    │     ├─ Calculate Social Security and Medicare (informational, not in the total)
     │     └─ Calculate safe harbor
     │
     └─► {state}TaxCalculator.ts (DC and Colorado also take the federal result)

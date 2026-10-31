@@ -7,6 +7,7 @@ import {
 } from "../calculate";
 import { compareWithNoGiving } from "../charitableScenario";
 import { SUPPORTED_YEARS, TAX_YEAR, TaxYear } from "../config";
+import { defaultWagesSplit } from "../spouseInputs";
 import { STATE_LABELS, TaxInputs, TaxState } from "../types";
 import { loadFederalData, loadStateDataSync } from "../taxData";
 import { estimateWithholding } from "../withholdingEstimate";
@@ -204,7 +205,7 @@ export function createTaxServer(): McpServer {
                 currentYearPercent(inputs, stateData.limits),
                 false,
               ),
-        notes: describeNotes(federal, state, stateLabel),
+        notes: describeNotes(federal, state, stateLabel, inputs),
         assumptions: describeAssumptions(args, estimate),
         data: describeData(inputs.taxYear),
       };
@@ -230,6 +231,12 @@ export function createTaxServer(): McpServer {
           amount: result.withheld,
           source: result.withheldEstimated ? "estimate" : "user_input",
         },
+        ...(result.additionalMedicareWithheld !== undefined && {
+          additionalMedicareWithheld: {
+            amount: result.additionalMedicareWithheld,
+            source: "estimate",
+          },
+        }),
         estimatedPayments: { amount: result.estimatedPaid, source: "user_input" },
         total: result.totalPaid,
       });
@@ -331,7 +338,12 @@ export function createTaxServer(): McpServer {
           calculateJointScenario(resolvedInputs, federalData, stateData),
         );
         const separate = roundResult(
-          calculateMFSScenario(resolvedInputs, split, federalData, stateData),
+          calculateMFSScenario(
+            resolvedInputs,
+            { ...split, wages: split.wages ?? defaultWagesSplit(inputs) },
+            federalData,
+            stateData,
+          ),
         );
         return {
           taxYear: inputs.taxYear,

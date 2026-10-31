@@ -72,8 +72,11 @@ export const taxInputsSchema = z
     supplementalWages: amount(
       "The part of wages paid as bonuses or stock; affects only the withholding estimate, not the tax",
     ),
+    spouseWages: amount(
+      "Married filing jointly only: the part of federalIncome earned by the spouse (their W-2 wages). Divides the wages between two earners for the withholding estimate, the Social Security wage base and the Additional Medicare tax withheld (0.9% of each earner's wages over $200,000, Form 8959 Part V); income tax is on the combined wages either way. Omit for one earner, which is reported as an assumption",
+    ),
     selfEmploymentIncome: amount(
-      "Net profit from self-employment (Schedule C); self-employment tax, the QBI deduction and Additional Medicare tax follow from it",
+      "Net profit from self-employment (Schedule C); self-employment tax, the QBI deduction and Additional Medicare tax follow from it. On a joint return the business is treated as the first earner's (not the spouse's), for the Social Security wage base",
     ),
     shortTermCapitalGains: signedAmount(
       "Net short-term capital gain, or a loss as a negative number",
@@ -110,13 +113,16 @@ export const taxInputsSchema = z
     charitableContributions: amount("Charitable giving for the year"),
 
     federalTaxWithheld: amount(
-      "Federal income tax withheld for the full year. Omit, or send 0, to have it estimated from wages the way an employer would withhold; the response says when that happened",
+      "Federal income tax withheld for the full year (W-2 box 2), not Social Security or Medicare. Do not add Additional Medicare tax withheld (Form 8959 line 24): it is estimated from each earner's wages and credited separately. Omit, or send 0, to have the income tax withholding estimated from wages the way an employer would withhold; the response says when that happened",
     ),
     stateTaxWithheld: amount(
       "State income tax withheld for the full year. Omit, or send 0, to have it estimated where the state's withholding is modelled",
     ),
     federalEstimatedPaid: amount("Federal estimated tax payments made"),
     stateEstimatedPaid: amount("State estimated tax payments made"),
+    federalTaxCredits: amount(
+      "Nonrefundable federal credits expected for the year, such as the foreign tax credit (Form 1116, or 1099-DIV box 7 when under the $300/$600 limit) and the child tax credit, as one total. Taken off income tax only (Form 1040 line 22), not self-employment tax, NIIT or Additional Medicare; the response notes when the credits exceeded the income tax",
+    ),
 
     priorYearFederalTax: amount(
       "Last year's total federal tax (Form 1040 line 24). 0 means unknown, which disables the prior-year safe harbor",
@@ -177,7 +183,14 @@ const percent = (description: string) =>
 
 export const splitSchema = z
   .object({
-    wages: percent("Spouse 1's share of wages and self-employment income"),
+    wages: z
+      .number()
+      .min(0)
+      .max(100)
+      .optional()
+      .describe(
+        "Spouse 1's share of wages and self-employment income. When omitted it follows spouseWages, or is 50",
+      ),
     stcg: percent("Spouse 1's share of short-term capital gains"),
     ltcg: percent("Spouse 1's share of long-term capital gains"),
     dividends: percent("Spouse 1's share of interest and dividends"),
@@ -189,7 +202,6 @@ export const splitSchema = z
   })
   .strict()
   .default({
-    wages: 50,
     stcg: 50,
     ltcg: 50,
     dividends: 50,
@@ -198,8 +210,8 @@ export const splitSchema = z
     deductions: 50,
   })
   .describe(
-    "How the joint figures divide between the spouses on separate returns, as spouse 1's percentage of each; spouse 2 gets the remainder. 50/50 unless given",
-  ) satisfies z.ZodType<SplitConfig, unknown>;
+    "How the joint figures divide between the spouses on separate returns, as spouse 1's percentage of each; spouse 2 gets the remainder. 50/50 unless given, except wages, which follow spouseWages when that was sent",
+  ) satisfies z.ZodType<Omit<SplitConfig, "wages"> & { wages?: number }, unknown>;
 
 export const compareFilingStatusInputSchema = taxInputsSchema.extend({
   split: splitSchema,
@@ -214,6 +226,7 @@ export const estimateWithholdingInputSchema = taxInputsSchema
     federalIncome: true,
     stateIncome: true,
     supplementalWages: true,
+    spouseWages: true,
     contributions401k: true,
     preTaxMedical: true,
   })

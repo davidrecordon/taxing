@@ -56,6 +56,10 @@ This document verifies that all tax data in the JSON files matches official gove
 | Additional Medicare                    | 0.9%     | 0.9%     | Yes   |
 | Additional Medicare Threshold (Single) | $200,000 | $200,000 | Yes   |
 | Additional Medicare Threshold (MFJ)    | $250,000 | $250,000 | Yes   |
+| Additional Medicare Threshold (MFS)    | $125,000 | $125,000 | Yes   |
+| Additional Medicare withholding threshold (per employee, any filing status) | $200,000 | $200,000 | Yes   |
+
+**Additional Medicare withholding:** [IRS Form 8959 instructions](https://www.irs.gov/instructions/i8959) and [Topic 560](https://www.irs.gov/taxtopics/tc560): an employer withholds the 0.9% on wages it pays one employee over $200,000 in the year, regardless of filing status, and the withheld amount is credited on the return (Form 8959 Part V, Form 1040 line 25c). The thresholds are statutory and not indexed. The calculator estimates the withheld amount per earner from wages; the spouse's wages on a joint return split the couple's wages into two earners (verified 2026-10-31).
 
 ### Other Federal Limits
 
