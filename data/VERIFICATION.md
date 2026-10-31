@@ -182,7 +182,7 @@ This document verifies that all tax data in the JSON files matches official gove
 | Supplemental rate above the threshold       | 37%        | 37%        | Yes   |
 | Threshold (supplemental wages in the year)  | $1,000,000 | $1,000,000 | Yes   |
 
-**Notes:** Used only where the user has not entered the amount withheld; an entered amount always wins, and the result says when the figure was estimated. Regular wages (wages less bonuses and stock, 401(k) and pre-tax medical) are withheld on by the annual bracket schedule after the standard deduction, which is the shape of the percentage method for a W-4 with no adjustments. Known approximations: a W-4 with extra withholding, a second job or dependents gives a different amount; the pre-tax deductions are taken wholly from regular wages; the Additional Medicare tax withheld is not part of the estimate because payroll tax is kept out of the amount owed. The same rates apply for 2025 (Pub. 15 (2025), section 7).
+**Notes:** Used only where the user has not entered the amount withheld; an entered amount always wins, and the result says when the figure was estimated. Regular wages (wages less bonuses and stock, 401(k) and pre-tax medical) are withheld on by the ordinary brackets after the standard deduction. That is the percentage method itself for a 2020-or-later W-4 with the Step 2 box unchecked and nothing in Steps 3 and 4: Worksheet 1A line 1g subtracts $8,600 ($12,900 joint) and the 2026 annual STANDARD schedule's 0% band runs to $7,500 ($19,300 joint), which add up to the $16,100 ($32,200) standard deduction, and every later edge is the bracket edge shifted by the same amount (single 10% to $19,900, 12% to $57,900; joint 10% to $44,100, 12% to $120,100). Not modelled: a checked Step 2 box, entries in Steps 3 or 4, a pre-2020 W-4; the pre-tax deductions are taken wholly from regular wages; the Additional Medicare tax withheld is not part of the estimate because payroll tax is kept out of the amount owed. Pub. 15 allows the flat 22% only where income tax was withheld from regular wages this year or last; otherwise the aggregate method applies, which the estimate does not model. The same rates apply for 2025 (Pub. 15 (2025), section 7).
 
 ---
 
@@ -559,15 +559,30 @@ Above $107,650 of NY AGI the benefit of the lower brackets is phased out over th
 
 **Note:** The FTB indexes these thresholds each year and publishes them in the Schedule CA (540) instructions, expected in late December 2026. The other itemized deduction rules are statutory and unchanged from 2025.
 
-### Supplemental Wage Withholding (2025 and 2026)
+### Employer Withholding (2025 and 2026)
 
-**Source:** [EDD DE 231PS](https://edd.ca.gov/siteassets/files/pdf_pub_ctr/de231ps.pdf), Personal Income Tax Withholding - Supplemental Wage Payments ("For stock options and bonuses that were paid on or after November 1, 2009, the flat rate is 10.23 percent. For other types of supplemental wage payments made on or after November 1, 2009, the flat rate is 6.6 percent."). Verified 2026-10-30.
+**Sources:** [EDD 2026 Withholding Schedules, Method B](https://edd.ca.gov/siteassets/files/pdf_pub_ctr/26methb.pdf) and the [2025 edition](https://edd.ca.gov/siteassets/files/pdf_pub_ctr/25methb.pdf) (Tables 1, 3, 4 and the annual rate tables 5 and 6); [EDD DE 231PS](https://edd.ca.gov/siteassets/files/pdf_pub_ctr/de231ps.pdf) for the supplemental rates ("For stock options and bonuses that were paid on or after November 1, 2009, the flat rate is 10.23 percent. For other types of supplemental wage payments made on or after November 1, 2009, the flat rate is 6.6 percent."). Verified 2026-10-30.
 
-| Item                              | Our Data | Official | Match |
-| --------------------------------- | -------- | -------- | ----- |
-| Flat rate on bonuses and stock    | 10.23%   | 10.23%   | Yes   |
+California employers do not withhold from the tax tables. The Method B schedules carry rates 10% above the tax rates (1.1%, 2.2%, 4.4%, 6.6%, 8.8%, 10.23%, 11.33%, 12.43%, 13.53%, 14.63%; a 2009 budget measure, ABX4 17, that was never reversed) on the prior tax year's bracket edges and standard deduction. `california-withholding.json` holds them by edition.
 
-**Notes:** The input is bonuses and stock, so the 6.6% rate for other supplemental pay (commissions, overtime, back pay) is not used. Regular wages are withheld on by the tax rate schedule after the standard deduction, an approximation of the EDD withholding schedules (Method B), which have their own low-income exemption and allowance tables. California is the only state with a withholding estimate; for the other states the user enters the amount.
+| Item (2026 edition)                            | Our Data             | Official             | Match |
+| ---------------------------------------------- | -------------------- | -------------------- | ----- |
+| Single bracket edges                           | $11,079 … $1,000,000 | 2025 tax-year edges  | Yes   |
+| Married bracket edges                          | $22,158 … $1,485,906 | 2025 tax-year edges  | Yes   |
+| Standard deduction (Table 3), single / married | $5,706 / $11,412     | $5,706 / $11,412     | Yes   |
+| Low-income exemption (Table 1), single / married 2+ | $18,896 / $37,791 | $18,896 / $37,791  | Yes   |
+| Allowance credit (Table 4), annual             | $168.30              | $168.30              | Yes   |
+| Flat rate on bonuses and stock                 | 10.23%               | 10.23%               | Yes   |
+
+| Item (2025 edition)                            | Our Data             | Official             | Match |
+| ---------------------------------------------- | -------------------- | -------------------- | ----- |
+| Single bracket edges                           | $10,756 … $1,000,000 | 2024 tax-year edges  | Yes   |
+| Married bracket edges                          | $21,512 … $1,442,628 | 2024 tax-year edges  | Yes   |
+| Standard deduction, single / married           | $5,540 / $11,080     | $5,540 / $11,080     | Yes   |
+| Low-income exemption, single / married 2+      | $18,368 / $36,736    | $18,368 / $36,736    | Yes   |
+| Allowance credit, annual                       | $163.90              | $163.90              | Yes   |
+
+**Notes:** The estimate assumes no DE 4 for a single filer (EDD withholds as single with zero allowances) and, for a joint return, the married schedule with the two-or-more-allowances deduction and two allowances of credit. The married column for zero or one allowance uses the single deduction and is not modelled. The input is bonuses and stock, so the 6.6% rate for other supplemental pay is not used. State withholding is estimated for California, Colorado and Illinois; for the other states the user enters the amount.
 
 ---
 
@@ -658,6 +673,21 @@ NY enacted 0.1% rate reductions for the bottom 5 brackets effective 2026:
 
 ---
 
+### Employer Withholding (2025 and 2026)
+
+**Sources:** [Booklet IL-700-T (R-12/25)](https://tax.illinois.gov/content/dam/soi/en/web/tax/forms/withholding/documents/currentyear/il-700-t.pdf), effective January 1, 2026, and the [R-12/24 edition](https://tax.illinois.gov/content/dam/soi/en/web/tax/forms/withholding/documents/2025/il-700-t.pdf) for 2025: "Generally, the rate for withholding Illinois Income Tax is 4.95 percent. For wages and other compensation, subtract any exemptions from the wages paid and multiply the result by 4.95 percent." Automated payroll method, Step 2: "Multiply the number of allowances your employee claimed on Form IL-W-4, Line 1, by $2,925" ($2,850 in the R-12/24 edition). [Form IL-W-4 (R-07/23)](https://tax.illinois.gov/content/dam/soi/en/web/tax/forms/withholding/documents/currentyear/il-w-4.pdf), allowance worksheet Step 1. Verified 2026-10-31.
+
+| Item                         | Our Data | Official | Match |
+| ---------------------------- | -------- | -------- | ----- |
+| Rate                         | 4.95%    | 4.95%    | Yes   |
+| Line 1 allowance, 2026       | $2,925   | $2,925   | Yes   |
+| Line 1 allowance, 2025       | $2,850   | $2,850   | Yes   |
+| Separate rate on bonuses     | None     | None     | Yes   |
+
+**Notes:** The estimate assumes the IL-W-4 worksheet's basic allowances are claimed: one for the employee ("No one else can claim me as a dependent") and one more for a spouse on a joint return ("I can claim my spouse as a dependent"), with none on Line 2. The Line 1 allowance equals the personal exemption, so the estimate tracks the tax. An employee with no IL-W-4 on file is withheld on "without allowing any exemptions", which is not modelled. Bonuses and stock are wages here, withheld on at 4.95% once the allowance is used.
+
+---
+
 ## Colorado (2026)
 
 ### Tax Rate
@@ -680,6 +710,21 @@ NY enacted 0.1% rate reductions for the bottom 5 brackets effective 2026:
 | Deduction addback limit (MFJ)        | $2,000   | $2,000   | Yes   |
 
 **Note:** Proposition MM (November 2025) lowered the limits from $12,000/$16,000 for 2026 and later. The other rules are unchanged from 2025. The 2026 federal changes (charitable floor, 2/37 limit) flow in through federal taxable income. Because the charitable subtraction is only for filers who take the federal standard deduction, and a federal filer may take either type, the calculator works out both and uses the one with the lower combined federal and Colorado tax.
+
+---
+
+### Employer Withholding (2025 and 2026)
+
+**Sources:** [DR 1098 (10/21/25)](https://tax.colorado.gov/sites/default/files/documents/DR_1098_Colorado_Withholding_Worksheet_for_Employees.pdf), 2026 Colorado Withholding Worksheet for Employers, and the [DR 1098 (11/12/24)](https://tax.colorado.gov/sites/default/files/documents/DR_1098_2024.pdf) edition for 2025. Line 2a: "If the employee did not submit a DR 0004, or if DR 0004 Line 2 is blank, enter the appropriate amount based on the employee's expected filing status from IRS form W-4 Step 1(c): $11,000 if married filing jointly or qualifying surviving spouse; or $5,500 otherwise" ($10,000 and $5,000 in the 11/12/24 edition); line 2c: "Multiply line 2b by 4.40% (0.044)"; rule 4: "If an employee does not submit a W-4 or DR 0004, complete Step 2a as if they submitted a W-4 with an expected filing status of 'single.'" [Colorado Wage Withholding Tax Guide (January 2026)](https://tax.colorado.gov/sites/tax/files/documents/Wage_Withholding_Tax_Guide_Jan_2026.pdf): bonuses are wages subject to the same withholding. Verified 2026-10-31.
+
+| Item                                      | Our Data          | Official          | Match |
+| ----------------------------------------- | ----------------- | ----------------- | ----- |
+| Rate                                      | 4.40%             | 4.40%             | Yes   |
+| Standard allowance 2026, single / joint   | $5,500 / $11,000  | $5,500 / $11,000  | Yes   |
+| Standard allowance 2025, single / joint   | $5,000 / $10,000  | $5,000 / $10,000  | Yes   |
+| Separate rate on bonuses                  | None              | None              | Yes   |
+
+**Notes:** The estimate assumes no DR 0004, so the allowance follows the W-4 filing status (the "otherwise" amount for single and married filing separately). A DR 0004 Line 2 amount or Line 3 extra withholding is not modelled. Bonuses and stock are wages here, withheld on at 4.40% once the allowance is used.
 
 ---
 

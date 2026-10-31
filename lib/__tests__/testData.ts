@@ -9,13 +9,16 @@ import {
   SharedLimitsData,
   FederalLimitsData,
   CaliforniaLimitsData,
+  CaliforniaWithholdingData,
   ColoradoLimitsData,
+  ColoradoWithholdingData,
   DCLimitsData,
   FloridaLimitsData,
   WashingtonLimitsData,
   NewYorkLimitsData,
   IllinoisLimitsData,
   IllinoisDeductionsData,
+  IllinoisWithholdingData,
   FicaData,
   TaxInputs,
 } from "../types";
@@ -29,6 +32,7 @@ import allCaliforniaBrackets from "../../data/california-brackets.json";
 import allCaliforniaDeductions from "../../data/california-deductions.json";
 import allColoradoBrackets from "../../data/colorado-brackets.json";
 import allColoradoLimits from "../../data/colorado-limits.json";
+import allColoradoWithholding from "../../data/colorado-withholding.json";
 import allDCBrackets from "../../data/dc-brackets.json";
 import allDCDeductions from "../../data/dc-deductions.json";
 import allDCLimits from "../../data/dc-limits.json";
@@ -38,6 +42,7 @@ import allWashingtonBrackets from "../../data/washington-brackets.json";
 import allSharedLimits from "../../data/limits.json";
 import allFederalLimits from "../../data/federal-limits.json";
 import allCaliforniaLimits from "../../data/california-limits.json";
+import allCaliforniaWithholding from "../../data/california-withholding.json";
 import allWashingtonLimits from "../../data/washington-limits.json";
 import allNewYorkBrackets from "../../data/newyork-brackets.json";
 import allNewYorkDeductions from "../../data/newyork-deductions.json";
@@ -46,6 +51,7 @@ import allNYCBrackets from "../../data/nyc-brackets.json";
 import allIllinoisBrackets from "../../data/illinois-brackets.json";
 import allIllinoisDeductions from "../../data/illinois-deductions.json";
 import allIllinoisLimits from "../../data/illinois-limits.json";
+import allIllinoisWithholding from "../../data/illinois-withholding.json";
 import allFicaData from "../../data/fica.json";
 
 // Export typed data for the current tax year
@@ -64,6 +70,9 @@ export const coloradoBrackets = allColoradoBrackets[
   TAX_YEAR
 ] as TaxBracketsData;
 export const coloradoLimits = allColoradoLimits[TAX_YEAR] as ColoradoLimitsData;
+export const coloradoWithholding = allColoradoWithholding[
+  TAX_YEAR
+] as ColoradoWithholdingData;
 export const dcBrackets = allDCBrackets[TAX_YEAR] as TaxBracketsData;
 export const dcDeductions = allDCDeductions[TAX_YEAR] as DeductionsData;
 export const dcLimits = allDCLimits[TAX_YEAR] as DCLimitsData;
@@ -77,6 +86,9 @@ export const federalLimits = allFederalLimits[TAX_YEAR] as FederalLimitsData;
 export const californiaLimits = allCaliforniaLimits[
   TAX_YEAR
 ] as CaliforniaLimitsData;
+export const californiaWithholding = allCaliforniaWithholding[
+  TAX_YEAR
+] as CaliforniaWithholdingData;
 export const washingtonLimits = allWashingtonLimits[
   TAX_YEAR
 ] as WashingtonLimitsData;
@@ -93,6 +105,9 @@ export const illinoisDeductions = allIllinoisDeductions[
   TAX_YEAR
 ] as IllinoisDeductionsData;
 export const illinoisLimits = allIllinoisLimits[TAX_YEAR] as IllinoisLimitsData;
+export const illinoisWithholding = allIllinoisWithholding[
+  TAX_YEAR
+] as IllinoisWithholdingData;
 export const ficaData = allFicaData[TAX_YEAR] as FicaData;
 
 /**

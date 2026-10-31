@@ -6,6 +6,7 @@ export interface StateData {
   brackets: unknown;
   deductions?: unknown;
   limits: unknown;
+  withholding?: unknown; // Employer withholding tables, where modelled
 }
 
 // Cache for loaded state data (keyed by `${state}-${year}`)
@@ -14,25 +15,29 @@ const stateDataCache = new Map<string, StateData>();
 // Dynamic import functions for each state's data
 const stateDataLoaders: Record<TaxState, (year: TaxYear) => Promise<StateData>> = {
   california: async (year) => {
-    const [brackets, deductions, limits] = await Promise.all([
+    const [brackets, deductions, limits, withholding] = await Promise.all([
       import("@/data/california-brackets.json"),
       import("@/data/california-deductions.json"),
       import("@/data/california-limits.json"),
+      import("@/data/california-withholding.json"),
     ]);
     return {
       brackets: brackets.default[year],
       deductions: deductions.default[year],
       limits: limits.default[year],
+      withholding: withholding.default[year],
     };
   },
   colorado: async (year) => {
-    const [brackets, limits] = await Promise.all([
+    const [brackets, limits, withholding] = await Promise.all([
       import("@/data/colorado-brackets.json"),
       import("@/data/colorado-limits.json"),
+      import("@/data/colorado-withholding.json"),
     ]);
     return {
       brackets: brackets.default[year],
       limits: limits.default[year],
+      withholding: withholding.default[year],
     };
   },
   dc: async (year) => {
@@ -58,15 +63,17 @@ const stateDataLoaders: Record<TaxState, (year: TaxYear) => Promise<StateData>> 
     };
   },
   illinois: async (year) => {
-    const [brackets, deductions, limits] = await Promise.all([
+    const [brackets, deductions, limits, withholding] = await Promise.all([
       import("@/data/illinois-brackets.json"),
       import("@/data/illinois-deductions.json"),
       import("@/data/illinois-limits.json"),
+      import("@/data/illinois-withholding.json"),
     ]);
     return {
       brackets: brackets.default[year],
       deductions: deductions.default[year],
       limits: limits.default[year],
+      withholding: withholding.default[year],
     };
   },
   newyork: async (year) => {

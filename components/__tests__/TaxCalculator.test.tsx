@@ -32,7 +32,13 @@ describe("TaxCalculator", () => {
     await screen.findByLabelText("Colorado Tax Withheld");
 
     await enter("Wages & Other Income", "150000");
+    // Colorado withholding is estimated until entered: ($150,000 - $5,500)
+    // x 4.4% = $6,358
+    expect(
+      await screen.findByText(/Estimated at \$6,358 from your wages/),
+    ).toBeInTheDocument();
     await enter("Colorado Tax Withheld", "6000");
+    expect(screen.queryByText(/Estimated at \$6,358/)).not.toBeInTheDocument();
     await enter("Property Taxes Paid", "6000");
     expect(
       screen.queryByRole("button", { name: "What if..." }),
@@ -91,14 +97,14 @@ describe("TaxCalculator", () => {
     // Single, California, 2026. Federal: regular wages $200,000 less $16,100
     // is $183,900, taxed 10% x $12,400 + 12% x $38,000 + 22% x $55,300 +
     // 24% x $78,200 = $36,734; the $100,000 of bonuses at 22% adds $22,000,
-    // so $58,734. California: $200,000 less $5,900 is $194,100, taxed
-    // $3,310.88 + 9.3% x $118,903 = $14,368.86; bonuses at 10.23% add
-    // $10,230, so $24,599.
+    // so $58,734. California (EDD Method B): $200,000 less $5,706 is
+    // $194,294, withheld $3,522.17 + 10.23% x $121,570 = $15,958.78; bonuses
+    // at 10.23% add $10,230, so $26,189.
     expect(
       await screen.findByText(/Estimated at \$58,734 from your wages/),
     ).toBeInTheDocument();
     expect(
-      await screen.findByText(/Estimated at \$24,599 from your wages/),
+      await screen.findByText(/Estimated at \$26,189 from your wages/),
     ).toBeInTheDocument();
     expect(screen.getAllByText("Less: Withheld (estimated)")).toHaveLength(2);
 

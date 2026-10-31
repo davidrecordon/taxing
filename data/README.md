@@ -148,8 +148,34 @@ California-specific limits and thresholds.
   safeHarbor: {
     currentYearPercent: number,
     priorYearPercent: number
+  }
+}
+```
+
+#### `california-withholding.json`
+
+What a California employer withholds (EDD Method B exact calculation, annual payroll period), used only for the withholding estimate. Not the tax tables: the rates are 10% above the tax rates and the bracket edges and standard deduction are the prior tax year's. Published by EDD each December for the coming year.
+
+```typescript
+{
+  allowanceCredit: number,          // Table 4, per allowance per year
+  assumedAllowances: {              // None without a DE 4 (EDD's default); two for a joint return
+    marriedFilingJointly: number,
+    marriedFilingSeparately: number,
+    single: number
   },
-  supplementalWithholdingRate: number  // Flat withholding on bonuses and stock
+  brackets: { marriedFilingJointly: TaxBracket[], marriedFilingSeparately: TaxBracket[], single: TaxBracket[] },
+  lowIncomeExemption: {             // Table 1: no withholding at or below this much in annual wages
+    marriedFilingJointly: number,
+    marriedFilingSeparately: number,
+    single: number
+  },
+  standardDeduction: {              // Table 3
+    marriedFilingJointly: number,
+    marriedFilingSeparately: number,
+    single: number
+  },
+  supplementalRate: number          // Flat rate on bonuses and stock
 }
 ```
 
@@ -265,6 +291,21 @@ Colorado-specific limits and thresholds.
 }
 ```
 
+#### `colorado-withholding.json`
+
+What a Colorado employer withholds (DR 1098 worksheet, annualized), used only for the withholding estimate. One rate on wages less a standard allowance; no separate rule for bonuses and stock. Revised each autumn for the coming year.
+
+```typescript
+{
+  rate: number,
+  standardAllowance: {              // Line 2a without a DR 0004, by the W-4 filing status
+    marriedFilingJointly: number,
+    marriedFilingSeparately: number,
+    single: number
+  }
+}
+```
+
 ### Florida
 
 #### `florida-brackets.json`
@@ -317,6 +358,22 @@ Illinois-specific limits and thresholds.
     currentYearPercent: number,
     priorYearPercent: number
   }
+}
+```
+
+#### `illinois-withholding.json`
+
+What an Illinois employer withholds (Booklet IL-700-T automated payroll method), used only for the withholding estimate. One rate on wages less the allowances claimed on the IL-W-4; no separate rule for bonuses and stock. Revised each December for the coming year.
+
+```typescript
+{
+  allowance: number,                // Per IL-W-4 Line 1 allowance per year
+  assumedAllowances: {              // One for the employee, one more for a spouse on a joint return
+    marriedFilingJointly: number,
+    marriedFilingSeparately: number,
+    single: number
+  },
+  rate: number
 }
 ```
 

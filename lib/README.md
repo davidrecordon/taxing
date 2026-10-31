@@ -95,7 +95,7 @@ Percentage-of-AGI limits on charitable contributions are not modelled.
 
 What an employer would withhold over the year, from the wage inputs, standing in for a withholding amount the user has not entered:
 
-- `estimateWithholding()` - Regular wages by the annual schedule after pre-tax deductions and the standard deduction; bonuses and stock at the flat supplemental rates (federal 22%, 37% above $1,000,000 in the year; California 10.23%). Only California's state withholding is estimated.
+- `estimateWithholding()` - Federal regular wages by the ordinary brackets after pre-tax deductions and the standard deduction (the percentage method for a W-4 with no adjustments); California regular wages by EDD's Method B tables (`data/california-withholding.json`); Colorado and Illinois wages at the flat rate less the employer worksheet's annual allowance (`data/colorado-withholding.json`, `data/illinois-withholding.json`); bonuses and stock at the flat supplemental rates (federal 22%, 37% above $1,000,000 in the year; California 10.23%; Colorado and Illinois have no separate rate). State withholding is estimated for California, Colorado and Illinois only.
 - `applyWithholdingEstimate()` - The inputs the calculators run on: an entered amount always wins, and the result says which amounts were estimated
 
 ### states/stateCalcUtils.ts

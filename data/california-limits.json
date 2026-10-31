@@ -25,8 +25,7 @@
         "default": 1000000,
         "marriedFilingSeparately": 500000
       }
-    },
-    "supplementalWithholdingRate": 0.1023
+    }
   },
   "2026": {
     "itemizedDeductionLimit": {
@@ -54,7 +53,6 @@
         "default": 1000000,
         "marriedFilingSeparately": 500000
       }
-    },
-    "supplementalWithholdingRate": 0.1023
+    }
   }
 }

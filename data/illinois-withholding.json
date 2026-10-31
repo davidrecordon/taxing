@@ -1,0 +1,20 @@
+{
+  "2025": {
+    "allowance": 2850,
+    "assumedAllowances": {
+      "marriedFilingJointly": 2,
+      "marriedFilingSeparately": 1,
+      "single": 1
+    },
+    "rate": 0.0495
+  },
+  "2026": {
+    "allowance": 2925,
+    "assumedAllowances": {
+      "marriedFilingJointly": 2,
+      "marriedFilingSeparately": 1,
+      "single": 1
+    },
+    "rate": 0.0495
+  }
+}

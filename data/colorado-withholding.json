@@ -1,0 +1,18 @@
+{
+  "2025": {
+    "rate": 0.044,
+    "standardAllowance": {
+      "marriedFilingJointly": 10000,
+      "marriedFilingSeparately": 5000,
+      "single": 5000
+    }
+  },
+  "2026": {
+    "rate": 0.044,
+    "standardAllowance": {
+      "marriedFilingJointly": 11000,
+      "marriedFilingSeparately": 5500,
+      "single": 5500
+    }
+  }
+}

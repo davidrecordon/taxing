@@ -174,8 +174,67 @@ export interface CaliforniaLimitsData {
       marriedFilingSeparately: number;
     };
   };
-  // Flat withholding rate on bonuses and stock
-  supplementalWithholdingRate: number;
+}
+
+// EDD Method B exact calculation, annual payroll period: what a California
+// employer withholds. Not the tax tables: the rates are 10% above the tax
+// rates and the bracket edges and standard deduction are the prior year's.
+export interface CaliforniaWithholdingData {
+  allowanceCredit: number; // Table 4, per allowance per year
+  // Allowances assumed for the estimate: none without a DE 4 (EDD's default);
+  // two for a joint return, which is the married two-or-more column
+  assumedAllowances: {
+    marriedFilingJointly: number;
+    marriedFilingSeparately: number;
+    single: number;
+  };
+  brackets: {
+    marriedFilingJointly: TaxBracket[];
+    marriedFilingSeparately: TaxBracket[];
+    single: TaxBracket[];
+  };
+  // Table 1: no withholding at or below this much in annual wages
+  lowIncomeExemption: {
+    marriedFilingJointly: number;
+    marriedFilingSeparately: number;
+    single: number;
+  };
+  standardDeduction: {
+    // Table 3
+    marriedFilingJointly: number;
+    marriedFilingSeparately: number;
+    single: number;
+  };
+  supplementalRate: number; // Flat rate on bonuses and stock
+}
+
+// DR 1098 worksheet, annualized: what a Colorado employer withholds. One rate
+// on wages less a standard allowance by filing status, with no separate rule
+// for bonuses and stock.
+export interface ColoradoWithholdingData {
+  rate: number;
+  // Line 2a without a DR 0004: by the W-4 filing status, single when there is
+  // no W-4 either
+  standardAllowance: {
+    marriedFilingJointly: number;
+    marriedFilingSeparately: number;
+    single: number;
+  };
+}
+
+// Booklet IL-700-T automated payroll method: what an Illinois employer
+// withholds. One rate on wages less the allowances claimed on the IL-W-4, with
+// no separate rule for bonuses and stock.
+export interface IllinoisWithholdingData {
+  allowance: number; // Per IL-W-4 Line 1 allowance per year
+  // Allowances assumed for the estimate: the IL-W-4 worksheet's one for the
+  // employee and one more for a spouse on a joint return, none on Line 2
+  assumedAllowances: {
+    marriedFilingJointly: number;
+    marriedFilingSeparately: number;
+    single: number;
+  };
+  rate: number;
 }
 
 // Washington-specific limits

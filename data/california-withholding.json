@@ -1,0 +1,356 @@
+{
+  "2025": {
+    "allowanceCredit": 163.9,
+    "assumedAllowances": {
+      "marriedFilingJointly": 2,
+      "marriedFilingSeparately": 0,
+      "single": 0
+    },
+    "brackets": {
+      "marriedFilingJointly": [
+        {
+          "min": 0,
+          "max": 21512,
+          "rate": 0.011
+        },
+        {
+          "min": 21512,
+          "max": 50998,
+          "rate": 0.022
+        },
+        {
+          "min": 50998,
+          "max": 80490,
+          "rate": 0.044
+        },
+        {
+          "min": 80490,
+          "max": 111732,
+          "rate": 0.066
+        },
+        {
+          "min": 111732,
+          "max": 141212,
+          "rate": 0.088
+        },
+        {
+          "min": 141212,
+          "max": 721318,
+          "rate": 0.1023
+        },
+        {
+          "min": 721318,
+          "max": 865574,
+          "rate": 0.1133
+        },
+        {
+          "min": 865574,
+          "max": 1000000,
+          "rate": 0.1243
+        },
+        {
+          "min": 1000000,
+          "max": 1442628,
+          "rate": 0.1353
+        },
+        {
+          "min": 1442628,
+          "max": null,
+          "rate": 0.1463
+        }
+      ],
+      "marriedFilingSeparately": [
+        {
+          "min": 0,
+          "max": 10756,
+          "rate": 0.011
+        },
+        {
+          "min": 10756,
+          "max": 25499,
+          "rate": 0.022
+        },
+        {
+          "min": 25499,
+          "max": 40245,
+          "rate": 0.044
+        },
+        {
+          "min": 40245,
+          "max": 55866,
+          "rate": 0.066
+        },
+        {
+          "min": 55866,
+          "max": 70606,
+          "rate": 0.088
+        },
+        {
+          "min": 70606,
+          "max": 360659,
+          "rate": 0.1023
+        },
+        {
+          "min": 360659,
+          "max": 432787,
+          "rate": 0.1133
+        },
+        {
+          "min": 432787,
+          "max": 721314,
+          "rate": 0.1243
+        },
+        {
+          "min": 721314,
+          "max": 1000000,
+          "rate": 0.1353
+        },
+        {
+          "min": 1000000,
+          "max": null,
+          "rate": 0.1463
+        }
+      ],
+      "single": [
+        {
+          "min": 0,
+          "max": 10756,
+          "rate": 0.011
+        },
+        {
+          "min": 10756,
+          "max": 25499,
+          "rate": 0.022
+        },
+        {
+          "min": 25499,
+          "max": 40245,
+          "rate": 0.044
+        },
+        {
+          "min": 40245,
+          "max": 55866,
+          "rate": 0.066
+        },
+        {
+          "min": 55866,
+          "max": 70606,
+          "rate": 0.088
+        },
+        {
+          "min": 70606,
+          "max": 360659,
+          "rate": 0.1023
+        },
+        {
+          "min": 360659,
+          "max": 432787,
+          "rate": 0.1133
+        },
+        {
+          "min": 432787,
+          "max": 721314,
+          "rate": 0.1243
+        },
+        {
+          "min": 721314,
+          "max": 1000000,
+          "rate": 0.1353
+        },
+        {
+          "min": 1000000,
+          "max": null,
+          "rate": 0.1463
+        }
+      ]
+    },
+    "lowIncomeExemption": {
+      "marriedFilingJointly": 36736,
+      "marriedFilingSeparately": 18368,
+      "single": 18368
+    },
+    "standardDeduction": {
+      "marriedFilingJointly": 11080,
+      "marriedFilingSeparately": 5540,
+      "single": 5540
+    },
+    "supplementalRate": 0.1023
+  },
+  "2026": {
+    "allowanceCredit": 168.3,
+    "assumedAllowances": {
+      "marriedFilingJointly": 2,
+      "marriedFilingSeparately": 0,
+      "single": 0
+    },
+    "brackets": {
+      "marriedFilingJointly": [
+        {
+          "min": 0,
+          "max": 22158,
+          "rate": 0.011
+        },
+        {
+          "min": 22158,
+          "max": 52528,
+          "rate": 0.022
+        },
+        {
+          "min": 52528,
+          "max": 82904,
+          "rate": 0.044
+        },
+        {
+          "min": 82904,
+          "max": 115084,
+          "rate": 0.066
+        },
+        {
+          "min": 115084,
+          "max": 145448,
+          "rate": 0.088
+        },
+        {
+          "min": 145448,
+          "max": 742958,
+          "rate": 0.1023
+        },
+        {
+          "min": 742958,
+          "max": 891542,
+          "rate": 0.1133
+        },
+        {
+          "min": 891542,
+          "max": 1000000,
+          "rate": 0.1243
+        },
+        {
+          "min": 1000000,
+          "max": 1485906,
+          "rate": 0.1353
+        },
+        {
+          "min": 1485906,
+          "max": null,
+          "rate": 0.1463
+        }
+      ],
+      "marriedFilingSeparately": [
+        {
+          "min": 0,
+          "max": 11079,
+          "rate": 0.011
+        },
+        {
+          "min": 11079,
+          "max": 26264,
+          "rate": 0.022
+        },
+        {
+          "min": 26264,
+          "max": 41452,
+          "rate": 0.044
+        },
+        {
+          "min": 41452,
+          "max": 57542,
+          "rate": 0.066
+        },
+        {
+          "min": 57542,
+          "max": 72724,
+          "rate": 0.088
+        },
+        {
+          "min": 72724,
+          "max": 371479,
+          "rate": 0.1023
+        },
+        {
+          "min": 371479,
+          "max": 445771,
+          "rate": 0.1133
+        },
+        {
+          "min": 445771,
+          "max": 742953,
+          "rate": 0.1243
+        },
+        {
+          "min": 742953,
+          "max": 1000000,
+          "rate": 0.1353
+        },
+        {
+          "min": 1000000,
+          "max": null,
+          "rate": 0.1463
+        }
+      ],
+      "single": [
+        {
+          "min": 0,
+          "max": 11079,
+          "rate": 0.011
+        },
+        {
+          "min": 11079,
+          "max": 26264,
+          "rate": 0.022
+        },
+        {
+          "min": 26264,
+          "max": 41452,
+          "rate": 0.044
+        },
+        {
+          "min": 41452,
+          "max": 57542,
+          "rate": 0.066
+        },
+        {
+          "min": 57542,
+          "max": 72724,
+          "rate": 0.088
+        },
+        {
+          "min": 72724,
+          "max": 371479,
+          "rate": 0.1023
+        },
+        {
+          "min": 371479,
+          "max": 445771,
+          "rate": 0.1133
+        },
+        {
+          "min": 445771,
+          "max": 742953,
+          "rate": 0.1243
+        },
+        {
+          "min": 742953,
+          "max": 1000000,
+          "rate": 0.1353
+        },
+        {
+          "min": 1000000,
+          "max": null,
+          "rate": 0.1463
+        }
+      ]
+    },
+    "lowIncomeExemption": {
+      "marriedFilingJointly": 37791,
+      "marriedFilingSeparately": 18896,
+      "single": 18896
+    },
+    "standardDeduction": {
+      "marriedFilingJointly": 11412,
+      "marriedFilingSeparately": 5706,
+      "single": 5706
+    },
+    "supplementalRate": 0.1023
+  }
+}

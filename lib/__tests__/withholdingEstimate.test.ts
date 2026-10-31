@@ -10,10 +10,18 @@ import {
   californiaBrackets,
   californiaDeductions,
   californiaLimits,
+  californiaWithholding,
+  coloradoBrackets,
+  coloradoLimits,
+  coloradoWithholding,
   createDefaultInputs,
   federalBrackets,
   federalDeductions,
   federalLimits,
+  illinoisBrackets,
+  illinoisDeductions,
+  illinoisLimits,
+  illinoisWithholding,
 } from "./testData";
 
 // Figures used throughout (2026, the default tax year):
@@ -22,16 +30,39 @@ import {
 //   $105,700, 24% to $201,775; standard deduction $16,100 ($32,200 joint)
 // Federal supplemental withholding: 22% on the first $1,000,000 of bonuses and
 //   stock in the year, 37% above
-// California schedule, single: 1% to $11,456, 2% to $27,157, 4% to $42,861,
-//   6% to $59,498, 8% to $75,197, 9.3% to $384,109; tax at $75,197 is
-//   $3,310.88; standard deduction $5,900
+// California employer withholding (EDD Method B, 2026 edition), single:
+//   1.1% to $11,079, 2.2% to $26,264, 4.4% to $41,452, 6.6% to $57,542,
+//   8.8% to $72,724, 10.23% to $371,479; withholding at $72,724 is $3,522.17;
+//   standard deduction $5,706; no withholding at or below $18,896 of wages;
+//   $168.30 credit per allowance, none assumed for a single filer
+// California Method B, married: 1.1% to $22,158, 2.2% to $52,528, 4.4% to
+//   $82,904, 6.6% to $115,084; withholding at $82,904 is $2,248.42; standard
+//   deduction $11,412; two allowances assumed ($336.60 credit)
 // California supplemental withholding: 10.23% on bonuses and stock
+// Colorado employer withholding (DR 1098, 2026): 4.40% of wages less $5,500
+//   ($11,000 joint); no separate rate on bonuses and stock
+// Illinois employer withholding (IL-700-T, 2026): 4.95% of wages less $2,925
+//   per allowance, one assumed ($5,850 for two on a joint return); no separate
+//   rate on bonuses and stock
 
 const federalData = { federalBrackets, federalDeductions, federalLimits };
 const california: StateData = {
   brackets: californiaBrackets,
   deductions: californiaDeductions,
   limits: californiaLimits,
+  withholding: californiaWithholding,
+};
+
+const colorado: StateData = {
+  brackets: coloradoBrackets,
+  limits: coloradoLimits,
+  withholding: coloradoWithholding,
+};
+const illinois: StateData = {
+  brackets: illinoisBrackets,
+  deductions: illinoisDeductions,
+  limits: illinoisLimits,
+  withholding: illinoisWithholding,
 };
 
 const estimate = (
@@ -103,35 +134,138 @@ describe("estimateWithholding", () => {
   });
 
   describe("California", () => {
-    it("withholds on regular wages by the state schedule and 10.23% on bonuses and stock", () => {
-      // Regular $300,000 - $100,000 - $24,500 = $175,500; less $5,900 =
-      // $169,600: 3,310.88 + 9.3% x (169,600 - 75,197) = 9.3% x 94,403 =
-      // 8,779.479 -> 12,090.359. Bonus: 10.23% x 100,000 = 10,230.
+    it("withholds on regular wages by the Method B schedule and 10.23% on bonuses and stock", () => {
+      // Regular $300,000 - $100,000 - $24,500 = $175,500; less $5,706 =
+      // $169,794: 3,522.17 + 10.23% x (169,794 - 72,724) = 10.23% x 97,070 =
+      // 9,930.261 -> 13,452.431; no allowance credit. Bonus: 10.23% x
+      // 100,000 = 10,230.
       const result = estimate({
         federalIncome: 300000,
         supplementalWages: 100000,
         contributions401k: 24500,
       });
 
-      expect(result.stateRegular).toBeCloseTo(12090.359, 2);
+      expect(result.stateRegular).toBeCloseTo(13452.431, 2);
       expect(result.stateSupplemental).toBeCloseTo(10230, 2);
-      expect(result.state).toBeCloseTo(22320.359, 2);
+      expect(result.state).toBeCloseTo(23682.431, 2);
     });
 
     it("works from the state wages when they differ from federal", () => {
-      // State wages $250,000 - $100,000 bonus = $150,000; less $5,900 =
-      // $144,100: 3,310.88 + 9.3% x (144,100 - 75,197) = 9.3% x 68,903 =
-      // 6,407.979 -> 9,718.859
+      // State wages $250,000 - $100,000 bonus = $150,000; less $5,706 =
+      // $144,294: 3,522.17 + 10.23% x (144,294 - 72,724) = 10.23% x 71,570 =
+      // 7,321.611 -> 10,843.781
       const result = estimate({
         federalIncome: 300000,
         stateIncome: 250000,
         supplementalWages: 100000,
       });
 
-      expect(result.stateRegular).toBeCloseTo(9718.859, 2);
+      expect(result.stateRegular).toBeCloseTo(10843.781, 2);
       expect(result.stateSupplemental).toBeCloseTo(10230, 2);
     });
 
+    it("uses the married schedule, deduction and two allowances for a joint return", () => {
+      // $100,000 less $11,412 = $88,588: 2,248.42 + 6.6% x (88,588 - 82,904)
+      // = 6.6% x 5,684 = 375.144 -> 2,623.564; less two allowances at
+      // $168.30 = 336.60 -> 2,286.964
+      const result = estimate({
+        federalIncome: 100000,
+        filingStatus: "marriedFilingJointly",
+      });
+
+      expect(result.stateRegular).toBeCloseTo(2286.964, 2);
+    });
+
+    it("withholds nothing at or below the low-income line, and from the first dollar above it", () => {
+      expect(estimate({ federalIncome: 18896 }).stateRegular).toBe(0);
+      // $18,897 less $5,706 = $13,191: 121.87 + 2.2% x (13,191 - 11,079) =
+      // 2.2% x 2,112 = 46.464 -> 168.334
+      expect(estimate({ federalIncome: 18897 }).stateRegular).toBeCloseTo(
+        168.334,
+        2,
+      );
+    });
+
+  });
+
+  describe("Colorado", () => {
+    const colo = (overrides: Partial<TaxInputs> = {}) =>
+      estimate({ selectedState: "colorado", ...overrides }, colorado);
+
+    it("withholds the flat rate on wages less the standard allowance", () => {
+      // ($150,000 - $5,500) x 4.4% = 6,358
+      const result = colo({ federalIncome: 150000 });
+
+      expect(result.stateRegular).toBeCloseTo(6358, 2);
+      expect(result.stateSupplemental).toBe(0);
+      expect(result.state).toBeCloseTo(6358, 2);
+    });
+
+    it("withholds on bonuses and stock at the same rate, after the allowance", () => {
+      // Regular $130,000 - $5,500 = $124,500 x 4.4% = 5,478; bonus $20,000 x
+      // 4.4% = 880; the total is 4.4% of all wages less the allowance
+      const result = colo({ federalIncome: 150000, supplementalWages: 20000 });
+
+      expect(result.stateRegular).toBeCloseTo(5478, 2);
+      expect(result.stateSupplemental).toBeCloseTo(880, 2);
+      expect(result.state).toBeCloseTo(6358, 2);
+    });
+
+    it("uses the joint allowance for a joint return and the state wages when they differ", () => {
+      // ($150,000 - $11,000) x 4.4% = 6,116
+      expect(
+        colo({ federalIncome: 150000, filingStatus: "marriedFilingJointly" })
+          .state,
+      ).toBeCloseTo(6116, 2);
+      // ($120,000 - $5,500) x 4.4% = 5,038
+      expect(
+        colo({ federalIncome: 150000, stateIncome: 120000 }).state,
+      ).toBeCloseTo(5038, 2);
+    });
+
+    it("withholds nothing at or below the allowance", () => {
+      expect(colo({ federalIncome: 5500 }).state).toBe(0);
+    });
+  });
+
+  describe("Illinois", () => {
+    const ill = (overrides: Partial<TaxInputs> = {}) =>
+      estimate({ selectedState: "illinois", ...overrides }, illinois);
+
+    it("withholds the flat rate on wages less one allowance, bonuses and stock included", () => {
+      // Regular $300,000 - $100,000 - $24,500 = $175,500; less $2,925 =
+      // $172,575 x 4.95% = 8,542.4625; bonus $100,000 x 4.95% = 4,950 ->
+      // 13,492.4625
+      const result = ill({
+        federalIncome: 300000,
+        supplementalWages: 100000,
+        contributions401k: 24500,
+      });
+
+      expect(result.stateRegular).toBeCloseTo(8542.4625, 2);
+      expect(result.stateSupplemental).toBeCloseTo(4950, 2);
+      expect(result.state).toBeCloseTo(13492.4625, 2);
+    });
+
+    it("assumes two allowances for a joint return", () => {
+      // ($100,000 - $5,850) x 4.95% = 4,660.425
+      expect(
+        ill({ federalIncome: 100000, filingStatus: "marriedFilingJointly" })
+          .state,
+      ).toBeCloseTo(4660.425, 2);
+    });
+
+    it("takes the allowance off regular wages first, then bonuses and stock", () => {
+      // $1,000 of regular wages is under the $2,925 allowance, so the rest of
+      // it comes off the $9,000 bonus: ($10,000 - $2,925) x 4.95% = 350.2125
+      const result = ill({ federalIncome: 10000, supplementalWages: 9000 });
+
+      expect(result.stateRegular).toBe(0);
+      expect(result.stateSupplemental).toBeCloseTo(350.2125, 2);
+    });
+  });
+
+  describe("other states", () => {
     it("is not estimated for other states or before the state data has loaded", () => {
       expect(
         estimate({ federalIncome: 300000, selectedState: "newyork" }).state,
