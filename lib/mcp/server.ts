@@ -326,16 +326,12 @@ export function createTaxServer(): McpServer {
           federalData,
           stateData,
         );
-        const joint = calculateJointScenario(
-          resolvedInputs,
-          federalData,
-          stateData,
+        // Rounded first, so the difference is the difference of the figures shown
+        const joint = roundResult(
+          calculateJointScenario(resolvedInputs, federalData, stateData),
         );
-        const separate = calculateMFSScenario(
-          resolvedInputs,
-          split,
-          federalData,
-          stateData,
+        const separate = roundResult(
+          calculateMFSScenario(resolvedInputs, split, federalData, stateData),
         );
         return {
           taxYear: inputs.taxYear,

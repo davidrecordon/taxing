@@ -75,6 +75,8 @@ Payroll tax on wages (Social Security and Medicare) is calculated and shown for 
 
 **Schemas:** the Zod objects in `lib/mcp/schemas.ts` are the single source of truth. The SDK validates arguments against them and derives the `tools/list` JSON Schema from them, so the `.describe()` text is what an assistant reads. Unlike on-screen text, these descriptions may name forms and boxes, because the reader is a model mapping documents onto fields. Validation failures come back as tool results with `isError: true`.
 
+**Testing:** `app/api/mcp/__tests__/route.test.ts` drives the route with real protocol requests. `bun run mcp:exercise` goes further: it connects to a running server on port 3457 (`bun run dev -- -p 3457`) with the official MCP client and calls every tool for every state, year and filing status, comparing the results with `lib/calculate.ts`. Run it before pushing a change to the route, the schemas or the tools.
+
 **Privacy:** the route logs only the HTTP method and status, and the tool name and duration. Never log request bodies, tool arguments or results, and never add storage to the route. The README's Privacy section describes the endpoint; keep it accurate.
 
 ### Multi-Year Data
