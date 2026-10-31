@@ -141,6 +141,10 @@ See `lib/__tests__/README.md` for more context on (non-UI) tests.
 - [Tailwind CSS](https://tailwindcss.com/) - Styling
 - [Vitest](https://vitest.dev/) - Testing
 
+## Privacy
+
+The calculator runs entirely in your browser. There is no server-side code, no account to create and no database: the figures you type are never sent anywhere, and the only network traffic is loading the page and anonymous page-view analytics. Anything that needs to remember your figures between visits will keep them in your own browser via local storage.
+
 ## Disclaimer
 
 This calculator provides estimates only and should not be used as tax advice. Consult a qualified tax professional for actual tax planning and filing.

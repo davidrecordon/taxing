@@ -17,6 +17,7 @@ components/
   shared/              # Shared display components
   TaxCalculator.tsx    # Main orchestrator component
 data/                  # Tax brackets, deductions, limits (JSON), VERIFICATION.md
+design_docs/           # Design documents, kept locally and ignored by git (see below)
 lib/                   # Calculation logic (see lib/README.md)
   states/              # One calculator per state, plus stateCalcUtils.ts
   __tests__/           # Calculation tests and shared test data
@@ -116,6 +117,19 @@ When updating tax brackets, deductions, limits, or the rules that use them:
 3. If an official value is not published yet, reuse the prior year's value, mark it as WAITING in `data/VERIFICATION.md`, and add it to the pending items list
 4. Update affected tests with correct expected values
 5. Run `bun run test:run` and `bun run build` to verify all tests pass
+
+## Design Documents
+
+Significant features get a design document before any code: the problem, the options with evidence, the decisions still open and who makes them, then the implementation plan once those are settled. All of them live in `design_docs/`, which is listed in `.gitignore` and stays on the owner's machine; do not create a separate `docs/` directory.
+
+```
+design_docs/
+  completed/      # Implemented features (archived, do not edit)
+  exploration/    # Ideas and scopes still being decided
+  shovel_ready/   # Scoped, decisions made, ready to implement
+```
+
+A design starts in `exploration/`, moves to `shovel_ready/` when its open decisions are closed and it has a plan, and to `completed/` once implemented. Research and sources go in the document; the repository is public, so nothing private from other projects or people belongs in it.
 
 ## Before Committing
 
