@@ -156,6 +156,44 @@ describe("estimateWithholding", () => {
     it("is zero without wages", () => {
       expect(estimate().federal).toBe(0);
     });
+
+    it("withholds on each earner's wages separately on a joint return with spouse wages", () => {
+      // $300,000 of wages, $100,000 of them the spouse's; $30,000 of bonuses
+      // and $24,000 of 401(k) divided two thirds and one third, as the wages
+      // are. Each employer uses the joint schedule and deduction.
+      //   First earner: $200,000 - $20,000 - $16,000 = $164,000 regular,
+      //     less $32,200 = $131,800: 2,480 + 9,120 + 22% x 31,000 (6,820)
+      //     -> 18,420
+      //   Spouse: $100,000 - $10,000 - $8,000 = $82,000, less $32,200 =
+      //     $49,800: 2,480 + 12% x 25,000 (3,000) -> 5,480
+      //   Bonuses: 22% x 30,000 = 6,600 whoever was paid them
+      // One earner on the same figures: $246,000 - $32,200 = $213,800:
+      //   2,480 + 9,120 + 24,332 + 24% x 2,400 (576) -> 36,508 + 6,600
+      const twoEarners = estimate({
+        federalIncome: 300000,
+        spouseWages: 100000,
+        supplementalWages: 30000,
+        contributions401k: 24000,
+        filingStatus: "marriedFilingJointly",
+      });
+      const oneEarner = estimate({
+        federalIncome: 300000,
+        supplementalWages: 30000,
+        contributions401k: 24000,
+        filingStatus: "marriedFilingJointly",
+      });
+
+      expect(twoEarners.federalRegular).toBeCloseTo(23900, 2);
+      expect(twoEarners.federalSupplemental).toBeCloseTo(6600, 2);
+      expect(twoEarners.federal).toBeCloseTo(30500, 2);
+      expect(oneEarner.federal).toBeCloseTo(43108, 2);
+    });
+
+    it("ignores spouse wages unless the return is joint", () => {
+      expect(
+        estimate({ federalIncome: 300000, spouseWages: 100000 }).federal,
+      ).toBe(estimate({ federalIncome: 300000 }).federal);
+    });
   });
 
   describe("California", () => {
@@ -383,6 +421,43 @@ describe("estimateWithholding", () => {
         [332, 472, 586, 4190, 5143, 5855, 9388, 13708, 20854, 27600, 79369],
       );
       printed(nycWithholding, "single", [164, 184, 388, 783, 2236]);
+    });
+  });
+
+  describe("two earners", () => {
+    it.each([
+      ["california", california],
+      ["colorado", colorado],
+      ["illinois", illinois],
+      ["newyork", newYork],
+    ] as const)("%s: each employer withholds on its own employee's wages", (selectedState, stateData) => {
+      // Two earners on $100,000 each, with state wages a tenth lower, come
+      // to twice one earner on $100,000 and $90,000 of state wages
+      const couple = estimate(
+        {
+          selectedState,
+          federalIncome: 200000,
+          stateIncome: 180000,
+          spouseWages: 100000,
+          filingStatus: "marriedFilingJointly",
+          isNYCResident: true,
+        },
+        stateData,
+      );
+      const oneEarner = estimate(
+        {
+          selectedState,
+          federalIncome: 100000,
+          stateIncome: 90000,
+          filingStatus: "marriedFilingJointly",
+          isNYCResident: true,
+        },
+        stateData,
+      );
+
+      expect(couple.state).toBeCloseTo(oneEarner.state! * 2, 6);
+      expect(couple.stateRegular).toBeCloseTo(oneEarner.stateRegular * 2, 6);
+      expect(couple.federal).toBeCloseTo(oneEarner.federal * 2, 6);
     });
   });
 

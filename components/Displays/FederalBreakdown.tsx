@@ -26,6 +26,16 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
   );
 
   const hasQualifiedDividends = (result.qualifiedDividends ?? 0) > 0;
+  const fica = result.ficaBreakdown;
+  // The surtax matters once it is owed or withheld: a one-earner couple can
+  // have it withheld below the joint threshold
+  const hasAdditionalMedicare =
+    fica !== undefined &&
+    (fica.additionalMedicareTax > 0 || fica.additionalMedicareWithheld > 0);
+  const additionalMedicareDiffers =
+    hasAdditionalMedicare &&
+    Math.round(fica.additionalMedicareTax * 100) !==
+      Math.round(fica.additionalMedicareWithheld * 100);
 
   return (
     <div className="theme-card p-4">
@@ -217,22 +227,27 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
         totalAmount={result.ltcgTax}
       />
 
-      {/* FICA Taxes */}
+      {/* Payroll taxes */}
       {result.ficaBreakdown && result.ficaBreakdown.totalFica > 0 && (
         <div className="bg-secondary p-3 rounded-[var(--radius-md)] mb-4">
           <h3 className="font-medium text-text-primary">
-            FICA Taxes (Social Security & Medicare)
+            Payroll Taxes (Social Security & Medicare)
           </h3>
           <p className="text-xs text-text-muted mb-2">
-            Withheld from paychecks by your employer. Not included in the
-            Federal tax total below.
+            Social Security and Medicare are withheld by your employer and not
+            included in the Federal tax total below.
+            {hasAdditionalMedicare &&
+              " Additional Medicare is included in it, and what employers withhold toward it counts as a payment."}
           </p>
           <div className="text-sm space-y-1">
             <div className="flex justify-between text-text-secondary">
               <span>
                 Social Security ({formatPercent(ficaData.socialSecurity.rate)}
                 {result.wageIncome > result.ficaBreakdown.socialSecurityWages &&
-                  ` on first ${formatCurrency(result.ficaBreakdown.socialSecurityWages)}`}
+                  ` on first ${formatCurrency(ficaData.socialSecurity.wageBaseCap)}`}
+                {result.ficaBreakdown.socialSecurityWages >
+                  ficaData.socialSecurity.wageBaseCap &&
+                  " of each earner's wages"}
                 )
               </span>
               <span className="font-mono text-text-primary">
@@ -247,7 +262,7 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
                 {formatCurrency(result.ficaBreakdown.medicareTax)}
               </span>
             </div>
-            {result.ficaBreakdown.additionalMedicareTax > 0 && (
+            {hasAdditionalMedicare && (
               <div className="flex justify-between text-text-secondary">
                 <span>
                   Additional Medicare (
@@ -258,8 +273,19 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
                 </span>
               </div>
             )}
+            {additionalMedicareDiffers && (
+              <p className="text-xs text-text-muted ml-4">
+                Employers withhold{" "}
+                {formatCurrency(result.ficaBreakdown.additionalMedicareWithheld)}{" "}
+                toward it: the surtax is withheld above{" "}
+                {formatCurrency(
+                  ficaData.medicareAdditional.withholdingThreshold,
+                )}{" "}
+                of each earner&apos;s wages, whatever the filing status.
+              </p>
+            )}
             <div className="flex justify-between font-medium pt-1 border-t border-border text-text-primary">
-              <span>Total FICA</span>
+              <span>Total Payroll Tax</span>
               <span className="font-mono">
                 {formatCurrency(result.ficaBreakdown.totalFica)}
               </span>
@@ -356,6 +382,7 @@ export default memo(function FederalBreakdown({ result, taxYear }: Props) {
         totalTax={result.totalTax}
         withheld={result.withheld}
         withheldEstimated={result.withheldEstimated}
+        additionalMedicareWithheld={result.additionalMedicareWithheld}
         estimatedPaid={result.estimatedPaid}
         remainingOwed={result.remainingOwed}
         refundDue={result.refundDue}

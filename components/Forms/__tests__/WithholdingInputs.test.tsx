@@ -42,7 +42,7 @@ describe("WithholdingInputs", () => {
     renderWithholding();
 
     expect(
-      screen.getAllByText("Expected for the full year, from paychecks"),
+      screen.getAllByText(/^Income tax expected for the full year, from paychecks/),
     ).toHaveLength(2);
   });
 
@@ -57,7 +57,7 @@ describe("WithholdingInputs", () => {
         screen.getByText(/Estimated at \$22,320 from your wages/),
       ).toBeInTheDocument();
       expect(
-        screen.queryByText("Expected for the full year, from paychecks"),
+        screen.queryByText(/^Income tax expected for the full year, from paychecks/),
       ).not.toBeInTheDocument();
     });
 
@@ -72,7 +72,7 @@ describe("WithholdingInputs", () => {
         screen.queryByText(/Estimated at \$52,854/),
       ).not.toBeInTheDocument();
       expect(
-        screen.getByText("Expected for the full year, from paychecks"),
+        screen.getByText(/^Income tax expected for the full year, from paychecks/),
       ).toBeInTheDocument();
       expect(screen.getByText(/Estimated at \$22,320/)).toBeInTheDocument();
     });
@@ -86,7 +86,7 @@ describe("WithholdingInputs", () => {
 
       expect(screen.getByText(/Estimated at \$52,854/)).toBeInTheDocument();
       expect(
-        screen.getByText("Expected for the full year, from paychecks"),
+        screen.getByText(/^Income tax expected for the full year, from paychecks/),
       ).toBeInTheDocument();
     });
   });

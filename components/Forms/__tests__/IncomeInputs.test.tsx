@@ -75,6 +75,58 @@ describe("IncomeInputs", () => {
     });
   });
 
+  describe("spouse's wages sub-field", () => {
+    const label = "Of which Spouse's Wages";
+    const joint = { filingStatus: "marriedFilingJointly" as const };
+
+    it("is hidden until wages are entered on a joint return", () => {
+      renderIncome(joint);
+
+      expect(screen.queryByText(label)).not.toBeInTheDocument();
+    });
+
+    it("appears once a joint return has wages", () => {
+      renderIncome({ ...joint, federalIncome: 300000 });
+
+      expect(screen.getByText(label)).toBeInTheDocument();
+    });
+
+    it("is not offered on a single or separate return", () => {
+      renderIncome({ federalIncome: 300000, filingStatus: "single" });
+
+      expect(screen.queryByText(label)).not.toBeInTheDocument();
+    });
+
+    it("stays, with a warning, when the return stops being joint while it holds a value", () => {
+      renderIncome({
+        federalIncome: 300000,
+        spouseWages: 100000,
+        filingStatus: "marriedFilingSeparately",
+      });
+
+      expect(screen.getByText(label)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Only used on a joint return/),
+      ).toBeInTheDocument();
+    });
+
+    it("stays visible while it holds a value of its own, and warns above the wages", () => {
+      renderIncome({ ...joint, federalIncome: 0, spouseWages: 100000 });
+
+      expect(screen.getByText(label)).toBeInTheDocument();
+      expect(screen.getByText(/Cannot exceed wages/)).toBeInTheDocument();
+    });
+
+    it("updates spouseWages", async () => {
+      const onUpdate = vi.fn();
+      renderIncome({ ...joint, federalIncome: 300000 }, onUpdate);
+
+      await userEvent.type(screen.getByLabelText(label), "5000");
+
+      expect(onUpdate).toHaveBeenLastCalledWith("spouseWages", 5000);
+    });
+  });
+
   describe("bonuses and stock sub-field", () => {
     const label = "Of which Bonuses & Stock";
 

@@ -466,6 +466,9 @@ export interface FicaData {
       marriedFilingSeparately: number;
       single: number;
     };
+    // Wages above which an employer withholds the surtax from one employee,
+    // whatever the filing status (Form 8959 Part V)
+    withholdingThreshold: number;
   };
   medicareBase: {
     rate: number;
@@ -496,6 +499,10 @@ export interface TaxInputs {
   // The part of wages paid as bonuses or stock. Withheld on at flat rates, so
   // it only affects the withholding estimate, not the tax.
   supplementalWages: number;
+  // On a joint return, the part of wages earned by the spouse. Divides the
+  // wages between two earners for payroll tax and the withholding estimate;
+  // income tax is on the combined figure.
+  spouseWages: number;
   shortTermCapitalGains: number;
   longTermCapitalGains: number;
   interestIncome: number; // 1099-INT box 1 (taxable interest)
@@ -581,9 +588,10 @@ export interface DeductionBreakdown {
 
 export interface FicaBreakdown {
   socialSecurityTax: number;
-  socialSecurityWages: number;
+  socialSecurityWages: number; // Each earner's wages up to the wage base, added up
   medicareTax: number;
-  additionalMedicareTax: number;
+  additionalMedicareTax: number; // 0.9% of all wages over the filing status threshold
+  additionalMedicareWithheld: number; // What employers withhold: 0.9% of each earner's wages over $200,000
   totalFica: number;
 }
 
@@ -680,6 +688,7 @@ export interface TaxCalculationResult {
   // Payments already made
   withheld: number;
   withheldEstimated?: boolean; // Withholding was estimated from wages, not entered
+  additionalMedicareWithheld?: number; // Federal only: the surtax employers withheld, estimated per earner
   estimatedPaid: number;
   totalPaid: number;
 

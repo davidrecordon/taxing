@@ -10,6 +10,7 @@ import {
   TaxBracketsData,
   TaxInputs,
 } from "./types";
+import { earnerInputs } from "./earners";
 
 /**
  * What an employer would withhold over the year, worked out from the wage
@@ -250,21 +251,34 @@ function estimateStateWithholding(
   }
 }
 
+// Each employer withholds on its own employee's wages, so a couple's two
+// earners are estimated one at a time and added up
 export function estimateWithholding(
   inputs: TaxInputs,
   federalData: FederalWithholdingData,
   stateData: StateData | undefined,
 ): WithholdingEstimate {
-  const federal = estimateFederalWithholding(inputs, federalData);
-  const state = estimateStateWithholding(inputs, stateData);
-  return {
-    federal: federal.regular + federal.supplemental,
-    federalRegular: federal.regular,
-    federalSupplemental: federal.supplemental,
-    state: state ? state.regular + state.supplemental : null,
-    stateRegular: state?.regular ?? 0,
-    stateSupplemental: state?.supplemental ?? 0,
+  const estimate: WithholdingEstimate = {
+    federal: 0,
+    federalRegular: 0,
+    federalSupplemental: 0,
+    state: null,
+    stateRegular: 0,
+    stateSupplemental: 0,
   };
+  for (const earner of earnerInputs(inputs)) {
+    const federal = estimateFederalWithholding(earner, federalData);
+    const state = estimateStateWithholding(earner, stateData);
+    estimate.federal += federal.regular + federal.supplemental;
+    estimate.federalRegular += federal.regular;
+    estimate.federalSupplemental += federal.supplemental;
+    if (state) {
+      estimate.state = (estimate.state ?? 0) + state.regular + state.supplemental;
+      estimate.stateRegular += state.regular;
+      estimate.stateSupplemental += state.supplemental;
+    }
+  }
+  return estimate;
 }
 
 export interface ResolvedWithholding {

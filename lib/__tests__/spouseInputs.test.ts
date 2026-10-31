@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { SplitConfig, buildSpouseInputs } from "../spouseInputs";
+import {
+  SplitConfig,
+  buildSpouseInputs,
+  defaultWagesSplit,
+} from "../spouseInputs";
 import { TaxInputs } from "../types";
 import { createDefaultInputs } from "./testData";
 
@@ -12,6 +16,7 @@ const joint: TaxInputs = createDefaultInputs({
   priorYearIncomeOverThreshold: false,
   federalIncome: 400000,
   supplementalWages: 50000,
+  spouseWages: 150000,
   stateIncome: 380000,
   selfEmploymentIncome: 60000,
   shortTermCapitalGains: 20000,
@@ -52,6 +57,20 @@ const spouses = (splits: SplitConfig) => ({
   spouse2: buildSpouseInputs(joint, splits, false),
 });
 
+describe("defaultWagesSplit", () => {
+  it("is spouse 1's share once the spouse's wages are known", () => {
+    // $400,000 of wages, $150,000 of them the spouse's: spouse 1 has 62.5%
+    expect(defaultWagesSplit(joint)).toBeCloseTo(62.5, 10);
+  });
+
+  it("is an even split without them", () => {
+    expect(defaultWagesSplit({ ...joint, spouseWages: 0 })).toBe(50);
+    expect(
+      defaultWagesSplit({ ...joint, filingStatus: "marriedFilingSeparately" }),
+    ).toBe(50);
+  });
+});
+
 describe("buildSpouseInputs", () => {
   it("files each spouse as married filing separately", () => {
     const { spouse1, spouse2 } = spouses(evenSplit);
@@ -90,11 +109,15 @@ describe("buildSpouseInputs", () => {
       preTaxMedical: 10,
       deductions: 80,
     });
+    // The spouse's wages are the one exception: each separate return has a
+    // single earner, so neither carries them
     const amountFields = (Object.keys(joint) as (keyof TaxInputs)[]).filter(
-      (field) => typeof joint[field] === "number",
+      (field) => typeof joint[field] === "number" && field !== "spouseWages",
     );
 
     expect(amountFields).toHaveLength(25);
+    expect(spouse1.spouseWages).toBe(0);
+    expect(spouse2.spouseWages).toBe(0);
     for (const field of amountFields) {
       expect(
         (spouse1[field] as number) + (spouse2[field] as number),

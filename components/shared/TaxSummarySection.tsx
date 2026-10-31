@@ -13,6 +13,8 @@ interface TaxSummarySectionProps {
   withheld: number;
   /** The withheld amount was estimated from wages, not entered */
   withheldEstimated?: boolean;
+  /** Federal only: the Medicare surtax employers withheld, estimated from each earner's wages */
+  additionalMedicareWithheld?: number;
   /** Estimated tax payments already made */
   estimatedPaid: number;
   /** Amount still owed (0 if refund due) */
@@ -35,6 +37,7 @@ export default memo(function TaxSummarySection({
   totalTax,
   withheld,
   withheldEstimated = false,
+  additionalMedicareWithheld = 0,
   estimatedPaid,
   remainingOwed,
   refundDue,
@@ -54,6 +57,14 @@ export default memo(function TaxSummarySection({
             {withheldEstimated ? "Less: Withheld (estimated)" : "Less: Withheld"}
           </span>
           <span className="font-mono">-{formatCurrency(withheld)}</span>
+        </div>
+      )}
+      {additionalMedicareWithheld > 0 && (
+        <div className="flex justify-between text-sm text-positive">
+          <span>Less: Additional Medicare Withheld (estimated)</span>
+          <span className="font-mono">
+            -{formatCurrency(additionalMedicareWithheld)}
+          </span>
         </div>
       )}
       {estimatedPaid > 0 && (

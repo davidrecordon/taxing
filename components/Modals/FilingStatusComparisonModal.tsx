@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { MFSScenarioResult, ScenarioResult } from "@/lib/calculate";
 import { formatCurrency } from "@/lib/formatters";
-import { SplitConfig } from "@/lib/spouseInputs";
+import { defaultWagesSplit, SplitConfig } from "@/lib/spouseInputs";
 import { TaxInputs } from "@/lib/types";
 import Dialog from "../UI/Dialog";
 
@@ -107,8 +107,9 @@ export default function FilingStatusComparisonModal({
   mfjResults,
   calculateMFSScenario,
 }: Props) {
-  const [splits, setSplits] = useState<SplitConfig>({
-    wages: 50,
+  // The wages slider starts where the spouse's wages put it, until it is moved
+  const [wagesSplit, setWagesSplit] = useState<number | null>(null);
+  const [otherSplits, setOtherSplits] = useState<Omit<SplitConfig, "wages">>({
     stcg: 50,
     ltcg: 50,
     dividends: 50,
@@ -116,9 +117,20 @@ export default function FilingStatusComparisonModal({
     preTaxMedical: 50,
     deductions: 50,
   });
+  const splits: SplitConfig = useMemo(
+    () => ({
+      ...otherSplits,
+      wages: wagesSplit ?? defaultWagesSplit(currentInputs),
+    }),
+    [currentInputs, otherSplits, wagesSplit],
+  );
 
   const updateSplit = (key: keyof SplitConfig, value: number) => {
-    setSplits((prev) => ({ ...prev, [key]: value }));
+    if (key === "wages") {
+      setWagesSplit(value);
+    } else {
+      setOtherSplits((prev) => ({ ...prev, [key]: value }));
+    }
   };
 
   const mfsResults = useMemo(() => {

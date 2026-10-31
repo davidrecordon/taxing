@@ -12,7 +12,8 @@ interface Props {
   estimate?: WithholdingEstimate;
 }
 
-const FULL_YEAR_HINT = "Expected for the full year, from paychecks";
+const FULL_YEAR_HINT =
+  "Income tax expected for the full year, from paychecks. Not Social Security or Medicare.";
 
 // The hint under a withholding field: the estimate while the field is blank,
 // otherwise the usual prompt

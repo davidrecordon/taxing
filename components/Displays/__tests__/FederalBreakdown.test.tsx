@@ -69,6 +69,7 @@ const createMockResult = (
     socialSecurityWages: 100000,
     medicareTax: 1450,
     additionalMedicareTax: 0,
+    additionalMedicareWithheld: 0,
     totalFica: 7650,
   },
   ...overrides,
@@ -189,9 +190,9 @@ describe("FederalBreakdown", () => {
       render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
       expect(
-        screen.getByText("FICA Taxes (Social Security & Medicare)"),
+        screen.getByText("Payroll Taxes (Social Security & Medicare)"),
       ).toBeInTheDocument();
-      expect(screen.getByText("Total FICA")).toBeInTheDocument();
+      expect(screen.getByText("Total Payroll Tax")).toBeInTheDocument();
     });
 
     it("shows additional Medicare when applicable", () => {
@@ -201,12 +202,91 @@ describe("FederalBreakdown", () => {
           socialSecurityWages: 176100,
           medicareTax: 3625,
           additionalMedicareTax: 450,
+          additionalMedicareWithheld: 450,
           totalFica: 14993.2,
         },
       });
       render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
 
-      expect(screen.getByText(/Additional Medicare/)).toBeInTheDocument();
+      expect(screen.getByText(/^Additional Medicare \(/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Additional Medicare is included in it/),
+      ).toBeInTheDocument();
+      // Withheld in full by the one employer, so nothing to explain
+      expect(screen.queryByText(/Employers withhold/)).not.toBeInTheDocument();
+    });
+
+    it("says what employers withheld toward Additional Medicare when it differs from the tax", () => {
+      const result = createMockResult({
+        ficaBreakdown: {
+          socialSecurityTax: 22878,
+          socialSecurityWages: 369000,
+          medicareTax: 8700,
+          additionalMedicareTax: 3150,
+          additionalMedicareWithheld: 1800,
+          totalFica: 34728,
+        },
+        additionalMedicareWithheld: 1800,
+      });
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
+
+      expect(
+        screen.getByText(/Employers withhold \$1,800 toward it/),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText("Less: Additional Medicare Withheld (estimated)"),
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe("Additional Medicare withheld with none owed", () => {
+    it("still shows the row and explains the withholding", () => {
+      // Joint, one earner on $230,000: under the $250,000 threshold, but the
+      // employer withholds above $200,000
+      const result = createMockResult({
+        wageIncome: 230000,
+        ficaBreakdown: {
+          socialSecurityTax: 11439,
+          socialSecurityWages: 184500,
+          medicareTax: 3335,
+          additionalMedicareTax: 0,
+          additionalMedicareWithheld: 270,
+          totalFica: 14774,
+        },
+        additionalMedicareWithheld: 270,
+      });
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
+
+      expect(rowText("Additional Medicare (0.9%)")).toContain("$0");
+      expect(
+        screen.getByText(/Additional Medicare is included in it/),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/Employers withhold \$270 toward it/),
+      ).toBeInTheDocument();
+      // One earner: the cap is on the wages themselves
+      expect(
+        screen.getByText(/Social Security \(6\.2% on first \$184,500\)/),
+      ).toBeInTheDocument();
+    });
+
+    it("names the wage base per earner when two earners are capped", () => {
+      const result = createMockResult({
+        wageIncome: 600000,
+        ficaBreakdown: {
+          socialSecurityTax: 22878,
+          socialSecurityWages: 369000,
+          medicareTax: 8700,
+          additionalMedicareTax: 3150,
+          additionalMedicareWithheld: 1800,
+          totalFica: 34728,
+        },
+      });
+      render(<FederalBreakdown result={result} taxYear={TAX_YEAR} />);
+
+      expect(
+        screen.getByText(/on first \$184,500 of each earner's wages/),
+      ).toBeInTheDocument();
     });
   });
 
@@ -310,15 +390,29 @@ describe("FederalBreakdown", () => {
       expect(screen.queryByText(/Additional Medicare/)).not.toBeInTheDocument();
     });
 
-    it("keeps payroll tax out of the Federal tax total", () => {
-      // $100,000 wages: income tax $13,170; FICA $7,650 is informational
+    it("keeps Social Security and Medicare out of the Federal tax total", () => {
+      // $100,000 wages: income tax $13,170; payroll tax of $7,650 is
+      // informational, and there is no Additional Medicare at this wage
       renderFederal({ federalIncome: 100000, federalTaxWithheld: 13170 });
 
-      expect(rowText("Total FICA")).toContain("$7,650");
+      expect(rowText("Total Payroll Tax")).toContain("$7,650");
       expect(
-        screen.getByText(/Not included in the\s+Federal tax total below/),
+        screen.getByText(/not\s+included in the Federal tax total below/),
       ).toBeInTheDocument();
+      expect(screen.queryByText(/Additional Medicare is included/)).not.toBeInTheDocument();
       expect(rowText("Total Federal Tax")).toContain("$13,170");
+      expect(screen.getByText("No Tax Due")).toBeInTheDocument();
+    });
+
+    it("puts Additional Medicare in the total and credits what the one employer withheld", () => {
+      // $250,000 wages, single: income tax $51,304, Additional Medicare $450
+      // owed and withheld, so $51,754 of tax against $51,754 paid
+      renderFederal({ federalIncome: 250000, federalTaxWithheld: 51304 });
+
+      expect(rowText("Total Federal Tax")).toContain("$51,754");
+      expect(
+        rowText("Less: Additional Medicare Withheld (estimated)"),
+      ).toContain("$450");
       expect(screen.getByText("No Tax Due")).toBeInTheDocument();
     });
 

@@ -29,41 +29,56 @@ import {
   calculateSafeHarbor,
   selectPriorYearPercent,
 } from "./states/stateCalcUtils";
+import { earnerWages } from "./earners";
 
 function calculateFicaTaxes(
-  wageIncome: number,
-  filingStatus: FilingStatus,
+  inputs: TaxInputs,
   ficaData: FicaData,
 ): FicaBreakdown {
-  // Social Security: 6.2% up to wage base cap
-  const socialSecurityWages = Math.min(
-    wageIncome,
-    ficaData.socialSecurity.wageBaseCap,
+  const wageIncome = inputs.federalIncome;
+  const wagesByEarner = earnerWages(inputs);
+  const { medicareAdditional, medicareBase, socialSecurity } = ficaData;
+
+  // Social Security: 6.2% of each earner's wages up to the wage base
+  const socialSecurityWages = wagesByEarner.reduce(
+    (sum, wages) => sum + Math.min(wages, socialSecurity.wageBaseCap),
+    0,
   );
-  const socialSecurityTax = socialSecurityWages * ficaData.socialSecurity.rate;
+  const socialSecurityTax = socialSecurityWages * socialSecurity.rate;
 
   // Medicare: 1.45% on all wages
-  const medicareTax = wageIncome * ficaData.medicareBase.rate;
+  const medicareTax = wageIncome * medicareBase.rate;
 
-  // Additional Medicare: 0.9% on wages over threshold
-  const medicareThreshold =
-    ficaData.medicareAdditional.thresholds[filingStatus];
-  const additionalMedicareWages = Math.max(0, wageIncome - medicareThreshold);
+  // Additional Medicare: 0.9% of all wages over the filing status threshold
+  const medicareThreshold = medicareAdditional.thresholds[inputs.filingStatus];
   const additionalMedicareTax =
-    additionalMedicareWages * ficaData.medicareAdditional.rate;
+    Math.max(0, wageIncome - medicareThreshold) * medicareAdditional.rate;
+
+  // What employers withhold toward it: 0.9% of each earner's wages over
+  // $200,000, whatever the filing status (Form 8959 Part V). The two differ
+  // for a couple with two earners and for a separate return.
+  const additionalMedicareWithheld = wagesByEarner.reduce(
+    (sum, wages) =>
+      sum +
+      Math.max(0, wages - medicareAdditional.withholdingThreshold) *
+        medicareAdditional.rate,
+    0,
+  );
 
   return {
     socialSecurityTax,
     socialSecurityWages,
     medicareTax,
     additionalMedicareTax,
+    additionalMedicareWithheld,
     totalFica: socialSecurityTax + medicareTax + additionalMedicareTax,
   };
 }
 
 function calculateSelfEmploymentTax(
   netProfit: number,
-  wageIncome: number,
+  ownWages: number,
+  allWages: number,
   filingStatus: FilingStatus,
   ficaData: FicaData,
 ): SelfEmploymentTaxBreakdown {
@@ -72,10 +87,10 @@ function calculateSelfEmploymentTax(
   // Net earnings = 92.35% of net profit (equivalent to employer half of FICA)
   const netEarnings = netProfit * seData.netEarningsRate;
 
-  // Social Security: 12.4% up to remaining wage base after W-2 wages
+  // Social Security: 12.4% up to the wage base left after this earner's wages
   const remainingSsRoom = Math.max(
     0,
-    ficaData.socialSecurity.wageBaseCap - wageIncome,
+    ficaData.socialSecurity.wageBaseCap - ownWages,
   );
   const ssEarnings = Math.min(netEarnings, remainingSsRoom);
   const socialSecurityTax = ssEarnings * seData.socialSecurityRate;
@@ -91,7 +106,7 @@ function calculateSelfEmploymentTax(
   // is not part of the deductible half.
   const additionalMedicareThreshold = Math.max(
     0,
-    ficaData.medicareAdditional.thresholds[filingStatus] - wageIncome,
+    ficaData.medicareAdditional.thresholds[filingStatus] - allWages,
   );
   const additionalMedicareTax =
     Math.max(0, netEarnings - additionalMedicareThreshold) *
@@ -185,11 +200,15 @@ export function calculateFederalTax(
   const preferentialIncome = dividends.qualified + capitalGains.netLongTermGain;
 
   // Step 1.5: Calculate Self-Employment Tax (if applicable)
-  // SE tax must be calculated early because half is deductible above-the-line
+  // SE tax must be calculated early because half is deductible above-the-line.
+  // The business is treated as the first earner's, so only their wages use up
+  // the Social Security wage base; the Additional Medicare threshold is
+  // reduced by the couple's combined wages (Form 8959 Part II).
   const selfEmploymentTaxBreakdown =
     selfEmploymentIncome > 0 && ficaData
       ? calculateSelfEmploymentTax(
           selfEmploymentIncome,
+          earnerWages(inputs)[0],
           inputs.federalIncome,
           filingStatus,
           ficaData,
@@ -312,11 +331,13 @@ export function calculateFederalTax(
     ltcgBrackets.brackets[filingStatus],
   );
 
-  // Step 7: Calculate FICA taxes (on W-2 wage income only, not investment income)
-  // Shown for information only: employers withhold these from each paycheck,
-  // so they are not part of the tax settled on the return
+  // Step 7: Calculate payroll taxes (on W-2 wage income only, not investment
+  // income). Social Security and base Medicare are shown for information:
+  // employers withhold exactly those amounts from each paycheck. Additional
+  // Medicare is tax settled on the return, with what employers withheld
+  // toward it credited as a payment (Form 8959).
   const ficaBreakdown = ficaData
-    ? calculateFicaTaxes(inputs.federalIncome, filingStatus, ficaData)
+    ? calculateFicaTaxes(inputs, ficaData)
     : undefined;
 
   // Step 7.5: Calculate NIIT (3.8% Net Investment Income Tax for high earners)
@@ -346,19 +367,24 @@ export function calculateFederalTax(
         }
       : undefined;
 
-  // Step 8: Sum up the taxes settled on the return. Payroll tax on wages is
-  // excluded, including the Additional Medicare tax on wages, which is
-  // assumed to be withheld by the employer. Self-employment tax, and the
-  // Additional Medicare tax on self-employment earnings, are not withheld.
+  // Step 8: Sum up the taxes settled on the return: income tax, then
+  // self-employment tax, NIIT and Additional Medicare (Schedule 2). Social
+  // Security and base Medicare on wages are not part of the return.
+  const incomeTax = ordinaryTax.total + ltcgTax.total;
   const seTax =
     (selfEmploymentTaxBreakdown?.totalSETax ?? 0) +
     (selfEmploymentTaxBreakdown?.additionalMedicareTax ?? 0);
-  const totalTax = ordinaryTax.total + ltcgTax.total + seTax + niitTax;
+  const additionalMedicareOnWages = ficaBreakdown?.additionalMedicareTax ?? 0;
+  const totalTax = incomeTax + seTax + niitTax + additionalMedicareOnWages;
 
-  // Step 9: Calculate remaining owed using shared utility
+  // Step 9: Calculate remaining owed using shared utility. The Additional
+  // Medicare that employers withheld counts with the income tax withheld
+  // (Form 1040 line 25c).
+  const additionalMedicareWithheld =
+    ficaBreakdown?.additionalMedicareWithheld ?? 0;
   const { totalPaid, remainingOwed, refundDue } = calculatePaymentSummary(
     totalTax,
-    inputs.federalTaxWithheld,
+    inputs.federalTaxWithheld + additionalMedicareWithheld,
     inputs.federalEstimatedPaid,
   );
 
@@ -404,6 +430,7 @@ export function calculateFederalTax(
     selfEmploymentTaxBreakdown,
     totalTax,
     withheld: inputs.federalTaxWithheld,
+    ...(additionalMedicareWithheld > 0 && { additionalMedicareWithheld }),
     estimatedPaid: inputs.federalEstimatedPaid,
     totalPaid,
     remainingOwed,

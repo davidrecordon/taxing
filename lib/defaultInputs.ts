@@ -7,6 +7,7 @@ export const DEFAULT_TAX_INPUTS: TaxInputs = {
   federalIncome: 0,
   stateIncome: 0,
   supplementalWages: 0,
+  spouseWages: 0,
   shortTermCapitalGains: 0,
   longTermCapitalGains: 0,
   interestIncome: 0,

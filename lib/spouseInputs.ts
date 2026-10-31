@@ -1,3 +1,4 @@
+import { spouseWages } from "./earners";
 import { TaxInputs } from "./types";
 
 /**
@@ -13,6 +14,16 @@ export interface SplitConfig {
   contributions401k: number;
   preTaxMedical: number;
   deductions: number;
+}
+
+// Spouse 1's percentage of the wages to start the comparison from: what the
+// spouse's wages say when they were entered, otherwise an even split
+export function defaultWagesSplit(inputs: TaxInputs): number {
+  const spouse = spouseWages(inputs);
+  if (spouse <= 0) {
+    return 50;
+  }
+  return ((inputs.federalIncome - spouse) / inputs.federalIncome) * 100;
 }
 
 // Build one spouse's inputs for the married-filing-separately comparison.
@@ -38,6 +49,7 @@ export function buildSpouseInputs(
     federalIncome: inputs.federalIncome * wages,
     stateIncome: inputs.stateIncome * wages,
     supplementalWages: inputs.supplementalWages * wages,
+    spouseWages: 0, // Each separate return has one earner
     selfEmploymentIncome: (inputs.selfEmploymentIncome || 0) * wages,
     shortTermCapitalGains: inputs.shortTermCapitalGains * stcg,
     longTermCapitalGains: inputs.longTermCapitalGains * ltcg,

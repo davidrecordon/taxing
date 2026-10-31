@@ -117,7 +117,7 @@ describe("calculateFederalTax", () => {
       expect(result.ficaBreakdown!.totalFica).toBe(11475);
     });
 
-    it("married filing jointly: $500,000 wages, $20,000 interest and a $100,000 long-term gain owe $128,568", () => {
+    it("married filing jointly: $500,000 wages, $20,000 interest and a $100,000 long-term gain owe $130,818", () => {
       // Gross income and AGI: $500,000 + $20,000 + $100,000 = $620,000
       //
       // Taxable ordinary income: $500,000 + $20,000 - $32,200 = $487,800
@@ -135,18 +135,21 @@ describe("calculateFederalTax", () => {
       //   Net investment income: $20,000 + $100,000 = $120,000
       //   3.8% x the lesser, $120,000 = $4,560
       //
-      // Total tax: $109,008 + $15,000 + $4,560 = $128,568
-      // Paid: $110,000 withheld + $10,000 estimated = $120,000
-      // Owed: $128,568 - $120,000 = $8,568
-      //
-      // Safe harbor: the lesser of 90% x $128,568 = $115,711.20 and
-      // 110% x last year's $100,000 = $110,000. $120,000 paid meets it.
-      //
-      // Payroll tax (information only):
+      // Payroll tax, all wages one earner's:
       //   Social Security: $184,500 x 6.2%                  = $11,439
       //   Medicare: $500,000 x 1.45%                        =  $7,250
       //   Additional Medicare: ($500,000 - $250,000) x 0.9% =  $2,250
       //   Total                                             = $20,939
+      //   Withheld toward Additional Medicare, above $200,000 of the one
+      //   earner's wages: $300,000 x 0.9%                   =  $2,700
+      //
+      // Total tax: $109,008 + $15,000 + $4,560 + $2,250 = $130,818
+      // Paid: $110,000 withheld + $2,700 Additional Medicare withheld
+      //   + $10,000 estimated = $122,700
+      // Owed: $130,818 - $122,700 = $8,118
+      //
+      // Safe harbor: the lesser of 90% x $130,818 = $117,736.20 and
+      // 110% x last year's $100,000 = $110,000. $122,700 paid meets it.
       const result = calculate({
         federalIncome: 500000,
         interestIncome: 20000,
@@ -170,12 +173,13 @@ describe("calculateFederalTax", () => {
       expect(result.niitBreakdown!.netInvestmentIncome).toBe(120000);
       expect(result.niitBreakdown!.tax).toBeCloseTo(4560, 2);
 
-      expect(result.totalTax).toBeCloseTo(128568, 2);
-      expect(result.totalPaid).toBe(120000);
-      expect(result.remainingOwed).toBeCloseTo(8568, 2);
+      expect(result.totalTax).toBeCloseTo(130818, 2);
+      expect(result.additionalMedicareWithheld).toBeCloseTo(2700, 2);
+      expect(result.totalPaid).toBeCloseTo(122700, 2);
+      expect(result.remainingOwed).toBeCloseTo(8118, 2);
       expect(result.refundDue).toBe(0);
 
-      expect(result.safeHarbor!.currentYear90Percent).toBeCloseTo(115711.2, 2);
+      expect(result.safeHarbor!.currentYear90Percent).toBeCloseTo(117736.2, 2);
       expect(result.safeHarbor!.priorYearSafeHarbor).toBeCloseTo(110000, 2);
       expect(result.safeHarbor!.minimum).toBeCloseTo(110000, 2);
       expect(result.safeHarbor!.met).toBe(true);
@@ -183,10 +187,11 @@ describe("calculateFederalTax", () => {
       expect(result.ficaBreakdown!.socialSecurityTax).toBeCloseTo(11439, 2);
       expect(result.ficaBreakdown!.medicareTax).toBeCloseTo(7250, 2);
       expect(result.ficaBreakdown!.additionalMedicareTax).toBeCloseTo(2250, 2);
+      expect(result.ficaBreakdown!.additionalMedicareWithheld).toBeCloseTo(2700, 2);
       expect(result.ficaBreakdown!.totalFica).toBeCloseTo(20939, 2);
     });
 
-    it("married filing separately: wages, interest, dividends, gains and loss carryovers come to $66,024.50", () => {
+    it("married filing separately: wages, interest, dividends, gains and loss carryovers come to $66,519.50", () => {
       // $180,000 wages, $10,000 interest, $150,000 dividends of which
       // $120,000 are qualified, a $30,000 short-term gain, a $4,000
       // long-term loss, and carryovers of $20,000 short-term and $50,000
@@ -222,11 +227,14 @@ describe("calculateFederalTax", () => {
       //   Net investment income: $10,000 + $150,000 - $1,500 = $158,500
       //   3.8% x the lesser, $158,500 = $6,023
       //
-      // Total tax: $41,224 + $18,777.50 + $6,023 = $66,024.50
-      // Paid: $60,000 withheld + $10,000 estimated = $70,000
-      // Refund: $70,000 - $66,024.50 = $3,975.50
+      // Additional Medicare: ($180,000 - $125,000) x 0.9% = $495. Nothing
+      // is withheld toward it: the wages are under $200,000.
       //
-      // Payroll tax (information only):
+      // Total tax: $41,224 + $18,777.50 + $6,023 + $495 = $66,519.50
+      // Paid: $60,000 withheld + $10,000 estimated = $70,000
+      // Refund: $70,000 - $66,519.50 = $3,480.50
+      //
+      // Payroll tax:
       //   Social Security: $180,000 x 6.2%                  = $11,160
       //   Medicare: $180,000 x 1.45%                        =  $2,610
       //   Additional Medicare: ($180,000 - $125,000) x 0.9% =    $495
@@ -262,12 +270,14 @@ describe("calculateFederalTax", () => {
       expect(result.niitBreakdown!.netInvestmentIncome).toBe(158500);
       expect(result.niitBreakdown!.tax).toBeCloseTo(6023, 2);
 
-      expect(result.totalTax).toBeCloseTo(66024.5, 2);
+      expect(result.totalTax).toBeCloseTo(66519.5, 2);
+      expect(result.additionalMedicareWithheld).toBeUndefined();
       expect(result.totalPaid).toBe(70000);
       expect(result.remainingOwed).toBe(0);
-      expect(result.refundDue).toBeCloseTo(3975.5, 2);
+      expect(result.refundDue).toBeCloseTo(3480.5, 2);
 
       expect(result.ficaBreakdown!.additionalMedicareTax).toBeCloseTo(495, 2);
+      expect(result.ficaBreakdown!.additionalMedicareWithheld).toBe(0);
       expect(result.ficaBreakdown!.totalFica).toBeCloseTo(14265, 2);
     });
 
@@ -758,13 +768,16 @@ describe("calculateFederalTax", () => {
       expect(fica.totalFica).toBe(0);
     });
 
-    it("is shown for information only: not in total tax, the amount owed or the safe harbor", () => {
+    it("keeps Social Security and Medicare out of the total, and puts Additional Medicare in it with its withholding as a payment", () => {
       // $250,000 of wages, single. Taxable: $250,000 - $16,100 = $233,900
       //   $1,240 + $4,560 + $12,166 + $23,058
       //   + $32,125 ($233,900 - $201,775) @ 32% ($10,280) = $51,304
-      // Payroll tax of $15,514, including $450 of Additional Medicare, is
-      // withheld by the employer and stays out of every total.
-      // Safe harbor: 90% x $51,304 = $46,173.60
+      // Payroll tax of $15,514: Social Security and Medicare ($15,064) are
+      // withheld exactly and stay out of every total. Additional Medicare
+      // ($50,000 x 0.9% = $450) is tax on the return; the employer withholds
+      // the same $450 above $200,000 of this one earner's wages.
+      // Total tax: $51,304 + $450 = $51,754; paid $51,304 + $450
+      // Safe harbor: 90% x $51,754 = $46,578.60
       const result = calculate({
         federalIncome: 250000,
         federalTaxWithheld: 51304,
@@ -773,11 +786,103 @@ describe("calculateFederalTax", () => {
 
       expect(result.ficaBreakdown!.totalFica).toBeCloseTo(15514, 2);
       expect(result.ordinaryIncomeTax).toBeCloseTo(51304, 2);
-      expect(result.totalTax).toBeCloseTo(51304, 2);
+      expect(result.totalTax).toBeCloseTo(51754, 2);
+      expect(result.withheld).toBe(51304);
+      expect(result.additionalMedicareWithheld).toBeCloseTo(450, 2);
+      expect(result.totalPaid).toBeCloseTo(51754, 2);
       expect(result.remainingOwed).toBeCloseTo(0, 2);
       expect(result.refundDue).toBeCloseTo(0, 2);
-      expect(result.safeHarbor!.currentYear90Percent).toBeCloseTo(46173.6, 2);
-      expect(result.safeHarbor!.minimum).toBeCloseTo(46173.6, 2);
+      expect(result.safeHarbor!.currentYear90Percent).toBeCloseTo(46578.6, 2);
+      expect(result.safeHarbor!.minimum).toBeCloseTo(46578.6, 2);
+    });
+
+    it("withholds Additional Medicare per earner, so a two-earner couple comes up short", () => {
+      // Joint, $600,000 of wages of which the spouse earned $300,000.
+      // Additional Medicare owed: ($600,000 - $250,000) x 0.9% = $3,150
+      // Withheld: each earner $100,000 over $200,000 x 0.9% = $900, so $1,800
+      // Social Security: each earner capped at $184,500, so $369,000 x 6.2%
+      //   = $22,878 on $369,000 of wages
+      const fica = calculate({
+        federalIncome: 600000,
+        spouseWages: 300000,
+        filingStatus: "marriedFilingJointly",
+      }).ficaBreakdown!;
+
+      expect(fica.additionalMedicareTax).toBeCloseTo(3150, 2);
+      expect(fica.additionalMedicareWithheld).toBeCloseTo(1800, 2);
+      expect(fica.socialSecurityWages).toBe(369000);
+      expect(fica.socialSecurityTax).toBeCloseTo(22878, 2);
+      // Medicare is 1.45% of everything either way
+      expect(fica.medicareTax).toBeCloseTo(8700, 2);
+    });
+
+    it("withholds nothing toward Additional Medicare when neither earner is over $200,000", () => {
+      // Joint, $350,000 of wages split $175,000 each: owed ($350,000 -
+      // $250,000) x 0.9% = $900, withheld $0, so $900 more is owed than if
+      // the wages were one earner's (then $150,000 x 0.9% = $1,350 withheld,
+      // $450 over)
+      const twoEarners = calculate({
+        federalIncome: 350000,
+        spouseWages: 175000,
+        filingStatus: "marriedFilingJointly",
+      });
+      const oneEarner = calculate({
+        federalIncome: 350000,
+        filingStatus: "marriedFilingJointly",
+      });
+
+      expect(twoEarners.ficaBreakdown!.additionalMedicareTax).toBeCloseTo(900, 2);
+      expect(twoEarners.additionalMedicareWithheld).toBeUndefined();
+      expect(oneEarner.additionalMedicareWithheld).toBeCloseTo(1350, 2);
+      expect(twoEarners.totalTax).toBeCloseTo(oneEarner.totalTax, 2);
+      expect(twoEarners.remainingOwed - oneEarner.remainingOwed).toBeCloseTo(
+        1350,
+        2,
+      );
+    });
+
+    it("ignores spouse wages unless the return is joint", () => {
+      const fica = calculate({
+        federalIncome: 300000,
+        spouseWages: 150000,
+        filingStatus: "single",
+      }).ficaBreakdown!;
+
+      // One earner: ($300,000 - $200,000) x 0.9% = $900 owed and withheld
+      expect(fica.additionalMedicareTax).toBeCloseTo(900, 2);
+      expect(fica.additionalMedicareWithheld).toBeCloseTo(900, 2);
+      expect(fica.socialSecurityWages).toBe(184500);
+    });
+  });
+
+  describe("self-employment tax on a joint return with two earners", () => {
+    it("uses up the Social Security wage base with the first earner's wages only", () => {
+      // $200,000 of wages of which the spouse earned $100,000, and $50,000 of
+      // business income treated as the first earner's. Their $100,000 of
+      // wages leave $84,500 of the $184,500 wage base.
+      //   Net earnings: $50,000 x 92.35%            = $46,175
+      //   Social Security: $46,175 x 12.4%          =  $5,725.70
+      //   Medicare: $46,175 x 2.9%                  =  $1,339.08 (rounded)
+      // With one earner on $200,000 of wages the base is used up: $0.
+      // Additional Medicare on the business still starts from the couple's
+      // combined wages: $250,000 - $200,000 leaves $50,000 of room, over
+      // $46,175 of net earnings, so none.
+      const twoEarners = calculate({
+        federalIncome: 200000,
+        spouseWages: 100000,
+        selfEmploymentIncome: 50000,
+        filingStatus: "marriedFilingJointly",
+      }).selfEmploymentTaxBreakdown!;
+      const oneEarner = calculate({
+        federalIncome: 200000,
+        selfEmploymentIncome: 50000,
+        filingStatus: "marriedFilingJointly",
+      }).selfEmploymentTaxBreakdown!;
+
+      expect(twoEarners.socialSecurityTax).toBeCloseTo(5725.7, 2);
+      expect(twoEarners.medicareTax).toBeCloseTo(46175 * 0.029, 2);
+      expect(twoEarners.additionalMedicareTax).toBe(0);
+      expect(oneEarner.socialSecurityTax).toBe(0);
     });
   });
 

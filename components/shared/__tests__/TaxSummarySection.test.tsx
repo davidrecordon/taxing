@@ -66,6 +66,42 @@ describe("TaxSummarySection", () => {
     });
   });
 
+  describe("Additional Medicare withheld", () => {
+    it("is listed with the payments when there is any", () => {
+      render(
+        <TaxSummarySection
+          totalTax={10000}
+          withheld={5000}
+          additionalMedicareWithheld={450}
+          estimatedPaid={0}
+          remainingOwed={4550}
+          refundDue={0}
+          taxLabel="Federal"
+        />,
+      );
+
+      expect(
+        screen.getByText("Less: Additional Medicare Withheld (estimated)"),
+      ).toBeInTheDocument();
+      expect(screen.getByText("-$450")).toBeInTheDocument();
+    });
+
+    it("is left out when there is none", () => {
+      render(
+        <TaxSummarySection
+          totalTax={10000}
+          withheld={5000}
+          estimatedPaid={0}
+          remainingOwed={5000}
+          refundDue={0}
+          taxLabel="California"
+        />,
+      );
+
+      expect(screen.queryByText(/Additional Medicare/)).not.toBeInTheDocument();
+    });
+  });
+
   describe("refund scenario", () => {
     it("shows refund in green", () => {
       render(

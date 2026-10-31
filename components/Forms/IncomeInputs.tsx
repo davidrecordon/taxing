@@ -36,6 +36,16 @@ export default function IncomeInputs({
     inputs.ordinaryDividends > 0 || inputs.qualifiedDividends > 0;
   const showSupplementalWages =
     inputs.federalIncome > 0 || inputs.supplementalWages > 0;
+  // Only a joint return has a spouse. The field is offered on one, and stays
+  // while it holds a value so the number is never hidden
+  const isJoint = inputs.filingStatus === "marriedFilingJointly";
+  const showSpouseWages =
+    (isJoint && inputs.federalIncome > 0) || inputs.spouseWages > 0;
+  const spouseWagesWarning = !isJoint
+    ? "Only used on a joint return. Ignored for this filing status."
+    : inputs.spouseWages > inputs.federalIncome
+      ? "Cannot exceed wages. The excess is ignored."
+      : undefined;
 
   return (
     <div className="theme-card p-4 space-y-4">
@@ -73,6 +83,16 @@ export default function IncomeInputs({
               ? "Cannot exceed wages. The excess is ignored."
               : undefined
           }
+        />
+      )}
+
+      {showSpouseWages && (
+        <CurrencyInput
+          label="Of which Spouse's Wages"
+          value={inputs.spouseWages}
+          onChange={(v) => onUpdate("spouseWages", v)}
+          hint="The part of the wages above your spouse earned. Each employer withholds on its own employee's wages, so this changes the withholding estimate, Social Security and how much of the Medicare surtax is withheld, not the income tax."
+          warning={spouseWagesWarning}
         />
       )}
 

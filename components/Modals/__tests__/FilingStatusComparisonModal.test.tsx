@@ -13,6 +13,7 @@ describe("FilingStatusComparisonModal", () => {
     federalIncome: 150000,
     stateIncome: 150000,
     supplementalWages: 0,
+    spouseWages: 0,
     shortTermCapitalGains: 10000,
     longTermCapitalGains: 50000,
     interestIncome: 0,
@@ -130,6 +131,27 @@ describe("FilingStatusComparisonModal", () => {
 
       // Calculation should be called with new splits
       expect(mockMFSScenario).toHaveBeenCalled();
+    });
+  });
+
+  describe("wages split default", () => {
+    it("starts from the spouse's wages when they were entered", () => {
+      // $300,000 of wages, $100,000 the spouse's: spouse 1 starts at 66.67%
+      mockMFSScenario.mockClear();
+      render(
+        <FilingStatusComparisonModal
+          {...defaultProps}
+          currentInputs={{
+            ...defaultInputs,
+            federalIncome: 300000,
+            spouseWages: 100000,
+          }}
+        />,
+      );
+
+      const lastSplits = mockMFSScenario.mock.calls.at(-1)![0];
+      expect(lastSplits.wages).toBeCloseTo(66.667, 2);
+      expect(lastSplits.ltcg).toBe(50);
     });
   });
 

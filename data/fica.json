@@ -6,7 +6,8 @@
         "marriedFilingJointly": 250000,
         "marriedFilingSeparately": 125000,
         "single": 200000
-      }
+      },
+      "withholdingThreshold": 200000
     },
     "medicareBase": {
       "rate": 0.0145
@@ -29,7 +30,8 @@
         "marriedFilingJointly": 250000,
         "marriedFilingSeparately": 125000,
         "single": 200000
-      }
+      },
+      "withholdingThreshold": 200000
     },
     "medicareBase": {
       "rate": 0.0145
