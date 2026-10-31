@@ -1,0 +1,9 @@
+{
+  "name": "estimate.tax",
+  "description": "Federal and state estimated tax calculations for California, Colorado, DC, Florida, Illinois, New York and Washington",
+  "url": "https://estimate.tax/api/mcp",
+  "transport": {
+    "type": "http",
+    "url": "https://estimate.tax/api/mcp"
+  }
+}

@@ -143,7 +143,59 @@ See `lib/__tests__/README.md` for more context on (non-UI) tests.
 
 ## Privacy
 
-The calculator runs entirely in your browser. There is no server-side code, no account to create and no database: the figures you type are never sent anywhere, and the only network traffic is loading the page and anonymous page-view analytics. Anything that needs to remember your figures between visits will keep them in your own browser via local storage.
+The calculator runs entirely in your browser. There is no account to create and no database: the figures you type are never sent anywhere, and the only network traffic is loading the page and anonymous page-view analytics. Anything that needs to remember your figures between visits will keep them in your own browser via local storage.
+
+The site also offers an MCP endpoint (below) for programs and AI assistants. A program that calls it sends its inputs to the server, which calculates a result and returns it. The server keeps nothing: it has no database, does not write inputs or results to its logs, and uses them for nothing but answering that one request.
+
+## MCP Interface (for AI Assistants)
+
+estimate.tax exposes a [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) endpoint so that AI assistants such as Claude, and other programs, can run the same calculations as the site.
+
+**Endpoint:** `POST https://estimate.tax/api/mcp` (MCP Streamable HTTP, no auth, 600 requests per hour per IP)
+
+Add it to any MCP client as a remote server URL, for example in Claude Code:
+
+```bash
+claude mcp add --transport http estimate-tax https://estimate.tax/api/mcp
+```
+
+### Available Tools
+
+| Tool                        | What it answers                                                                                      |
+| --------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `estimate_tax`              | Federal and state tax, amount owed or refund, safe harbor, with notes and assumptions                |
+| `check_safe_harbor`         | Whether withholding and payments reach the safe harbor, and how much more is needed                  |
+| `compare_charitable_giving` | What each of several gift amounts saves in federal and state tax, and what limits the deduction      |
+| `compare_filing_status`     | A couple's tax on one joint return against two separate returns, for a given split                   |
+| `estimate_withholding`      | What an employer would withhold over the year on these wages                                         |
+| `list_jurisdictions`        | Supported years and states, what each covers, and when the data was verified                         |
+
+Every tool is stateless: send the whole return in the call. Field names are the same as the site's inputs (`federalIncome`, `longTermCapitalGains`, `priorYearFederalTax`, and so on); only `filingStatus` and `selectedState` are required, and withholding left out is estimated from wages, as on the site.
+
+### Example
+
+```bash
+curl -X POST https://estimate.tax/api/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "estimate_tax",
+      "arguments": {
+        "filingStatus": "single",
+        "selectedState": "california",
+        "federalIncome": 400000,
+        "longTermCapitalGains": 50000,
+        "charitableContributions": 20000,
+        "priorYearFederalTax": 90000,
+        "priorYearStateTax": 30000
+      }
+    }
+  }'
+```
 
 ## Disclaimer
 

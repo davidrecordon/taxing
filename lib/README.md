@@ -8,6 +8,9 @@ Core calculation logic for Federal and state income taxes.
 lib/
   config.ts              # Tax year configuration
   types.ts               # TypeScript type definitions
+  defaultInputs.ts       # A blank return
+  calculate.ts           # Runs the federal and state calculators together (page, tests, MCP)
+  taxData.ts             # Loads every data file for a year synchronously (MCP, tests)
   formatters.ts          # Currency/percentage formatting utilities
   taxUtils.ts            # Shared calculation utilities
   charitableScenario.ts  # Tax saved by charitable giving, for the what-if tool
@@ -16,7 +19,14 @@ lib/
   deductionCalculator.ts # Federal and state deduction logic (standard vs itemized)
   deductionChoice.ts     # Picks the deduction type where it changes state tax (DC, CO)
   federalTaxCalculator.ts # Federal income tax calculations
-  stateData.ts           # Lazy loading of state tax data by state and year
+  stateData.ts           # Lazy loading of state tax data by state and year (the page)
+  clientIp.ts            # Client IP from proxy headers, for rate limiting
+  rateLimiter.ts         # In-memory sliding window rate limiter for the MCP endpoint
+  mcp/
+    schemas.ts           # Zod input schemas for the tools (the JSON Schema is derived from them)
+    summaries.ts         # Compact results, notes, assumptions, rounding
+    dataStatus.ts        # Verification status per year, mirrors data/VERIFICATION.md
+    server.ts            # createTaxServer(): the six tools on an McpServer
   states/
     stateCalcUtils.ts         # Shared state calculator utilities
     californiaTaxCalculator.ts
@@ -30,6 +40,8 @@ lib/
 ```
 
 ## Calculation Flow
+
+`calculate.ts` runs the two halves below together. `calculateTaxes()` takes the inputs as entered, choosing the federal deduction type together with the state's for DC and Colorado; `calculateEstimate()` first fills in withholding that was not entered from the wage inputs, which is what the page and the MCP server show. The charitable what-if and the joint-versus-separate comparison are here too, so the page and the MCP tools run the same code.
 
 ```
 TaxInputs (user form data)
@@ -97,6 +109,10 @@ What an employer would withhold over the year, from the wage inputs, standing in
 
 - `estimateWithholding()` - Federal regular wages by the ordinary brackets after pre-tax deductions and the standard deduction (the percentage method for a W-4 with no adjustments); California regular wages by EDD's Method B tables (`data/california-withholding.json`); Colorado and Illinois wages at the flat rate less the employer worksheet's annual allowance (`data/colorado-withholding.json`, `data/illinois-withholding.json`); New York regular wages by the Method II annual schedule, Method III above its threshold, and the city's schedule for a city resident (`data/newyork-withholding.json`, `data/nyc-withholding.json`); bonuses and stock at the flat supplemental rates (federal 22%, 37% above $1,000,000 in the year; California 10.23%; New York 11.70% plus the city's 4.25%; Colorado and Illinois have no separate rate). State withholding is estimated for California, Colorado, Illinois and New York; DC's is not.
 - `applyWithholdingEstimate()` - The inputs the calculators run on: an entered amount always wins, and the result says which amounts were estimated
+
+### mcp/
+
+The MCP server behind `app/api/mcp/route.ts`. `server.ts` registers six read-only tools on an `McpServer` from `@modelcontextprotocol/server`: `estimate_tax`, `check_safe_harbor`, `compare_charitable_giving`, `compare_filing_status`, `estimate_withholding` and `list_jurisdictions`. Every tool takes the whole return in the call and calls `calculate.ts`; nothing is stored. `schemas.ts` holds the Zod input schemas, whose `.describe()` text is what an assistant reads (form names are allowed there, unlike on screen). `summaries.ts` builds the compact result, the on-screen notes, the list of assumptions for fields the caller left out, and rounds every amount to cents. `dataStatus.ts` must be updated whenever the "Data Status" section of `data/VERIFICATION.md` changes.
 
 ### states/stateCalcUtils.ts
 

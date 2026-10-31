@@ -46,6 +46,7 @@ Every state file also owns which kinds of income the state taxes and its safe ha
 
 | File                         | Owns |
 | ---------------------------- | ---- |
+| `calculate.test.ts`          | Running the federal and state calculators together: the right calculator for each state, the shared deduction choice for DC and Colorado, withholding estimated when blank and kept when entered, the charitable what-if and the joint-versus-separate comparison |
 | `deductionChoice.test.ts`    | Choosing standard or itemized by the lower combined tax (DC, Colorado) |
 | `charitableScenario.test.ts` | What a charitable gift saves in federal and state tax, and what limits it, for every state |
 
@@ -87,4 +88,6 @@ const inputs = createDefaultInputs({
 
 ### `calculateResults.ts`
 
-`calculateResults(state, overrides, year)` runs the federal and state calculators together the way the app does, including the shared deduction choice for DC and Colorado. Use it when a test is about federal and state combined; use the calculator directly when it is about one jurisdiction.
+`calculateResults(state, overrides, year)` runs the federal and state calculators together through `lib/calculate.ts`, the way the app does, including the shared deduction choice for DC and Colorado, with withholding taken as entered. Use it when a test is about federal and state combined; use the calculator directly when it is about one jurisdiction.
+
+The MCP route has its own tests in `app/api/mcp/__tests__/route.test.ts`, which drive it with real protocol requests and compare the results with `lib/calculate.ts`.

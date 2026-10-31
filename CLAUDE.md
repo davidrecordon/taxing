@@ -1,6 +1,6 @@
 # Claude Code Guidelines
 
-This is a Federal & multi-state estimated tax calculator built with Next.js, TypeScript, and Tailwind CSS. It is a static, client-only app: there is no server code, and tax inputs never leave the browser.
+This is a Federal & multi-state estimated tax calculator built with Next.js, TypeScript, and Tailwind CSS. The web app is client-only: the figures a person types never leave the browser. The one piece of server code is the MCP endpoint at `app/api/mcp/route.ts`, which runs the same calculations for AI assistants and other programs on the inputs in each request and stores nothing.
 
 The repository is public. Never put real personal or financial details in code, tests, docs, or commit messages; build test cases from round, synthetic figures or from official worked examples.
 
@@ -8,6 +8,7 @@ The repository is public. Never put real personal or financial details in code, 
 
 ```
 app/                    # Next.js App Router
+  api/mcp/             # MCP endpoint (see "MCP Interface" below)
 components/
   Forms/               # Input form components
   Displays/            # Result display components
@@ -19,6 +20,7 @@ components/
 data/                  # Tax brackets, deductions, limits (JSON), VERIFICATION.md
 design_docs/           # Design documents, kept locally and ignored by git (see below)
 lib/                   # Calculation logic (see lib/README.md)
+  mcp/                 # MCP server: tool schemas, result summaries, server
   states/              # One calculator per state, plus stateCalcUtils.ts
   __tests__/           # Calculation tests and shared test data
 ```
@@ -54,14 +56,26 @@ Each supported state follows the same structure:
 ### Calculation Flow
 
 ```
-TaxInputs → TaxCalculator.tsx → federalTaxCalculator → stateCalculator → CalculationResults → Display components
+TaxInputs → lib/calculate.ts → federalTaxCalculator → stateCalculator → CalculationResults → Display components
 ```
 
-The federal calculation runs first. Some states depend on it: Colorado starts from federal taxable income, and DC must take the same type of deduction (standard or itemized) as the federal return, so for DC both types are calculated and the pair with the lower combined tax is used (`lib/deductionChoice.ts`). Colorado goes through the same choice, because its charitable subtraction is only for filers who take the federal standard deduction. State calculators that tax all income as ordinary income get wages, gross income, loss offsets and AGI from `calculateStateIncome()` in `lib/states/stateCalcUtils.ts`.
+`lib/calculate.ts` is the one place that runs the federal and state calculators together: `TaxCalculator.tsx`, the test helper `lib/__tests__/calculateResults.ts` and the MCP server all call it. The federal calculation runs first. Some states depend on it: Colorado starts from federal taxable income, and DC must take the same type of deduction (standard or itemized) as the federal return, so for DC both types are calculated and the pair with the lower combined tax is used (`lib/deductionChoice.ts`). Colorado goes through the same choice, because its charitable subtraction is only for filers who take the federal standard deduction. State calculators that tax all income as ordinary income get wages, gross income, loss offsets and AGI from `calculateStateIncome()` in `lib/states/stateCalcUtils.ts`.
 
 Deductions for every jurisdiction live in `lib/deductionCalculator.ts`. Capital gains, losses and carryovers are netted once, in `netCapitalGains()` in `lib/taxUtils.ts`, for both federal and state.
 
 Payroll tax on wages (Social Security and Medicare) is calculated and shown for information only. It is not part of the tax total, the amount owed, or the safe harbor test, because employers withhold it.
+
+### MCP Interface
+
+`POST /api/mcp` is a public, read-only MCP Streamable HTTP endpoint built on the official MCP TypeScript SDK (`@modelcontextprotocol/server` v2) in stateless mode, the same shape as dawnward's. A fresh `McpServer` is built per request by `createTaxServer()` in `lib/mcp/server.ts`; GET and DELETE session operations return 405.
+
+**Tools:** `estimate_tax`, `check_safe_harbor`, `compare_charitable_giving`, `compare_filing_status`, `estimate_withholding`, `list_jurisdictions`. Each takes the whole return in the call (`TaxInputs` field names, camelCase) and returns JSON as text and `structuredContent`, rounded to cents. `estimate_tax` also returns `notes` (the sentences the page shows where a rule limited a figure), `assumptions` (what was filled in for a field the caller left out, with a `source`) and `data` (the year's verification status from `lib/mcp/dataStatus.ts`, which must track `data/VERIFICATION.md`).
+
+**Rate limited:** 600 requests per hour per IP (`lib/rateLimiter.ts`, `lib/clientIp.ts`, copied from dawnward). No authentication: the tools are pure calculations and the server holds no state.
+
+**Schemas:** the Zod objects in `lib/mcp/schemas.ts` are the single source of truth. The SDK validates arguments against them and derives the `tools/list` JSON Schema from them, so the `.describe()` text is what an assistant reads. Unlike on-screen text, these descriptions may name forms and boxes, because the reader is a model mapping documents onto fields. Validation failures come back as tool results with `isError: true`.
+
+**Privacy:** the route logs only the HTTP method and status, and the tool name and duration. Never log request bodies, tool arguments or results, and never add storage to the route. The README's Privacy section describes the endpoint; keep it accurate.
 
 ### Multi-Year Data
 
